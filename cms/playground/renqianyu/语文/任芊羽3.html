@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>汉字「杰」的艺术展示</title>
+    <style>
+        /*—— 基础布局 ———*/
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #f7d560, #f5b041); /* 金黄渐变 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            padding: 40px 30px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            max-width: 560px;
+            width: 90%;
+            position: relative;
+        }
+
+        /*—— 大字 ———*/
+        .character {
+            font-size: 120px;
+            font-weight: 900;
+            color: #c0392b;                     /* 深红，突出「杰」的力量 */
+            text-shadow:
+                0 0 10px rgba(255,215,0,0.8),
+                0 0 20px rgba(255,215,0,0.5),
+                2px 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        .character:hover {
+            transform: scale(1.1) rotate(5deg);
+            text-shadow:
+                0 0 12px rgba(255,215,0,1),
+                0 0 24px rgba(255,215,0,0.7),
+                3px 3px 6px rgba(0,0,0,0.3);
+        }
+
+        /*—— 简介 ———*/
+        .intro {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .intro strong {
+            color: #d35400;
+        }
+
+        /*—— 小装饰 ——*/
+        .sparkle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, rgba(255,215,0,1) 0%, rgba(255,215,0,0) 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: sparkle 2s infinite;
+        }
+
+        @keyframes sparkle {
+            0%   { transform: scale(0); opacity: 0; }
+            30%  { opacity: 0.7; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /*—— 响应式 ——*/
+        @media (max-width: 480px) {
+            .character { font-size: 80px; }
+            .container { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="character" id="char">杰</div>
+    <div class="intro">
+        <p>「<strong>杰</strong>」是一个表示卓越、杰出之意的汉字。</p>
+        <p>它常用来形容人品德高尚、才华出众，亦可指事物的优良、非凡。</p>
+        <p>如成语「<strong>才高八斗</strong>」中的「杰出」；或人名、地名里常出现「杰」字，以期蕴含「卓越」之愿。</p>
+    </div>
+</div>
+
+<script>
+    // 为「杰」字添加点击弹窗的交互
+    const charElem = document.getElementById('char');
+
+    charElem.addEventListener('click', () => {
+        const detail = `
+            「杰」的本义是「山之高峻」的形象，后引申为「突出、卓越」。
+            - 结构：⿱山⿰⺈⿱
+            - 笔画：8画
+            - 常见词组：杰出、杰作、杰伦、杰克…
+            - 词义延伸：优秀、出色、才华横溢
+        `;
+        alert(detail);
+    });
+
+    // 动态生成几颗闪光点，提升视觉层次
+    function createSparkle() {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        // 随机位置在容器内
+        const container = document.querySelector('.container');
+        const rect = container.getBoundingClientRect();
+        sparkle.style.left = Math.random() * (rect.width - 20) + 'px';
+        sparkle.style.top = Math.random() * (rect.height - 20) + 'px';
+        container.appendChild(sparkle);
+        // 1.5秒后移除，防止 DOM 无限增长
+        setTimeout(() => sparkle.remove(), 1500);
+    }
+
+    // 每 600~1200ms 生成一个闪光点
+    setInterval(createSparkle, 800);
+</script>
+
+</body>
+</html>

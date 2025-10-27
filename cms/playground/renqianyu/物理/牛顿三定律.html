@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛顿三定律 - 互动式科学学习平台</title>
+    <style>
+        :root {
+            --primary: #2c3e50;       /* 深蓝主题 */
+            --secondary: #3498db;     /* 蓝色主题 */
+            --accent: #e74c3c;        /* 红色强调 */
+            --light: #ecf0f1;         /* 浅灰 */
+            --dark: #1a2530;          /* 深灰 */
+            --success: #2ecc71;       /* 绿色成功 */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 25px 0;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 10px auto 0;
+            color: #bdc3c7;
+            line-height: 1.6;
+        }
+        
+        .law-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .law-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .law-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255,255,255,0.12);
+            border-color: var(--secondary);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+        }
+        
+        .law-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--secondary), var(--accent));
+        }
+        
+        .law-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+        
+        .law-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+        }
+        
+        .law-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .law-content {
+            line-height: 1.8;
+            color: #ecf0f1;
+            padding: 0 5px;
+        }
+        
+        .law-content p {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .law-content p::before {
+            content: "•";
+            color: var(--secondary);
+            font-weight: bold;
+            position: absolute;
+            left: -15px;
+            font-size: 1.2rem;
+        }
+        
+        .law-example {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 3px solid var(--success);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .interactive-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px dashed var(--secondary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .simulator-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .simulator-title::before {
+            content: "";
+            width: 5px;
+            height: 30px;
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+        
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .input-box {
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: #bdc3c7;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .btn {
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .result {
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 3px solid var(--success);
+        }
+        
+        .result h3 {
+            color: var(--success);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--success);
+        }
+        
+        .real-time {
+            position: relative;
+            height: 100px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.2));
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .force-bar {
+            height: 20px;
+            background: var(--secondary);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 1.5s ease;
+        }
+        
+        .force-label {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            color: #bdc3c7;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .action-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #bdc3c7;
+            font-size: 0.9rem;
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(52, 152, 219, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .highlight {
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .simulator-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .law-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <h1 class="title">牛顿三大定律可视化</h1>
+        <p class="subtitle">直观理解物理学基础概念</p>
+        
+        <div class="law-container">
+            <div class="law-card">
+                <div class="law-header">
+                    <div class="law-icon">1</div>
+                    <h2 class="law-title">第一定律：惯性定律</h2>
+                </div>
+                <div class="law-content">
+                    <p>物体在没有外力作用时，将保持静止状态或匀速直线运动状态。</p>
+                    <p>这表明物体具有保持其运动状态的性质，即惯性。</p>
+                </div>
+                <div class="law-example">
+                    例子：在光滑的冰面上，一个滑冰者会持续滑行直到遇到阻力。
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <div class="law-header">
+                    <div class="law-icon">2</div>
+                    <h2 class="law-title">第二定律：F=ma</h2>
+                </div>
+                <div class="law-content">
+                    <p>物体的加速度与作用力成正比，与物体质量成反比，方向与作用力方向相同。</p>
+                    <p>公式表示为：F = m × a</p>
+                </div>
+                <div class="law-example">
+                    例子：汽车加速时，发动机提供的力越大，汽车的加速度越大，但质量越大，加速度越小。
+                </div>
+            </div>
+            
+            <div class="law-card">
+                <div class="law-header">
+                    <div class="law-icon">3</div>
+                    <h2 class="law-title">第三定律：作用与反作用</h2>
+                </div>
+                <div class="law-content">
+                    <p>对于每一个作用力，总有一个大小相等、方向相反的反作用力。</p>
+                    <p>这两个力作用在不同物体上，不会相互抵消。</p>
+                </div>
+                <div class="law-example">
+                    例子：当你推墙时，墙也会以相同大小的力推你。
+                </div>
+            </div>
+        </div>
+        
+        <div class="interactive-section">
+            <h2 class="simulator-title">第二定律实时模拟器</h2>
+            <div class="simulator-grid">
+                <div class="input-box">
+                    <label class="input-label">质量 (kg)</label>
+                    <input type="number" id="mass" value="1" min="0.1" step="0.1">
+                </div>
+                <div class="input-box">
+                    <label class="input-label">力 (N)</label>
+                    <input type="number" id="force" value="10" min="1" step="1">
+                </div>
+            </div>
+            
+            <button class="btn" id="calculate-btn">计算加速度</button>
+            
+            <div class="result" id="result">
+                <h3>加速度: <span class="value" id="acceleration">0 m/s²</span></h3>
+                <p>结果基于公式: F = m × a</p>
+            </div>
+            
+            <div class="real-time">
+                <div class="force-bar" id="force-bar"></div>
+                <div class="force-label">实时计算力的效应</div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn" id="reset-btn">重置</button>
+                <button class="action-btn" id="increase-force-btn">增加力</button>
+                <button class="action-btn" id="decrease-force-btn">减少力</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>牛顿力学 | 互动模拟 | 物理学可视化</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calculateBtn = document.getElementById('calculate-btn');
+            const massInput = document.getElementById('mass');
+            const forceInput = document.getElementById('force');
+            const accelerationDisplay = document.getElementById('acceleration');
+            const forceBar = document.getElementById('force-bar');
+            const resetBtn = document.getElementById('reset-btn');
+            const increaseForceBtn = document.getElementById('increase-force-btn');
+            const decreaseForceBtn = document.getElementById('decrease-force-btn');
+            
+            // 初始计算
+            calculate();
+            
+            function calculate() {
+                const mass = parseFloat(massInput.value) || 1;
+                const force = parseFloat(forceInput.value) || 10;
+                
+                if (isNaN(mass) || isNaN(force)) {
+                    accelerationDisplay.textContent = "0 m/s²";
+                    return;
+                }
+                
+                const acceleration = force / mass;
+                accelerationDisplay.textContent = acceleration.toFixed(2) + " m/s²";
+                
+                // 更新力条
+                forceBar.style.width = (force / 100 * 100) + '%';
+                
+                // 添加动画效果
+                if (force > 50) {
+                    forceBar.classList.add('pulse');
+                } else {
+                    forceBar.classList.remove('pulse');
+                }
+            }
+            
+            // 监听按钮
+            calculateBtn.addEventListener('click', calculate);
+            massInput.addEventListener('input', calculate);
+            forceInput.addEventListener('input', calculate);
+            
+            resetBtn.addEventListener('click', function() {
+                massInput.value = "1";
+                forceInput.value = "10";
+                calculate();
+            });
+            
+            increaseForceBtn.addEventListener('click', function() {
+                const currentForce = parseFloat(forceInput.value) || 10;
+                forceInput.value = Math.min(100, currentForce + 1);
+                calculate();
+            });
+            
+            decreaseForceBtn.addEventListener('click', function() {
+                const currentForce = parseFloat(forceInput.value) || 10;
+                forceInput.value = Math.max(1, currentForce - 1);
+                calculate();
+            });
+        });
+    </script>
+</body>
+</html>

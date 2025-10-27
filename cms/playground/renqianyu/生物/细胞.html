@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>细胞探索之旅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .cell-model {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .cell-svg {
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+
+        .organelle {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .organelle:hover {
+            filter: brightness(1.2);
+        }
+
+        .info-panel {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-panel h2 {
+            color: #2980b9;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .info-panel p {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .interactive-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #ecf0f1;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: #3498db;
+        }
+
+        .tab.active {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #3498db;
+        }
+
+        .content-panel {
+            display: none;
+        }
+
+        .content-panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .cell-animation {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            animation: move 10s infinite linear;
+        }
+
+        @keyframes move {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(100px, 50px); }
+            50% { transform: translate(50px, 100px); }
+            75% { transform: translate(-50px, 50px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .spin-button {
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mitosis-animation {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        .mitosis-stage {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mitosis-stage.active {
+            display: flex;
+        }
+
+        .cell-stage {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .cell-dividing {
+            animation: divide 2s ease-in-out infinite;
+        }
+
+        @keyframes divide {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.8); }
+        }
+
+        .structure-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .structure-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .structure-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .structure-icon svg {
+            width: 60px;
+            height: 60px;
+        }
+
+        .structure-content h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .structure-content p {
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+
+        .fun-fact {
+            background-color: #fff9c4;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid #fbc02d;
+        }
+
+        .fun-fact-title {
+            color: #f57f17;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .interactive-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+            
+            .structure-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .structure-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>细胞探索之旅</h1>
+            <p class="subtitle">小小细胞，大大世界</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('cell-model')">细胞模型</button>
+            <button class="tab" onclick="showTab('cell-parts')">细胞结构</button>
+            <button class="tab" onclick="showTab('cell-functions')">细胞功能</button>
+            <button class="tab" onclick="showTab('cell-cycle')">细胞分裂</button>
+        </div>
+
+        <div id="cell-model" class="content-panel active">
+            <div class="cell-model">
+                <svg class="cell-svg" width="600" height="600" viewBox="0 0 600 600">
+                    <!-- 细胞膜 -->
+                    <circle cx="300" cy="300" r="280" fill="#ffecb3" stroke="#8d6e63" stroke-width="5"/>
+                    <!-- 细胞核 -->
+                    <circle id="nucleus" class="organelle" cx="300" cy="250" r="80" fill="#9c27b0" opacity="0.8"/>
+                    <circle cx="300" cy="250" r="65" fill="#ba68c8" opacity="0.7"/>
+                    <!-- 核仁 -->
+                    <circle id="nucleolus" class="organelle" cx="300" cy="250" r="25" fill="#4a148c" opacity="0.9"/>
+                    <!-- 线粒体 -->
+                    <ellipse id="mitochondria1" class="organelle" cx="180" cy="350" rx="50" ry="25" fill="#ff5722" opacity="0.8" transform="rotate(30 180 350)"/>
+                    <ellipse id="mitochondria2" class="organelle" cx="420" cy="380" rx="50" ry="25" fill="#ff5722" opacity="0.8" transform="rotate(-20 420 380)"/>
+                    <!-- 叶绿体 -->
+                    <ellipse id="chloroplast" class="organelle" cx="450" cy="200" rx="45" ry="30" fill="#4caf50" opacity="0.8" transform="rotate(45 450 200)"/>
+                    <!-- 内质网 -->
+                    <path id="endoplasmic-reticulum" class="organelle" d="M200,200 Q250,220 300,210 T400,220 Q430,240 420,280 Q400,300 350,290 T250,300 Q200,280 180,250 T200,200" 
+                          fill="#03a9f4" opacity="0.6"/>
+                    <!-- 高尔基体 -->
+                    <rect id="golgi-apparatus" class="organelle" x="150" y="450" width="120" height="60" rx="10" fill="#ff9800" opacity="0.7" transform="rotate(-10 210 480)"/>
+                    <!-- 液泡 -->
+                    <ellipse id="vacuole" class="organelle" cx="150" cy="150" rx="60" ry="50" fill="#00bcd4" opacity="0.7"/>
+                    <!-- 细胞质 -->
+                    <circle cx="300" cy="300" r="275" fill="none" stroke="#5d4037" stroke-width="2" stroke-dasharray="5,5" opacity="0.5"/>
+                </svg>
+            </div>
+
+            <div id="info-panel" class="info-panel">
+                <h2 id="organelle-name">点击细胞器了解更多</h2>
+                <p id="organelle-description">探索细胞中的不同部分，点击任何细胞器查看它的功能！</p>
+            </div>
+
+            <div class="interactive-buttons">
+                <button class="btn" onclick="addParticles()">添加粒子动画</button>
+                <button class="btn" onclick="removeParticles()">移除粒子</button>
+                <button class="btn spin-button" onclick="rotateCell()">旋转细胞</button>
+            </div>
+        </div>
+
+        <div id="cell-parts" class="content-panel">
+            <h2 style="text-align: center; color: #2980b9; margin-bottom: 30px;">细胞结构详解</h2>
+            
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #e3f2fd;">
+                    <svg viewBox="0 0 24 24" fill="#1976d2">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>细胞膜</h3>
+                    <p>细胞膜是细胞的外层，由脂质双层组成，像围墙一样保护着细胞内部。它还能控制物质进出细胞，有用的物质可以进入，废物可以排出，像一个智能的保安系统。</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #f3e5f5;">
+                    <svg viewBox="0 0 24 24" fill="#7b1fa2">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>细胞核</h3>
+                    <p>细胞核是细胞的"司令部"，里面有DNA，包含了我们所有的遗传信息。它控制着细胞的各种活动，告诉细胞该做什么、什么时候做，就像学校里的校长办公室。</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #ffecb3;">
+                    <svg viewBox="0 0 24 24" fill="#f57c00">
+                        <path d="M13.5,5.5C14.34,5.5 15,4.84 15,4C15,3.16 14.34,2.5 13.5,2.5C12.66,2.5 12,3.16 12,4C12,4.84 12.66,5.5 13.5,5.5M9.89,19.38L10.89,15L13,17V23H15V15.5L12.89,13.5L13.5,10.5C14.79,12 16.79,13 19,13V11C17.09,11 15.5,10 14.69,8.58L13.69,7C13.29,6.38 12.69,6 12,6C11.69,6 11.5,6 11.29,6.08C10.9,6.21 10.56,6.47 10.33,6.81L8.93,9C8.5,9.5 7.79,9.75 7.08,9.75C6.79,9.75 6.5,9.69 6.24,9.56L3,8V13L6.07,14.06L5,16.06L2.5,15.22L2,17.22L5,18.22L5.89,21H13.5L12.9,19M7.5,5.5C8.34,5.5 9,4.84 9,4C9,3.16 8.34,2.5 7.5,2.5C6.66,2.5 6,3.16 6,4C6,4.84 6.66,5.5 7.5,5.5Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>线粒体</h3>
+                    <p>线粒体被称为"细胞的能量工厂"，它通过呼吸作用产生能量（ATP），为细胞的各种活动提供动力。没有线粒体，细胞就会像没有电力的机器一样无法工作！</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #e8f5e9;">
+                    <svg viewBox="0 0 24 24" fill="#388e3c">
+                        <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>叶绿体</h3>
+                    <p>叶绿体是植物细胞特有的细胞器，里面有叶绿素，能进行光合作用，把阳光、水和二氧化碳转化为能量和氧气。植物之所以是绿色的，就是因为有叶绿体！</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #e1f5fe;">
+                    <svg viewBox="0 0 24 24" fill="#0288d1">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>内质网</h3>
+                    <p>内质网是细胞内的"高速公路系统"，分为粗面内质网（有核糖体）和滑面内质网。它负责蛋白质和脂质的运输、加工和合成，是细胞内的重要物质生产工厂。</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #fff3e0;">
+                    <svg viewBox="0 0 24 24" fill="#ef6c00">
+                        <path d="M18,10A6,6 0 0,0 12,4A6,6 0 0,0 6,10A6,6 0 0,0 12,16A6,6 0 0,0 18,10M12,8A2,2 0 0,1 14,10A2,2 0 0,1 12,12A2,2 0 0,1 10,10A2,2 0 0,1 12,8Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>高尔基体</h3>
+                    <p>高尔基体是细胞的"邮政局"和"包装厂"，它负责接收内质网生产的蛋白质，进行修饰、分类，然后打包并送到细胞需要的地方，确保每个蛋白质各就各位。</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #e0f7fa;">
+                    <svg viewBox="0 0 24 24" fill="#0097a7">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>液泡</h3>
+                    <p>液泡是植物细胞中的"储藏室"，储存水分、营养物质和废物。它还能帮助维持细胞的形状，就像一个充满水的气球。大型液泡甚至可以占据植物细胞体积的80%以上！</p>
+                </div>
+            </div>
+
+            <div class="structure-card">
+                <div class="structure-icon" style="background-color: #f9fbe7;">
+                    <svg viewBox="0 0 24 24" fill="#827717">
+                        <circle cx="12" cy="12" r="5"/>
+                    </svg>
+                </div>
+                <div class="structure-content">
+                    <h3>核糖体</h3>
+                    <p>核糖体是细胞内的"蛋白质生产工厂"，根据细胞核中DNA的指令合成蛋白质。它们有的附着在内质网上，有的游离在细胞质中，是所有细胞中都存在的小结构。</p>
+                </div>
+            </div>
+
+            <div class="fun-fact">
+                <h3 class="fun-fact-title">有趣的知识</h3>
+                <p>人体内大约有37万亿个细胞，而大脑神经元之间的连接数比银河系中的星星还要多！细胞虽小，但它们构成了神奇的你。</p>
+            </div>
+        </div>
+
+        <div id="cell-functions" class="content-panel">
+            <h2 style="text-align: center; color: #2980b9; margin-bottom: 20px;">细胞的功能</h2>
+            
+            <div class="fun-fact">
+                <h3 class="fun-fact-title">你知道吗？</h3>
+                <p>人体内大约有37万亿个细胞！这些细胞一起工作，构成了神奇的你。</p>
+            </div>
+
+            <div class="quiz-section">
+                <h3 style="color: #27ae60; margin-bottom: 15px;">细胞知识小测验</h3>
+                
+                <div class="structure-card">
+                    <div style="flex-grow: 1;">
+                        <h4>1. 哪个细胞器被称为"细胞的能量工厂"？</h4>
+                        <div class="options" style="margin-top: 15px;">
+                            <div class="option" onclick="checkAnswer(this, true)">线粒体</div>
+                            <div class="option" onclick="checkAnswer(this, false)">细胞核</div>
+                            <div class="option" onclick="checkAnswer(this, false)">叶绿体</div>
+                        </div>
+                        <div id="feedback1" class="feedback" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+
+                <div class="structure-card">
+                    <div style="flex-grow: 1;">
+                        <h4>2. 植物特有的细胞器是什么？</h4>
+                        <div class="options" style="margin-top: 15px;">
+                            <div class="option" onclick="checkAnswer2(this, false)">线粒体</div>
+                            <div class="option" onclick="checkAnswer2(this, true)">叶绿体</div>
+                            <div class="option" onclick="checkAnswer2(this, false)">细胞核</div>
+                        </div>
+                        <div id="feedback2" class="feedback" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+
+                <div class="structure-card">
+                    <div style="flex-grow: 1;">
+                        <h4>3. 细胞膜的主要成分是什么？</h4>
+                        <div class="options" style="margin-top: 15px;">
+                            <div class="option" onclick="checkAnswer3(this, false)">蛋白质</div>
+                            <div class="option" onclick="checkAnswer3(this, true)">脂质</div>
+                            <div class="option" onclick="checkAnswer3(this, false)">糖类</div>
+                        </div>
+                        <div id="feedback3" class="feedback" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interactive-buttons">
+                <button class="btn" onclick="showCellVideo()">观看细胞视频</button>
+                <button class="btn" onclick="buildCell()">构建细胞</button>
+            </div>
+        </div>
+
+        <div id="cell-cycle" class="content-panel">
+            <h2 style="text-align: center; color: #2980b9; margin-bottom: 20px;">细胞分裂（有丝分裂）</h2>
+            
+            <div class="mitosis-animation">
+                <div id="interphase" class="mitosis-stage active">
+                    <div class="cell-stage" style="background-color: #ffecb3; border: 3px solid #8d6e63;">
+                        <span style="color: #5d4037;">间期</span>
+                        <br>
+                        <small>细胞生长，DNA复制</small>
+                    </div>
+                </div>
+                
+                <div id="prophase" class="mitosis-stage">
+                    <div class="cell-stage" style="background-color: #e1bee7; border: 3px solid #8e24aa;">
+                        <span style="color: #4a148c;">前期</span>
+                        <br>
+                        <small>染色体形成，核膜消失</small>
+                    </div>
+                </div>
+                
+                <div id="metaphase" class="mitosis-stage">
+                    <div class="cell-stage cell-dividing" style="background-color: #c8e6c9; border: 3px solid #388e3c;">
+                        <span style="color: #1b5e20;">中期</span>
+                        <br>
+                        <small>染色体排列在赤道板上</small>
+                    </div>
+                </div>
+                
+                <div id="anaphase" class="mitosis-stage">
+                    <div class="cell-stage cell-dividing" style="background-color: #ffccbc; border: 3px solid #e64a19;">
+                        <span style="color: #bf360c;">后期</span>
+                        <br>
+                        <small>染色体分离，移向两极</small>
+                    </div>
+                </div>
+                
+                <div id="telophase" class="mitosis-stage">
+                    <div class="cell-stage cell-dividing" style="background-color: #bbdefb; border: 3px solid #0277bd;">
+                        <span style="color: #01579b;">末期</span>
+                        <br>
+                        <small>核膜重新形成，细胞质分裂</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="structure-card">
+                <div style="flex-grow: 1;">
+                    <h4>细胞分裂小知识</h4>
+                    <p>有丝分裂是细胞分裂的主要方式，一个母细胞分裂成两个完全相同的子细胞。这个过程对生长、修复和组织更新都至关重要。皮肤细胞大约每27天分裂一次，而红细胞在骨髓中每天要产生2000亿个！</p>
+                </div>
+            </div>
+            
+            <div class="interactive-buttons">
+                <button class="btn" onclick="startMitosisAnimation()">播放细胞分裂动画</button>
+                <button class="btn" onclick="pauseMitosisAnimation()">暂停动画</button>
+                <button class="btn" onclick="resetMitosisAnimation()">重置动画</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 细胞器信息
+        const organelleInfo = {
+            'nucleus': {
+                name: '细胞核',
+                description: '细胞核是细胞的控制中心，含有DNA，负责存储和传递遗传信息。它就像公司的总经理办公室，指挥着整个细胞的工作。'
+            },
+            'nucleolus': {
+                name: '核仁',
+                description: '核仁是细胞核中的小结构，负责制造核糖体，核糖体是蛋白质合成的场所。它是蛋白质生产工厂的管理中心。'
+            },
+            'mitochondria1': {
+                name: '线粒体',
+                description: '线粒体被称为"细胞的能量工厂"，通过呼吸作用产生ATP（能量分子）。它就像发电站，为细胞的各项活动提供能量。'
+            },
+            'mitochondria2': {
+                name: '线粒体',
+                description: '线粒体被称为"细胞的能量工厂"，通过呼吸作用产生ATP（能量分子）。它就像发电站，为细胞的各项活动提供能量。'
+            },
+            'chloroplast': {
+                name: '叶绿体',
+                description: '叶绿体是植物细胞特有的细胞器，含有叶绿素，能够进行光合作用，将阳光转化为能量。植物之所以是绿色的，就是因为有叶绿体！'
+            },
+            'endoplasmic-reticulum': {
+                name: '内质网',
+                description: '内质网是细胞内的运输系统，分为粗面内质网和滑面内质网，负责蛋白质和脂质的运输、加工和合成。'
+            },
+            'golgi-apparatus': {
+                name: '高尔基体',
+                description: '高尔基体是细胞的"包装和分发中心"，负责接收、修改和运输蛋白质到细胞的不同部位。它就像是细胞的物流中心。'
+            },
+            'vacuole': {
+                name: '液泡',
+                description: '液泡是植物细胞中的储藏室，储存水分、营养物质和废物。它还能帮助维持细胞的形状，就像一个充满水的气球。'
+            }
+        };
+
+        // 显示细胞器信息
+        document.querySelectorAll('.organelle').forEach(organelle => {
+            organelle.addEventListener('click', function() {
+                const info = organelleInfo[this.id];
+                if (info) {
+                    document.getElementById('organelle-name').textContent = info.name;
+                    document.getElementById('organelle-description').textContent = info.description;
+                    document.getElementById('info-panel').style.display = 'block';
+                }
+            });
+        });
+
+        // 切换标签页
+        function showTab(tabName) {
+            // 隐藏所有内容面板
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // 移除所有标签的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的内容面板
+            document.getElementById(tabName).classList.add('active');
+            
+            // 激活选中的标签
+            event.target.classList.add('active');
+        }
+
+        // 添加粒子动画
+        function addParticles() {
+            const cellModel = document.querySelector('.cell-model');
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'cell-animation';
+                particle.style.left = Math.random() * 500 + 'px';
+                particle.style.top = Math.random() * 500 + 'px';
+                particle.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                cellModel.appendChild(particle);
+            }
+        }
+
+        // 移除粒子动画
+        function removeParticles() {
+            document.querySelectorAll('.cell-animation').forEach(particle => {
+                particle.remove();
+            });
+        }
+
+        // 旋转细胞
+        function rotateCell() {
+            const cellSvg = document.querySelector('.cell-svg');
+            cellSvg.style.transition = 'transform 2s ease';
+            cellSvg.style.transform = 'rotate(360deg)';
+            
+            setTimeout(() => {
+                cellSvg.style.transform = 'rotate(0deg)';
+            }, 2000);
+        }
+
+        // 检查答案
+        function checkAnswer(element, isCorrect) {
+            // 禁用所有选项
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                document.getElementById('feedback1').textContent = '正确！线粒体确实是细胞的能量工厂！';
+                document.getElementById('feedback1').className = 'feedback correct';
+            } else {
+                element.classList.add('incorrect');
+                document.getElementById('feedback1').textContent = '不对哦，再想想哪个是能量的来源？';
+                document.getElementById('feedback1').className = 'feedback incorrect';
+            }
+            
+            document.getElementById('feedback1').style.display = 'block';
+        }
+
+        // 检查第二个答案
+        function checkAnswer2(element, isCorrect) {
+            // 禁用所有选项
+            document.querySelectorAll('.option').forEach(opt => {
+                if (opt.parentElement.parentElement.id === 'feedback2') {
+                    opt.style.pointerEvents = 'none';
+                }
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                document.getElementById('feedback2').textContent = '正确！叶绿体是植物特有的细胞器！';
+                document.getElementById('feedback2').className = 'feedback correct';
+            } else {
+                element.classList.add('incorrect');
+                document.getElementById('feedback2').textContent = '不对哦，只有植物细胞才有这个细胞器哦！';
+                document.getElementById('feedback2').className = 'feedback incorrect';
+            }
+            
+            document.getElementById('feedback2').style.display = 'block';
+        }
+
+        // 检查第三个答案
+        function checkAnswer3(element, isCorrect) {
+            // 禁用所有选项
+            document.querySelectorAll('.option').forEach(opt => {
+                if (opt.parentElement.parentElement.id === 'feedback3') {
+                    opt.style.pointerEvents = 'none';
+                }
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                document.getElementById('feedback3').textContent = '正确！细胞膜的主要成分是脂质！';
+                document.getElementById('feedback3').className = 'feedback correct';
+            } else {
+                element.classList.add('incorrect');
+                document.getElementById('feedback3').textContent = '不对哦，细胞膜主要由脂质双层构成。';
+                document.getElementById('feedback3').className = 'feedback incorrect';
+            }
+            
+            document.getElementById('feedback3').style.display = 'block';
+        }
+
+        // 显示细胞视频（模拟）
+        function showCellVideo() {
+            alert('这是一个模拟功能！在实际应用中，这里会播放一个细胞工作的动画视频。');
+        }
+
+        // 构建细胞（模拟）
+        function buildCell() {
+            alert('这是一个模拟功能！在实际应用中，这里会有一个交互式游戏，让你自己构建一个细胞。');
+        }
+
+        // 细胞分裂动画相关变量
+        let mitosisInterval;
+        let currentStage = 0;
+        const stages = ['interphase', 'prophase', 'metaphase', 'anaphase', 'telophase'];
+
+        // 开始细胞分裂动画
+        function startMitosisAnimation() {
+            if (mitosisInterval) clearInterval(mitosisInterval);
+            
+            currentStage = 0;
+            showStage(currentStage);
+            
+            mitosisInterval = setInterval(() => {
+                currentStage = (currentStage + 1) % stages.length;
+                showStage(currentStage);
+            }, 2000);
+        }
+
+        // 显示特定阶段
+        function showStage(index) {
+            document.querySelectorAll('.mitosis-stage').forEach(stage => {
+                stage.classList.remove('active');
+            });
+            document.getElementById(stages[index]).classList.add('active');
+        }
+
+        // 暂停细胞分裂动画
+        function pauseMitosisAnimation() {
+            if (mitosisInterval) {
+                clearInterval(mitosisInterval);
+                mitosisInterval = null;
+            }
+        }
+
+        // 重置细胞分裂动画
+        function resetMitosisAnimation() {
+            if (mitosisInterval) {
+                clearInterval(mitosisInterval);
+                mitosisInterval = null;
+            }
+            currentStage = 0;
+            showStage(currentStage);
+        }
+    </script>
+</body>
+</html>

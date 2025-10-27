@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>字数统计 - 简洁版</title>
+  <!-- 国内CDN：Bootstrap 与 jQuery -->
+  <link href="https://cdn.staticfile.org/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.staticfile.org/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    body {
+      background-color: #f9fafc;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      padding: 24px 28px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      color: #2c3e50;
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid #dcdcdc;
+      padding: 12px 14px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+      text-align: center;
+    }
+    .stat {
+      flex: 1;
+      min-width: 100px;
+      margin: 4px 0;
+    }
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #007bff;
+    }
+    .level-text {
+      text-align: center;
+      font-weight: 500;
+      margin-top: 1rem;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+      gap: 10px;
+    }
+    button {
+      flex: 1;
+      min-width: 130px;
+      border-radius: 12px;
+    }
+    .toast-msg {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>字数统计工具</h1>
+    <textarea id="txt" placeholder="在这里输入或粘贴你的文字..."></textarea>
+
+    <div class="stats mt-3">
+      <div class="stat"><div>文字数</div><div id="numChars" class="stat-value">0</div></div>
+      <div class="stat"><div>符号数</div><div id="numPunct" class="stat-value">0</div></div>
+      <div class="stat"><div>空格数</div><div id="numSpaces" class="stat-value">0</div></div>
+      <div class="stat"><div>总计</div><div id="numTotal" class="stat-value">0</div></div>
+    </div>
+
+    <div id="levelText" class="level-text mt-2">文本等级: 0 级 (超短文)</div>
+
+    <div class="buttons">
+      <button id="copyTextBtn" class="btn btn-primary">复制文字</button>
+      <button id="copyCountsBtn" class="btn btn-outline-primary">复制统计</button>
+      <button id="clearBtn" class="btn btn-outline-danger">清空</button>
+      <button id="downloadBtn" class="btn btn-outline-secondary">下载文本</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-msg"></div>
+
+  <script>
+  (function () {
+    const ta = document.getElementById('txt');
+    const numChars = document.getElementById('numChars');
+    const numPunct = document.getElementById('numPunct');
+    const numSpaces = document.getElementById('numSpaces');
+    const numTotal = document.getElementById('numTotal');
+    const levelText = document.getElementById('levelText');
+    const toast = document.getElementById('toast');
+
+    const copyTextBtn = document.getElementById('copyTextBtn');
+    const copyCountsBtn = document.getElementById('copyCountsBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let segmenter = null;
+    try {
+      if (typeof Intl !== 'undefined' && Intl.Segmenter)
+        segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+    } catch (e) {}
+
+    function iterateGraphemes(str) {
+      if (!str) return [];
+      if (segmenter) return Array.from(segmenter.segment(str), s => s.segment);
+      return Array.from(str);
+    }
+
+    const spacesRegex = /[ \t\n\r\u00A0\u3000]/g;
+    let punctRegex;
+    try {
+      punctRegex = new RegExp('\\p{P}', 'gu');
+    } catch (e) {
+      punctRegex = /[!\"#\$%&'()\*\+,\-./:;<=>?@\[\]^_`{|}~·！＂＃＄％＆＇（）＊＋，－．／：；＜＝＞？＠［］＾＿｀｛｜｝～、「」『』【】《》？！：；—…·]/g;
+    }
+
+    function computeCounts(s) {
+      const graphemes = iterateGraphemes(s);
+      const total = graphemes.length;
+      const spaces = (s.match(spacesRegex) || []).length;
+      const punct = (s.match(punctRegex) || []).length;
+      const chars = Math.max(0, total - spaces - punct);
+      return { total, spaces, punct, chars };
+    }
+
+    function textLevel(chars) {
+      if (chars < 500) return 0;
+      if (chars < 800) return 1;
+      if (chars < 1000) return 2;
+      if (chars < 1500) return 3;
+      if (chars < 1800) return 4;
+      if (chars < 2000) return 5;
+      return 5;
+    }
+
+    const levelNames = ["超短文","短文","中等文","长文","较长文","超长文"];
+
+    function update() {
+      const val = ta.value || '';
+      const c = computeCounts(val);
+      numChars.textContent = c.chars;
+      numPunct.textContent = c.punct;
+      numSpaces.textContent = c.spaces;
+      numTotal.textContent = c.total;
+      const lvl = textLevel(c.chars);
+      levelText.textContent = `文本等级: ${lvl} 级 (${levelNames[lvl]})`;
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => toast.style.opacity = '0', 1500);
+    }
+
+    // ✅ 通用安全复制函数（任何环境下都可用）
+    function safeCopyText(text) {
+      try {
+        if (navigator.clipboard && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
+        } else {
+          const temp = document.createElement('textarea');
+          temp.value = text;
+          temp.style.position = 'fixed';
+          temp.style.opacity = '0';
+          document.body.appendChild(temp);
+          temp.focus();
+          temp.select();
+          document.execCommand('copy');
+          temp.remove();
+          showToast('已复制到剪贴板');
+        }
+      } catch (e) {
+        showToast('复制失败，请手动复制');
+      }
+    }
+
+    copyTextBtn.onclick = () => {
+      safeCopyText(ta.value || '');
+    };
+
+    copyCountsBtn.onclick = () => {
+      const c = computeCounts(ta.value || '');
+      const now = new Date();
+      const dateTimeStr = `${now.getFullYear()}年${(now.getMonth()+1).toString().padStart(2,'0')}月${now.getDate().toString().padStart(2,'0')}日 ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      const lvl = textLevel(c.chars);
+      const text = `统计时间：${dateTimeStr}\n文字数：${c.chars}\n符号数：${c.punct}\n空格数：${c.spaces}\n总数：${c.total}\n文本等级：${lvl}级 (${levelNames[lvl]})`;
+      safeCopyText(text);
+    };
+
+    clearBtn.onclick = () => {
+      ta.value = '';
+      update();
+    };
+
+    downloadBtn.onclick = () => {
+      const blob = new Blob([ta.value || ''], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = '文本统计_' + new Date().toISOString().split('T')[0] + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('已下载文本');
+    };
+
+    ta.addEventListener('input', update);
+    update();
+  })();
+  </script>
+</body>
+</html>

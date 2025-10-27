@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>热力学奇妙世界</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #5a67d8;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tab-button.active {
+            background-color: #5a67d8;
+            color: white;
+        }
+        
+        .content-section {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .concept-card {
+            background-color: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #5a67d8;
+        }
+        
+        .concept-title {
+            color: #5a67d8;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .concept-title svg {
+            margin-right: 10px;
+        }
+        
+        .concept-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #4a5568;
+        }
+        
+        .interactive-box {
+            background-color: #e6fffa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .molecule-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .molecule {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 15px;
+        }
+        
+        .molecule-atom {
+            position: absolute;
+            background-color: #e53e3e;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            top: 15px;
+            left: 15px;
+            box-shadow: 0 0 15px rgba(229, 62, 62, 0.5);
+        }
+        
+        .molecule-movement {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            animation: none;
+        }
+        
+        .cold .molecule-movement {
+            animation: vibrate 2s infinite;
+        }
+        
+        .warm .molecule-movement {
+            animation: vibrate 0.5s infinite;
+        }
+        
+        .hot .molecule-movement {
+            animation: vibrate 0.2s infinite;
+        }
+        
+        @keyframes vibrate {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(5px, 5px); }
+            50% { transform: translate(-5px, 0); }
+            75% { transform: translate(0, -5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        .temperature-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .temp-button {
+            background-color: #5a67d8;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .temp-button:hover {
+            background-color: #4c51bf;
+            transform: translateY(-2px);
+        }
+        
+        .heat-transfer-demo {
+            margin-top: 30px;
+        }
+        
+        .transfer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .object {
+            width: 120px;
+            height: 120px;
+            background-color: #fbd38d;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0 15px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .object.hot {
+            background-color: #fc8181;
+        }
+        
+        .object.cold {
+            background-color: #63b3ed;
+        }
+        
+        .heat-arrow {
+            width: 80px;
+            height: 20px;
+            position: relative;
+        }
+        
+        .arrow-line {
+            position: absolute;
+            width: 60px;
+            height: 4px;
+            background-color: #ed8936;
+            top: 8px;
+            left: 0;
+        }
+        
+        .arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 15px solid #ed8936;
+            top: 0;
+            right: 0;
+        }
+        
+        .quiz-container {
+            background-color: #f0f4f8;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .question {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .option-button {
+            background-color: white;
+            border: 2px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option-button:hover {
+            background-color: #edf2f7;
+            border-color: #5a67d8;
+        }
+        
+        .option-button.correct {
+            background-color: #c6f6d5;
+            border-color: #48bb78;
+        }
+        
+        .option-button.incorrect {
+            background-color: #fed7d7;
+            border-color: #f56565;
+        }
+        
+        .result-message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result-message.correct {
+            background-color: #c6f6d5;
+            color: #276749;
+        }
+        
+        .result-message.incorrect {
+            background-color: #fed7d7;
+            color: #9b2c2c;
+        }
+        
+        .interactive-formula {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .formula-part {
+            background-color: #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 10px;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .formula-equals {
+            margin: 0 15px;
+            font-size: 2rem;
+        }
+        
+        .slider-container {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #5a67d8;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #5a67d8;
+            cursor: pointer;
+        }
+        
+        .energy-bar {
+            height: 30px;
+            background-color: #e2e8f0;
+            border-radius: 15px;
+            margin-top: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #f6e05e 50%, #f56565 100%);
+            width: 50%;
+            transition: width 0.5s ease;
+            border-radius: 15px;
+        }
+        
+        .energy-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>热力学奇妙世界</h1>
+            <p class="subtitle">探索温度、热量和能量的奥秘</p>
+        </header>
+        
+        <nav class="nav-tabs">
+            <button class="tab-button active" data-tab="basics">基础知识</button>
+            <button class="tab-button" data-tab="molecules">分子运动</button>
+            <button class="tab-button" data-tab="transfer">热传递</button>
+            <button class="tab-button" data-tab="energy">热能转换</button>
+            <button class="tab-button" data-tab="quiz">知识测试</button>
+        </nav>
+        
+        <section id="basics" class="content-section active">
+            <div class="concept-card">
+                <h2 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <circle cx="12" cy="12" r="8"/>
+                        <path d="M12 6v6l4 2" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    什么是热力学？
+                </h2>
+                <p class="concept-content">
+                    热力学是研究热量和能量转换的科学。它告诉我们热量如何从热的物体传递到冷的物体，
+                    以及能量如何在不同形式之间转换。就像我们冬天手冷时，会握着热水杯取暖，
+                    热水会把自己的热量传给我们，让我们的手变暖和。
+                </p>
+            </div>
+            
+            <div class="concept-card">
+                <h2 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    温度与热量
+                </h2>
+                <p class="concept-content">
+                    <strong>温度</strong>是衡量物体有多热的量度，用摄氏度(℃)或华氏度(°F)表示。
+                    <br>
+                    <strong>热量</strong>是能量从高温物体向低温物体传递的量。就像水总是从高处流向低处，
+                    热量总是从热的物体流向冷的物体。
+                    <br>
+                    你知道吗？水的沸点是100℃，冰点是0℃。人体的正常体温大约是37℃。
+                </p>
+            </div>
+            
+            <div class="concept-card">
+                <h2 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.19 0 2.34-.21 3.41-.6.3-.11.49-.4.49-.72 0-.43-.35-.78-.78-.78-.17 0-.33.06-.46.14-.83.32-1.74.49-2.66.49-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7c0 .92-.17 1.83-.49 2.66-.08.13-.14.29-.14.46 0 .43.35.78.78.78.32 0 .61-.19.72-.49.39-1.07.6-2.22.6-3.41 0-5.52-4.48-10-10-10z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    热力学第一定律
+                </h2>
+                <p class="concept-content">
+                    热力学第一定律告诉我们：能量既不能凭空产生，也不会凭空消失，它只能从一种形式转化为另一种形式，
+                    或者从一个物体转移到另一个物体，在转化和转移的过程中，能量的总量保持不变。
+                    <br>
+                    这就像你把一个积木从这一边移到那一边，虽然位置变了，但积木的数量没有改变！
+                </p>
+            </div>
+        </section>
+        
+        <section id="molecules" class="content-section">
+            <h2 style="text-align: center; color: #5a67d8; margin-bottom: 20px;">分子的热运动</h2>
+            <p style="text-align: center; font-size: 1.2rem; margin-bottom: 30px;">
+                温度越高，分子运动越快；温度越低，分子运动越慢。让我们来观察一下吧！
+            </p>
+            
+            <div class="interactive-box">
+                <h3 style="color: #5a67d8; margin-bottom: 20px;">分子温度模拟器</h3>
+                
+                <div class="molecule-container">
+                    <div id="cold-container" class="molecule cold">
+                        <div class="molecule-movement"></div>
+                        <div class="molecule-atom"></div>
+                    </div>
+                    
+                    <div id="warm-container" class="molecule warm">
+                        <div class="molecule-movement"></div>
+                        <div class="molecule-atom"></div>
+                    </div>
+                    
+                    <div id="hot-container" class="molecule hot">
+                        <div class="molecule-movement"></div>
+                        <div class="molecule-atom"></div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: center; gap: 30px; margin-top: 15px;">
+                    <div style="text-align: center;">
+                        <div style="width: 20px; height: 20px; background-color: #63b3ed; border-radius: 50%; display: inline-block;"></div>
+                        <span style="margin-left: 10px;">冷</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 20px; height: 20px; background-color: #fbd38d; border-radius: 50%; display: inline-block;"></div>
+                        <span style="margin-left: 10px;">温</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 20px; height: 20px; background-color: #fc8181; border-radius: 50%; display: inline-block;"></div>
+                        <span style="margin-left: 10px;">热</span>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 30px; font-size: 1.1rem;">
+                    注意：当温度升高时，分子运动加快，它们的振动幅度更大！这就是为什么热的东西会膨胀的原因。
+                </p>
+            </div>
+            
+            <div class="interactive-box" style="margin-top: 30px;">
+                <h3 style="color: #5a67d8; margin-bottom: 20px;">温度变化实验</h3>
+                <p style="margin-bottom: 20px;">调整下面的滑块，观察不同温度下分子运动的变化：</p>
+                
+                <div class="temperature-control">
+                    <button class="temp-button" onclick="changeTemperature('cold')">变冷</button>
+                    <div style="text-align: center;">
+                        <div id="current-temp" style="font-size: 2rem; font-weight: bold; color: #5a67d8; margin-bottom: 10px;">20°C</div>
+                        <input type="range" id="temp-slider" class="slider" min="-10" max="100" value="20" oninput="updateTemperature(this.value)">
+                    </div>
+                    <button class="temp-button" onclick="changeTemperature('hot')">变热</button>
+                </div>
+                
+                <div class="energy-bar">
+                    <div id="energy-fill" class="energy-fill"></div>
+                    <div class="energy-label" id="energy-level">分子运动能量</div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="transfer" class="content-section">
+            <h2 style="text-align: center; color: #5a67d8; margin-bottom: 30px;">热的三种传递方式</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                    </svg>
+                    传导（热传导）
+                </h3>
+                <p class="concept-content">
+                    热传导是热量通过固体直接传递的方式。就像你用手摸金属勺子的柄，如果勺子头部放在热水中，
+                    慢慢地你会发现手摸到的柄也变热了，这就是热传导在起作用！金属是热的良导体，而木头和塑料是热的不良导体。
+                </p>
+            </div>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
+                    </svg>
+                    对流（热对流）
+                </h3>
+                <p class="concept-content">
+                    热对流是热量通过液体或气体流动传递的方式。烧水时，锅底的水先变热，然后会上升，
+                    上面的冷水会下沉到锅底继续加热，这样整个锅的水就都热起来了。这种热水的上升和冷水的下沉就是热对流。
+                </p>
+            </div>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v6m0 6v6m11-11h-6m-6 0H1m20.07 7.07l-4.24-4.24M7.05 8.12L2.93 3.93m0 16.14l4.24-4.24m7.78 7.78l4.24-4.24"/>
+                    </svg>
+                    辐射（热辐射）
+                </h3>
+                <p class="concept-content">
+                    热辐射是热量通过电磁波传递的方式，不需要任何介质。太阳的热量就是通过热辐射传到地球上，
+                    太阳和地球之间是真空，没有介质传递热量，但太阳的热量仍然可以到达地球。
+                    我们感受到的炉火的热，也是热辐射。
+                </p>
+            </div>
+            
+            <div class="heat-transfer-demo">
+                <h3 style="text-align: center; color: #5a67d8; margin-bottom: 20px;">热传递演示</h3>
+                
+                <div class="transfer-container">
+                    <div id="source-object" class="object hot">热源</div>
+                    <div class="heat-arrow">
+                        <div class="arrow-line"></div>
+                        <div class="arrow-head"></div>
+                    </div>
+                    <div id="target-object" class="object">目标</div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="temp-button" onclick="transferHeat()">点击传递热能</button>
+                    <button class="temp-button" onclick="resetObjects()">重置</button>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <p style="font-size: 1.2rem; text-align: center; margin-bottom: 15px;">试试不同的热传递方式：</p>
+                    <div style="display: flex; justify-content: center; gap: 20px;">
+                        <button class="temp-button" onclick="changeTransferMode('conduction')">传导</button>
+                        <button class="temp-button" onclick="changeTransferMode('convection')">对流</button>
+                        <button class="temp-button" onclick="changeTransferMode('radiation')">辐射</button>
+                    </div>
+                </div>
+                
+                <div id="transfer-info" style="margin-top: 20px; padding: 15px; background-color: #f7fafc; border-radius: 10px; text-align: center; font-size: 1.1rem;">
+                    <strong>当前模式：传导</strong> - 热量通过固体直接传递
+                </div>
+            </div>
+        </section>
+        
+        <section id="energy" class="content-section">
+            <h2 style="text-align: center; color: #5a67d8; margin-bottom: 30px;">热能与其他能量的转换</h2>
+            
+            <div class="concept-card">
+                <h3 class="concept-title">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#5a67d8">
+                        <path d="M14.5 2c-1.74 0-3.41.81-4.5 2.09C8.91 2.81 7.24 2 5.5 2 2.42 2 0 4.42 0 7.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l3.45-2.32C20.6 14.36 24 11.28 24 7.5 24 4.42 21.58 2 18.5 2c-1.74 0-3.41.81-4.5 2.09C17.91 2.81 16.24 2 14.5 2z"/>
+                    </svg>
+                    能量转换
+                </h3>
+                <p class="concept-content">
+                    热能可以和其他形式的能量相互转换。比如：
+                    <br>
+                    • 热能 → 机械能：蒸汽机燃烧煤产生热能，将水变成蒸汽，推动机械运动
+                    <br>
+                    • 机械能 → 热能：当你搓手时，手会变暖，就是机械能转换成了热能
+                    <br>
+                    • 电能 → 热能：电炉、电暖器、电水壶都是将电能转换成热能的电器
+                </p>
+            </div>
+            
+            <div class="interactive-box">
+                <h3 style="color: #5a67d8; margin-bottom: 20px;">能量转换演示</h3>
+                
+                <div class="interactive-formula">
+                    <div class="formula-part" id="energy1">热能</div>
+                    <div class="formula-equals">→</div>
+                    <div class="formula-part" id="energy2">机械能</div>
+                    <div class="formula-equals">→</div>
+                    <div class="formula-part" id="energy3">电能</div>
+                </div>
+                
+                <p style="text-align: center; margin-bottom: 20px;">
+                    <strong>能量转换过程：</strong>燃料燃烧产生热能 → 热能驱动蒸汽轮机 → 发电机产生电能
+                </p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="temp-button" onclick="showConversion(0)">热能</button>
+                    <button class="temp-button" onclick="showConversion(1)">机械能</button>
+                    <button class="temp-button" onclick="showConversion(2)">电能</button>
+                    <button class="temp-button" onclick="showConversion(3)">完整过程</button>
+                </div>
+                
+                <div id="conversion-description" style="margin-top: 25px; padding: 15px; background-color: #f7fafc; border-radius: 10px; font-size: 1.1rem; text-align: center;">
+                    <strong>转换步骤：</strong>点击上方按钮了解能量转换的不同阶段
+                </div>
+            </div>
+            
+            <div class="interactive-box" style="margin-top: 30px;">
+                <h3 style="color: #5a67d8; margin-bottom: 20px;">热效率计算器</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="input-energy" style="font-size: 1.1rem;">输入能量：</label>
+                    <input type="number" id="input-energy" style="width: 100px; padding: 5px; margin-left: 10px;" value="1000">
+                    <span style="margin-left: 10px;">焦耳</span>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="efficiency" style="font-size: 1.1rem;">系统效率：</label>
+                    <input type="range" id="efficiency" class="slider" min="10" max="100" value="50" oninput="calculateEfficiency(this.value)">
+                    <span id="efficiency-value" style="margin-left: 10px;">50%</span>
+                </div>
+                
+                <div style="background-color: #e6fffa; padding: 15px; border-radius: 10px; text-align: center;">
+                    <p style="font-size: 1.2rem; margin-bottom: 10px;">有用的能量输出</p>
+                    <div style="font-size: 2rem; font-weight: bold; color: #5a67d8;" id="output-energy">500 焦耳</div>
+                    <p style="margin-top: 10px;">热力学告诉我们，没有系统能达到100%的效率，总会有能量损失！</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="quiz" class="content-section">
+            <h2 style="text-align: center; color: #5a67d8; margin-bottom: 30px;">热力学知识测试</h2>
+            
+            <div class="quiz-container" id="quiz-container">
+                <div id="question-area">
+                    <p class="question" id="question-text">以下哪种不是热传递的方式？</p>
+                    <div class="options">
+                        <button class="option-button" onclick="checkAnswer(0)">传导</button>
+                        <button class="option-button" onclick="checkAnswer(1)">对流</button>
+                        <button class="option-button" onclick="checkAnswer(2)">辐射</button>
+                        <button class="option-button" onclick="checkAnswer(3)">摩擦</button>
+                    </div>
+                    <div id="result-message" class="result-message"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="temp-button" onclick="nextQuestion()">下一题</button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <span style="font-size: 1.2rem;">得分：<strong id="score">0</strong> / <strong id="total-questions">5</strong></span>
+                </div>
+            </div>
+            
+            <div class="interactive-box" style="margin-top: 30px; text-align: center;">
+                <h3 style="color: #5a67d8; margin-bottom: 15px;">复习巩固</h3>
+                <p>热力学是我们生活中无处不在的科学。从做饭、取暖到发电，都离不开热力学的原理。</p>
+                <p style="margin-top: 10px;">记住：能量是守恒的，它只会转换形式而不会消失！</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有标签的active类
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+                
+                // 给当前标签添加active类
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // 温度更新函数
+        function updateTemperature(value) {
+            document.getElementById('current-temp').textContent = value + '°C';
+            
+            // 更新能量条
+            const energyFill = document.getElementById('energy-fill');
+            const energyLevel = document.getElementById('energy-level');
+            energyFill.style.width = value + '%';
+            
+            // 更新分子运动速度
+            const containers = document.querySelectorAll('.molecule');
+            containers.forEach((container, index) => {
+                container.classList.remove('cold', 'warm', 'hot');
+                
+                if (value < 10) {
+                    container.classList.add('cold');
+                    energyLevel.textContent = '分子运动缓慢';
+                } else if (value < 50) {
+                    container.classList.add('warm');
+                    energyLevel.textContent = '分子运动适中';
+                } else {
+                    container.classList.add('hot');
+                    energyLevel.textContent = '分子运动剧烈';
+                }
+            });
+        }
+        
+        // 温度变化按钮函数
+        function changeTemperature(direction) {
+            const slider = document.getElementById('temp-slider');
+            let value = parseInt(slider.value);
+            
+            if (direction === 'cold' && value > -10) {
+                value -= 10;
+            } else if (direction === 'hot' && value < 100) {
+                value += 10;
+            }
+            
+            slider.value = value;
+            updateTemperature(value);
+        }
+        
+        // 热传递演示函数
+        function transferHeat() {
+            const sourceObject = document.getElementById('source-object');
+            const targetObject = document.getElementById('target-object');
+            
+            // 动画效果
+            targetObject.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                targetObject.style.transform = 'scale(1)';
+            }, 300);
+            
+            // 热量传递效果
+            setTimeout(() => {
+                targetObject.classList.remove('cold');
+                targetObject.classList.add('hot');
+            }, 500);
+        }
+        
+        // 重置对象函数
+        function resetObjects() {
+            const sourceObject = document.getElementById('source-object');
+            const targetObject = document.getElementById('target-object');
+            
+            targetObject.classList.remove('hot');
+            targetObject.classList.remove('cold');
+        }
+        
+        // 改变热传递模式函数
+        function changeTransferMode(mode) {
+            const transferInfo = document.getElementById('transfer-info');
+            let description = '';
+            
+            switch(mode) {
+                case 'conduction':
+                    description = '<strong>当前模式：传导</strong> - 热量通过固体直接传递';
+                    break;
+                case 'convection':
+                    description = '<strong>当前模式：对流</strong> - 热量通过液体或气体流动传递';
+                    break;
+                case 'radiation':
+                    description = '<strong>当前模式：辐射</strong> - 热量通过电磁波传递，不需要介质';
+                    break;
+            }
+            
+            transferInfo.innerHTML = description;
+        }
+        
+        // 显示能量转换函数
+        function showConversion(step) {
+            const conversionDescription = document.getElementById('conversion-description');
+            const energy1 = document.getElementById('energy1');
+            const energy2 = document.getElementById('energy2');
+            const energy3 = document.getElementById('energy3');
+            
+            const stages = [
+                {
+                    energy1: '化学能',
+                    energy2: '热能',
+                    energy3: '热能',
+                    description: '<strong>第一阶段：</strong>燃料（如煤、天然气）燃烧，将储存的化学能转化为热能'
+                },
+                {
+                    energy1: '热能',
+                    energy2: '机械能',
+                    energy3: '机械能',
+                    description: '<strong>第二阶段：</strong>热能将水加热成蒸汽，蒸汽推动涡轮机，将热能转化为机械能'
+                },
+                {
+                    energy1: '机械能',
+                    energy2: '电能',
+                    energy3: '电能',
+                    description: '<strong>第三阶段：</strong>涡轮机带动发电机旋转，将机械能转化为电能'
+                },
+                {
+                    energy1: '化学能',
+                    energy2: '热能',
+                    energy3: '电能',
+                    description: '<strong>完整过程：</strong>燃料的化学能 → 热能 → 机械能 → 电能，这就是发电厂的基本原理！'
+                }
+            ];
+            
+            if (step < stages.length) {
+                const stage = stages[step];
+                energy1.textContent = stage.energy1;
+                energy2.textContent = stage.energy2;
+                energy3.textContent = stage.energy3;
+                conversionDescription.innerHTML = stage.description;
+            }
+        }
+        
+        // 计算热效率函数
+        function calculateEfficiency(efficiency) {
+            document.getElementById('efficiency-value').textContent = efficiency + '%';
+            
+            const inputEnergy = parseInt(document.getElementById('input-energy').value) || 0;
+            const outputEnergy = Math.round(inputEnergy * (efficiency / 100));
+            
+            document.getElementById('output-energy').textContent = outputEnergy + ' 焦耳';
+        }
+        
+        // 测验部分
+        const quizQuestions = [
+            {
+                question: "以下哪种不是热传递的方式？",
+                options: ["传导", "对流", "辐射", "摩擦"],
+                correct: 3,
+                explanation: "摩擦不是热传递的方式，而是产生热的一种方式。热传递有三种基本方式：传导、对流和辐射。"
+            },
+            {
+                question: "热力学第一定律告诉我们：",
+                options: ["热量总是从高温物体流向低温物体", "能量既不能创造也不能消灭，只能转换", "绝对零度是-273.15°C", "所有能量最终都会变成热能"],
+                correct: 1,
+                explanation: "热力学第一定律，也称为能量守恒定律，指出能量既不能凭空产生，也不会凭空消失，只能从一种形式转化为另一种形式。"
+            },
+            {
+                question: "以下物质中，热的良导体是：",
+                options: ["木头", "塑料", "橡胶", "铜"],
+                correct: 3,
+                explanation: "铜是金属，是热的良导体，能够快速传递热量。木头、塑料和橡胶都是热的不良导体。"
+            },
+            {
+                question: "夏天，为什么黑色汽车比白色汽车更热？",
+                options: ["黑色汽车更重", "黑色吸收更多热量", "黑色汽车没有空调", "黑色汽车更密封"],
+                correct: 1,
+                explanation: "黑色物体会吸收更多的太阳辐射能，将光能转化为热能，所以黑色汽车在阳光下比白色汽车更热。"
+            },
+            {
+                question: "烧水时，锅里的水变热的主要方式是：",
+                options: ["传导", "对流", "辐射", "以上都是"],
+                correct: 1,
+                explanation: "烧水时，热量首先通过传导从锅底传递给邻近的水分子，然后这些热水上升，冷水下降，形成对流，使整锅水均匀加热。"
+            }
+        ];
+        
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+        
+        function checkAnswer(answerIndex) {
+            if (answered) return;
+            
+            answered = true;
+            const question = quizQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option-button');
+            const resultMessage = document.getElementById('result-message');
+            
+            // 显示正确和错误答案
+            options.forEach((button, index) => {
+                if (index === question.correct) {
+                    button.classList.add('correct');
+                } else if (index === answerIndex && index !== question.correct) {
+                    button.classList.add('incorrect');
+                }
+                button.disabled = true;
+            });
+            
+            // 显示结果和解释
+            if (answerIndex === question.correct) {
+                score++;
+                resultMessage.textContent = '回答正确！' + question.explanation;
+                resultMessage.className = 'result-message correct';
+            } else {
+                resultMessage.textContent = '回答错误。' + question.explanation;
+                resultMessage.className = 'result-message incorrect';
+            }
+            
+            resultMessage.style.display = 'block';
+            document.getElementById('score').textContent = score;
+        }
+        
+        function nextQuestion() {
+            currentQuestionIndex++;
+            answered = false;
+            
+            if (currentQuestionIndex >= quizQuestions.length) {
+                // 测验结束
+                document.getElementById('question-text').textContent = `测验完成！你的得分是 ${score}/${quizQuestions.length}`;
+                document.getElementById('quiz-container').innerHTML = 
+                    `<div style="text-align: center; padding: 30px;">
+                        <h3 style="color: #5a67d8; margin-bottom: 20px;">测验完成！</h3>
+                        <p style="font-size: 1.5rem; margin-bottom: 20px;">你的得分是：${score}/${quizQuestions.length}</p>
+                        <p style="font-size: 1.2rem; margin-bottom: 20px;">
+                            ${score === quizQuestions.length ? '太棒了！你对热力学知识掌握得非常好！' : 
+                              score >= quizQuestions.length * 0.6 ? '不错！继续努力，你会更棒的！' : 
+                              '加油！多复习一下热力学知识吧！'}
+                        </p>
+                        <button class="temp-button" onclick="location.reload()">重新开始测验</button>
+                    </div>`;
+            } else {
+                // 显示下一题
+                const question = quizQuestions[currentQuestionIndex];
+                document.getElementById('question-text').textContent = question.question;
+                
+                const optionsContainer = document.querySelector('.options');
+                optionsContainer.innerHTML = '';
+                
+                question.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option-button';
+                    button.textContent = option;
+                    button.onclick = () => checkAnswer(index);
+                    optionsContainer.appendChild(button);
+                });
+                
+                document.getElementById('result-message').style.display = 'none';
+            }
+        }
+        
+        // 监听输入能量变化
+        document.getElementById('input-energy').addEventListener('input', function() {
+            calculateEfficiency(document.getElementById('efficiency').value);
+        });
+        
+        // 初始化测验题目总数
+        document.getElementById('total-questions').textContent = quizQuestions.length;
+    </script>
+</body>
+</html>

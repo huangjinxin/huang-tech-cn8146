@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>柒零陆-盛康中心幼儿园工作报告</title>
+<style>
+  body{font-family:"Microsoft YaHei",sans-serif;background:#f5f5f5;margin:0;padding:0;}
+  header{background:#00695c;color:white;padding:20px;text-align:center;}
+  nav{background:#e0f2f1;padding:10px;text-align:center;}
+  nav button{margin:0 10px;padding:8px 12px;border:none;border-radius:6px;background:#00695c;cursor:pointer;}
+  nav button svg{width:22px;height:22px;fill:white;}
+  main{max-width:950px;margin:20px auto;padding:20px;background:white;border-radius:12px;
+       box-shadow:0 0 12px rgba(0,0,0,0.1);}
+  section{margin-bottom:30px;}
+  h2{color:#00695c;border-left:5px solid #00695c;padding-left:10px;}
+  .card{padding:15px;margin:10px 0;background:#e0f2f1;border-radius:8px;
+        box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+  table{width:100%;border-collapse:collapse;margin:10px 0;}
+  th,td{border:1px solid #bbb;padding:10px;text-align:left;}
+  th{background:#c8e6c9;color:#212121;}
+  footer{background:#00695c;color:white;text-align:center;padding:15px;
+          margin-top:30px;}
+  .toggle{cursor:pointer;color:#00695c;text-decoration:underline;}
+  .hidden{display:none;}
+  svg{vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<header>
+<h1>柒零陆-盛康中心幼儿园工作报告</h1>
+<p>资料整理汇总：2025/9/19周五 13:34:49</p>
+</header>
+
+<nav>
+<button onclick="showSection('summary')" title="情况说明">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7-4h4v18h-4V3z"/></svg>
+</button>
+<button onclick="showSection('detail')" title="情况总结">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12V2zM8 4h2v16H8V4zm6 0h2v16h-2V4z"/></svg>
+</button>
+</nav>
+
+<main>
+<section id="summary">
+<h2>📊 情况说明</h2>
+<table>
+<tr><th>主要成果</th><td>已接入市里系统的四个摄像头正常工作；完成门磁、温湿度、高低温传感器安装调试草案。</td></tr>
+<tr><th>存在问题</th><td>华为新装摄像头未备案导致无法接入；挡鼠板门磁缺失/损坏，配件不足；温湿度传感器缺一台；高低温传感器已找到但未确认是否完好。</td></tr>
+<tr><th>改进措施</th><td>对华为摄像头办理备案或迁移至可被监控范围；采购并安装门磁、温湿度及三组高低温传感器；更换或维修挡鼠板门磁；购置POE交换机支持新设备。</td></tr>
+<tr><th>费用情况</th><td>摄像头布线+安装 1800元（不含设备）；门磁 2台 × 80 =160元；温湿度传感器 1台 ×170=170元；高低温传感器安装费 3×180=540元；POE交换机 180元。</td></tr>
+</table>
+<p class="toggle" onclick="toggleDetails()">点击展开详细说明</p>
+<div id="details" class="hidden">
+<p>当前系统已接入四个摄像头，但新安装的华为摄像头因未经市里备案，无法在系统中显示，需要要么通过官方流程重新部署，要么将样品间搬迁到现有摄像头监控范围内。门磁传感器及温湿度传感器缺失或可能损坏，需采购配件并完成安装。高低温传感器虽已找到，但未确认其工作状态，需要现场测试后决定是否更换。此外，为保证设备接入市里系统，还需要配置POE交换机。所有整改均应由承包商负责核心设备与传感器的安装调试，贵方可承担日常维护及非系统范围配件改造。</p>
+</div>
+</section>
+
+<section id="detail" style="display:none;">
+<h2>📘 情况总结</h2>
+<div class="card"><h3>项目进展</h3><p>已完成四摄像头的接入与部分传感器调试，正在准备整改所需配件采购。</p></div>
+<div class="card"><h3>技术难点</h3><p>华为摄像头备案流程复杂；门磁、温湿度及高低温传感器的兼容性和接入市里系统的接口匹配；POE交换机配置与网络安全。</p></div>
+<div class="card"><h3>改进方向</h3><p>加速备案审批，完善设备清单与采购计划；制定详细安装调试手册，确保各传感器准确接入市里系统；加强后期维护培训。</p></div>
+</section>
+</main>
+
+<footer>
+柒零陆技术团队出品
+</footer>
+
+<script>
+function showSection(id){
+  document.getElementById('summary').style.display = (id==='summary')?'block':'none';
+  document.getElementById('detail').style.display = (id==='detail')?'block':'none';
+}
+function toggleDetails(){
+  var d=document.getElementById('details');
+  d.classList.toggle('hidden');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>恐龙吃东西</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #72b6d3 0%, #8ec9aa 100%);
+            touch-action: manipulation;
+            user-select: none;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-image: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=600');
+            background-size: cover;
+        }
+        
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 15vh;
+            min-height: 60px;
+            background: linear-gradient(to bottom, #8b5a2b 0%, #603913 100%);
+            z-index: 2;
+            box-shadow: 0 -5px 10px rgba(0,0,0,0.3);
+        }
+        
+        #dino {
+            position: absolute;
+            width: 15vw;
+            height: 12vw;
+            min-width: 70px;
+            min-height: 60px;
+            bottom: 15vh;
+            left: 20vw;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/2733/2733041.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            transition: transform 0.1s;
+            z-index: 10;
+            filter: drop-shadow(3px 3px 3px rgba(0,0,0,0.3));
+        }
+        
+        .food {
+            position: absolute;
+            width: 6vw;
+            height: 6vw;
+            min-width: 30px;
+            min-height: 30px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/3081/3081982.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 5;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+        }
+        
+        #score {
+            position: absolute;
+            top: 2vh;
+            right: 5vw;
+            font-size: 5vw;
+            min-font-size: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1vh 3vw;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 2vh;
+            width: 96%;
+            left: 2%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        #directionPad {
+            display: flex;
+            gap: 2vw;
+        }
+        
+        .control-btn {
+            width: 12vw;
+            height: 12vw;
+            min-width: 60px;
+            min-height: 60px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6vw;
+            min-font-size: 30px;
+            color: white;
+            border: none;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        #jumpBtn {
+            background-color: rgba(50, 200, 50, 0.6);
+        }
+        
+        /* 植物装饰 */
+        .plant {
+            position: absolute;
+            bottom: 15vh;
+            z-index: 1;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
+        /* 触控反馈 */
+        .control-btn:active {
+            transform: scale(0.9);
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        #jumpBtn:active {
+            background-color: rgba(50, 200, 50, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div class="ground"></div>
+        <div id="dino"></div>
+        <div id="score">0</div>
+        <div id="controls">
+            <div id="directionPad">
+                <button class="control-btn" id="leftBtn">←</button>
+                <button class="control-btn" id="rightBtn">→</button>
+            </div>
+            <button class="control-btn" id="jumpBtn">↑</button>
+        </div>
+    </div>
+
+    <script>
+        const dino = document.getElementById('dino');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreElement = document.getElementById('score');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+        
+        let score = 0;
+        let dinoX = 20; // 初始位置按视窗百分比
+        let dinoY = 0;
+        let isJumping = false;
+        let gravity = 0.9;
+        let velocity = 0;
+        let jumpPower = -15;
+        let gameWidth = window.innerWidth;
+        let gameHeight = window.innerHeight;
+        let dinoSpeed = 2; // 按视窗百分比移动
+        let foodArray = [];
+        let dinoDirection = 1;
+        let leftPressed = false;
+        let rightPressed = false;
+        
+        // 添加植物装饰
+        function addPlants() {
+            const plantImages = [
+                'https://cdn-icons-png.flaticon.com/512/2801/2801569.png',
+                'https://cdn-icons-png.flaticon.com/512/2801/2801346.png'
+            ];
+            
+            for (let i = 0; i < 8; i++) {
+                const plant = document.createElement('div');
+                plant.className = 'plant';
+                const randomX = Math.random() * 100;
+                const randomSize = 5 + Math.random() * 10;
+                
+                plant.style.width = `${randomSize}vw`;
+                plant.style.height = `${randomSize * 1.5}vw`;
+                plant.style.left = `${randomX}vw`;
+                plant.style.backgroundImage = `url('${plantImages[Math.floor(Math.random() * plantImages.length)]}')`;
+                
+                gameContainer.appendChild(plant);
+            }
+        }
+        
+        // 游戏初始化
+        function initGame() {
+            gameWidth = window.innerWidth;
+            gameHeight = window.innerHeight;
+            dinoX = 20;
+            dinoY = 0;
+            score = 0;
+            scoreElement.textContent = score;
+            foodArray = [];
+            
+            document.querySelectorAll('.food').forEach(food => food.remove());
+            document.querySelectorAll('.plant').forEach(plant => plant.remove());
+            
+            addPlants();
+            
+            requestAnimationFrame(gameLoop);
+            setInterval(createFood, 1000);
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            // 移动恐龙
+            if (leftPressed) {
+                dinoX = Math.max(0, dinoX - dinoSpeed);
+                dinoDirection = -1;
+            }
+            if (rightPressed) {
+                dinoX = Math.min(90, dinoX + dinoSpeed);
+                dinoDirection = 1;
+            }
+            
+            // 跳跃物理
+            if (isJumping) {
+                velocity += gravity;
+                dinoY += velocity;
+                
+                if (dinoY >= 0) {
+                    dinoY = 0;
+                    isJumping = false;
+                    velocity = 0;
+                }
+            }
+            
+            // 更新恐龙位置和方向
+            dino.style.left = `${dinoX}vw`;
+            dino.style.bottom = `${15 + dinoY}vh`;
+            dino.style.transform = `scaleX(${dinoDirection})`;
+            
+            // 移动食物和碰撞检测
+            moveFood();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 创建食物
+        function createFood() {
+            const food = document.createElement('div');
+            food.className = 'food';
+            
+            const randomX = Math.random() * 90;
+            food.style.left = `${randomX}vw`;
+            food.style.bottom = `${100}vh`;
+            
+            gameContainer.appendChild(food);
+            foodArray.push({
+                element: food,
+                x: randomX,
+                y: 100, // 使用vh单位
+                speed: 0.5 + Math.random() * 1.5
+            });
+        }
+        
+        // 移动食物
+        function moveFood() {
+            const dinoLeft = dinoX;
+            const dinoRight = dinoX + 15;
+            const dinoTop = 100 - (15 + dinoY + 12);
+            const dinoBottom = 100 - (15 + dinoY);
+            
+            for (let i = foodArray.length - 1; i >= 0; i--) {
+                const food = foodArray[i];
+                food.y -= food.speed;
+                food.element.style.bottom = `${food.y}vh`;
+                
+                const foodLeft = food.x;
+                const foodRight = food.x + 6;
+                const foodTop = 100 - (food.y + 6);
+                const foodBottom = 100 - food.y;
+                
+                // 碰撞检测
+                if (!(foodLeft > dinoRight || 
+                      foodRight < dinoLeft || 
+                      foodTop > dinoBottom || 
+                      foodBottom < dinoTop)) {
+                    // 吃到食物
+                    food.element.remove();
+                    foodArray.splice(i, 1);
+                    score++;
+                    scoreElement.textContent = score;
+                    
+                    dino.style.transform = `scaleX(${dinoDirection}) scale(1.1)`;
+                    setTimeout(() => {
+                        dino.style.transform = `scaleX(${dinoDirection}) scale(1)`;
+                    }, 200);
+                    
+                    playSound('https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-approved-mission-205.mp3');
+                }
+                
+                // 移除屏幕外的食物
+                if (food.y < -6) {
+                    food.element.remove();
+                    foodArray.splice(i, 1);
+                }
+            }
+        }
+        
+        // 播放音效
+        function playSound(url) {
+            try {
+                const audio = new Audio(url);
+                audio.volume = 0.3;
+                audio.play();
+            } catch(e) {
+                console.log("Audio error:", e);
+            }
+        }
+        
+        // 触控按钮事件
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            leftPressed = true;
+            dinoDirection = -1;
+        });
+        
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            leftPressed = false;
+        });
+        
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            rightPressed = true;
+            dinoDirection = 1;
+        });
+        
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            rightPressed = false;
+        });
+        
+        jumpBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!isJumping) {
+                isJumping = true;
+                velocity = jumpPower;
+                
+                dino.style.transition = 'transform 0.2s';
+                dino.style.transform = `scaleX(${dinoDirection}) scale(0.8)`;
+                setTimeout(() => {
+                    dino.style.transform = `scaleX(${dinoDirection}) scale(1)`;
+                }, 200);
+                
+                playSound('https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3');
+            }
+        });
+        
+        // 滑动控制
+        let touchStartX = 0;
+        
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                touchStartX = e.touches[0].clientX;
+            }
+        });
+        
+        gameContainer.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                const touchX = e.touches[0].clientX;
+                const diff = touchX - touchStartX;
+                
+                if (Math.abs(diff) > 30) {
+                    if (diff < 0) {
+                        leftPressed = true;
+                        rightPressed = false;
+                        dinoDirection = -1;
+                    } else {
+                        rightPressed = true;
+                        leftPressed = false;
+                        dinoDirection = 1;
+                    }
+                }
+                
+                touchStartX = touchX;
+            }
+        });
+        
+        gameContainer.addEventListener('touchend', () => {
+            leftPressed = false;
+            rightPressed = false;
+        });
+        
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            gameWidth = window.innerWidth;
+            gameHeight = window.innerHeight;
+        });
+        
+        // 防止页面滚动
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // 开始游戏
+        initGame();
+    </script>
+</body>
+</html>

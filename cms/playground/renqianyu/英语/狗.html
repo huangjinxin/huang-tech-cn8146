@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Letter Reveal Game - dog / 狗</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #d3e2ec, #f5f7fa);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #2e5aac;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .word-info {
+            max-width: 600px;
+            text-align: center;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .word-info h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            color: #2e5aac;
+        }
+
+        .word-info p {
+            font-size: 16px;
+            color: #333;
+        }
+
+        #word-display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .letter {
+            width: 40px;
+            height: 60px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 2px solid #2e5aac;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #2e5aac;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .letter.shown {
+            background-color: #e6f7ff;
+            color: #2e5aac;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-next { background-color: #4285f4; color: white; }
+        .btn-prev { background-color: #f1c40f; color: #2e5aac; }
+        .btn-read { background-color: #3498db; color: white; }
+        .btn-toggle-lang { background-color: #27ae60; color: white; }
+
+        button:hover { opacity: 0.9; }
+
+        footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="word-title">dog</h1>
+
+    <div class="word-info">
+        <h2 id="word-title-chinese">狗</h2>
+        <p id="word-desc">
+            A domesticated carnivorous mammal, often kept as a pet.
+        </p>
+    </div>
+
+    <div id="word-display">
+        <!-- letters will be inserted here -->
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn-prev" onclick="prevLetter()">上一步</button>
+        <button class="btn-next" onclick="nextLetter()">下一步</button>
+        <button class="btn-read" onclick="readWord()">朗读</button>
+        <button class="btn-toggle-lang" onclick="toggleLanguage()">切换语言</button>
+    </div>
+
+    <footer>© 2025 Letter Reveal Game</footer>
+
+    <script>
+        // ---- 数据 ----
+        const words = {
+            en: {
+                word: "dog",
+                desc: "A domesticated carnivorous mammal, often kept as a pet."
+            },
+            zh: {
+                word: "狗",
+                desc: "一种常被养作宠物的家养食肉动物。"
+            }
+        };
+
+        // ---- 状态 ----
+        let currentLang = 'en';          // 当前语言
+        let currentIndex = 0;            // 已经显示的字母数量
+        let currentWord = words[currentLang].word;
+        let currentDesc = words[currentLang].desc;
+
+        // ---- 元素引用 ----
+        const container = document.getElementById('word-display');
+        const wordTitleEn = document.getElementById('word-title');
+        const wordTitleZh = document.getElementById('word-title-chinese');
+        const wordDesc = document.getElementById('word-desc');
+
+        // ---- 渲染字母栏 ----
+        function renderLetters() {
+            container.innerHTML = '';
+            for (let i = 0; i < currentWord.length; i++) {
+                const div = document.createElement('div');
+                div.className = 'letter';
+                if (i < currentIndex) {
+                    div.textContent = currentWord[i];
+                    div.classList.add('shown');
+                } else {
+                    div.textContent = '_';
+                }
+                container.appendChild(div);
+            }
+        }
+
+        // ---- 按钮逻辑 ----
+        function nextLetter() {
+            if (currentIndex < currentWord.length) {
+                currentIndex++;
+                renderLetters();
+            }
+        }
+
+        function prevLetter() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderLetters();
+            }
+        }
+
+        function readWord() {
+            if (!('speechSynthesis' in window)) {
+                alert('您的浏览器不支持朗读功能');
+                return;
+            }
+            const utter = new SpeechSynthesisUtterance(currentWord);
+            utter.lang = currentLang === 'en' ? 'en-US' : 'zh-CN';
+            // 调整语速/音调可自行修改
+            utter.rate = 0.9;
+            window.speechSynthesis.cancel();   // 先停止上一次朗读
+            window.speechSynthesis.speak(utter);
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            currentWord = words[currentLang].word;
+            currentDesc = words[currentLang].desc;
+            // 重置显示进度（可以保留进度，但这里统一重置更直观）
+            currentIndex = 0;
+            // 更新文字
+            wordTitleEn.textContent = words['en'].word;
+            wordTitleZh.textContent = words['zh'].word;
+            wordDesc.textContent = currentDesc;
+            // 切换标题显示（h1 只展示当前语言文字）
+            wordTitleEn.style.display = currentLang === 'en' ? '' : 'none';
+            wordTitleZh.style.display = currentLang === 'zh' ? '' : 'none';
+            renderLetters();
+        }
+
+        // ---- 初始化 ----
+        function init() {
+            // 初始只显示英文标题，中文标题隐藏
+            wordTitleEn.style.display = 'block';
+            wordTitleZh.style.display = 'none';
+            renderLetters();
+        }
+
+        init();
+    </script>
+</body>
+</html>

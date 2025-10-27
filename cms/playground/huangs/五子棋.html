@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>五子棋游戏 - 人机对战</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --board-bg: #deb887;
+      --line-color: #000;
+      --black-stone: #333;
+      --white-stone: #fff;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      font-family: 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .game-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .game-header h1 {
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      font-weight: bold;
+    }
+
+    .status-bar {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .board-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    svg {
+      background: var(--board-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .btn-custom {
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-custom:active {
+      transform: translateY(1px);
+    }
+
+    .btn-restart {
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      color: white;
+    }
+
+    .btn-undo {
+      background: linear-gradient(to right, #4A00E0, #8E2DE2);
+      color: white;
+    }
+
+    .btn-sound {
+      background: linear-gradient(to right, #11998e, #38ef7d);
+      color: white;
+    }
+
+    .btn-mode {
+      background: linear-gradient(to right, #ffa726, #fb8c00);
+      color: white;
+    }
+
+    .stone {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .stone:hover {
+      transform: scale(1.1);
+    }
+
+    .last-move {
+      stroke: #ff0000;
+      stroke-width: 2;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { stroke-opacity: 1; }
+      50% { stroke-opacity: 0.5; }
+      100% { stroke-opacity: 1; }
+    }
+
+    .win-line {
+      stroke: #ff0000;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .player-indicator {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .player-black {
+      background: var(--black-stone);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .player-white {
+      background: var(--white-stone);
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        margin: 0 10px;
+        padding: 15px;
+      }
+      
+      svg {
+        width: 95vw;
+        height: 95vw;
+      }
+      
+      .controls {
+        gap: 10px;
+      }
+      
+      .btn-custom {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+      }
+    }
+
+    .win-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      display: none;
+    }
+
+    .win-message h2 {
+      margin-top: 0;
+      font-size: 2rem;
+      color: #ffd700;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      display: none;
+    }
+
+    .thinking {
+      color: #ffd700;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="game-header">
+      <h1>五子棋 - 人机对战</h1>
+    </div>
+    
+    <div class="status-bar">
+      <span>当前玩家: </span>
+      <span id="current-player">
+        <span class="player-indicator player-black"></span>玩家 (黑棋)
+      </span>
+      <span id="thinking" class="thinking" style="display: none;"> - 电脑思考中...</span>
+    </div>
+    
+    <div class="board-container">
+      <svg id="gobang-board" width="500" height="500" viewBox="0 0 500 500">
+        <!-- 棋盘将通过JavaScript生成 -->
+      </svg>
+    </div>
+    
+    <div class="controls">
+      <button id="restart-btn" class="btn btn-custom btn-restart">重新开始</button>
+      <button id="undo-btn" class="btn btn-custom btn-undo">悔棋</button>
+      <button id="mode-btn" class="btn btn-custom btn-mode">当前模式: 人机对战</button>
+      <button id="sound-btn" class="btn btn-custom btn-sound">音效: 开启</button>
+    </div>
+  </div>
+  
+  <div class="overlay" id="overlay"></div>
+  <div class="win-message" id="win-message">
+    <h2 id="winner-text">玩家获胜!</h2>
+    <button id="close-win-btn" class="btn btn-primary">继续游戏</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    class GobangGame {
+      constructor() {
+        this.boardSize = 15;
+        this.cellSize = 500 / (this.boardSize - 1);
+        this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+        this.currentPlayer = 1; // 1 for player (black), 2 for computer (white)
+        this.gameOver = false;
+        this.moveHistory = [];
+        this.lastMove = null;
+        this.soundEnabled = true;
+        this.gameMode = 'human'; // 'human' for human vs computer, 'computer' for computer vs computer
+        this.isThinking = false;
+        
+        // 创建音效
+        this.createSounds();
+        
+        this.initBoard();
+        this.bindEvents();
+        this.drawBoard();
+      }
+      
+      createSounds() {
+        try {
+          // 创建放置棋子音效
+          this.placeSound = new Audio();
+          this.placeSound.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA";
+          
+          // 创建胜利音效
+          this.winSound = new Audio();
+          this.winSound.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA";
+          
+          // 创建悔棋音效
+          this.undoSound = new Audio();
+          this.undoSound.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA";
+        } catch (e) {
+          console.log("音频初始化失败");
+        }
+      }
+      
+      playSound(sound) {
+        if (!this.soundEnabled) return;
+        
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          
+          switch(sound) {
+            case 'place':
+              oscillator.type = 'sine';
+              oscillator.frequency.value = 440;
+              gainNode.gain.value = 0.1;
+              oscillator.start();
+              setTimeout(() => oscillator.stop(), 100);
+              break;
+              
+            case 'win':
+              // 播放胜利音效
+              for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                  const osc = audioCtx.createOscillator();
+                  const gain = audioCtx.createGain();
+                  osc.connect(gain);
+                  gain.connect(audioCtx.destination);
+                  osc.type = 'sine';
+                  osc.frequency.value = 440 + i * 110;
+                  gain.gain.value = 0.1;
+                  osc.start();
+                  setTimeout(() => osc.stop(), 300);
+                }, i * 300);
+              }
+              break;
+              
+            case 'undo':
+              oscillator.type = 'square';
+              oscillator.frequency.value = 220;
+              gainNode.gain.value = 0.1;
+              oscillator.start();
+              setTimeout(() => oscillator.stop(), 150);
+              break;
+          }
+        } catch (e) {
+          // 降级到默认音效
+          if (sound === 'place' && this.placeSound) {
+            this.placeSound.currentTime = 0;
+            this.placeSound.play().catch(e => {});
+          } else if (sound === 'win' && this.winSound) {
+            this.winSound.currentTime = 0;
+            this.winSound.play().catch(e => {});
+          } else if (sound === 'undo' && this.undoSound) {
+            this.undoSound.currentTime = 0;
+            this.undoSound.play().catch(e => {});
+          }
+        }
+      }
+      
+      initBoard() {
+        const svg = document.getElementById('gobang-board');
+        svg.innerHTML = '';
+        
+        // 绘制棋盘线
+        const boardGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        boardGroup.setAttribute('id', 'board-lines');
+        
+        // 绘制竖线
+        for (let i = 0; i < this.boardSize; i++) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', i * this.cellSize);
+          line.setAttribute('y1', 0);
+          line.setAttribute('x2', i * this.cellSize);
+          line.setAttribute('y2', 500);
+          line.setAttribute('stroke', 'var(--line-color)');
+          line.setAttribute('stroke-width', i === 0 || i === this.boardSize - 1 ? 2 : 1);
+          boardGroup.appendChild(line);
+        }
+        
+        // 绘制横线
+        for (let i = 0; i < this.boardSize; i++) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', 0);
+          line.setAttribute('y1', i * this.cellSize);
+          line.setAttribute('x2', 500);
+          line.setAttribute('y2', i * this.cellSize);
+          line.setAttribute('stroke', 'var(--line-color)');
+          line.setAttribute('stroke-width', i === 0 || i === this.boardSize - 1 ? 2 : 1);
+          boardGroup.appendChild(line);
+        }
+        
+        // 绘制天元和星位
+        const starPoints = [
+          [3, 3], [3, 11], [11, 3], [11, 11], [7, 7],
+          [3, 7], [7, 3], [11, 7], [7, 11]
+        ];
+        
+        starPoints.forEach(([x, y]) => {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', x * this.cellSize);
+          circle.setAttribute('cy', y * this.cellSize);
+          circle.setAttribute('r', 3);
+          circle.setAttribute('fill', 'var(--line-color)');
+          boardGroup.appendChild(circle);
+        });
+        
+        svg.appendChild(boardGroup);
+        
+        // 创建棋子容器
+        const stonesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        stonesGroup.setAttribute('id', 'stones');
+        svg.appendChild(stonesGroup);
+        
+        // 创建标记容器
+        const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        markersGroup.setAttribute('id', 'markers');
+        svg.appendChild(markersGroup);
+      }
+      
+      drawBoard() {
+        const stonesGroup = document.getElementById('stones');
+        const markersGroup = document.getElementById('markers');
+        
+        // 清除现有棋子和标记
+        stonesGroup.innerHTML = '';
+        markersGroup.innerHTML = '';
+        
+        // 绘制棋子
+        for (let row = 0; row < this.boardSize; row++) {
+          for (let col = 0; col < this.boardSize; col++) {
+            if (this.board[row][col] !== 0) {
+              this.drawStone(col, row, this.board[row][col]);
+            }
+          }
+        }
+        
+        // 标记最后一步
+        if (this.lastMove) {
+          this.markLastMove(this.lastMove.col, this.lastMove.row);
+        }
+      }
+      
+      drawStone(x, y, player) {
+        const stonesGroup = document.getElementById('stones');
+        const cx = x * this.cellSize;
+        const cy = y * this.cellSize;
+        const radius = this.cellSize / 2 - 2;
+        
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('class', 'stone');
+        circle.setAttribute('data-row', y);
+        circle.setAttribute('data-col', x);
+        
+        if (player === 1) {
+          circle.setAttribute('fill', 'var(--black-stone)');
+          circle.setAttribute('stroke', '#000');
+          circle.setAttribute('stroke-width', '1');
+        } else {
+          circle.setAttribute('fill', 'var(--white-stone)');
+          circle.setAttribute('stroke', '#ccc');
+          circle.setAttribute('stroke-width', '1');
+        }
+        
+        stonesGroup.appendChild(circle);
+      }
+      
+      markLastMove(x, y) {
+        const markersGroup = document.getElementById('markers');
+        const cx = x * this.cellSize;
+        const cy = y * this.cellSize;
+        const radius = this.cellSize / 2 - 4;
+        
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('class', 'last-move');
+        circle.setAttribute('fill', 'none');
+        
+        markersGroup.appendChild(circle);
+      }
+      
+      bindEvents() {
+        const svg = document.getElementById('gobang-board');
+        const restartBtn = document.getElementById('restart-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const soundBtn = document.getElementById('sound-btn');
+        const modeBtn = document.getElementById('mode-btn');
+        const closeWinBtn = document.getElementById('close-win-btn');
+        
+        svg.addEventListener('click', (e) => this.handleBoardClick(e));
+        restartBtn.addEventListener('click', () => this.restartGame());
+        undoBtn.addEventListener('click', () => this.undoMove());
+        soundBtn.addEventListener('click', () => this.toggleSound());
+        modeBtn.addEventListener('click', () => this.toggleMode());
+        closeWinBtn.addEventListener('click', () => this.closeWinMessage());
+        
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.restartGame();
+          } else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+            this.undoMove();
+          }
+        });
+      }
+      
+      handleBoardClick(e) {
+        if (this.gameOver || this.isThinking || this.currentPlayer === 2) return;
+        
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // 计算最近的交叉点
+        const col = Math.round(x / this.cellSize);
+        const row = Math.round(y / this.cellSize);
+        
+        // 检查位置是否有效
+        if (col >= 0 && col < this.boardSize && row >= 0 && row < this.boardSize) {
+          this.makeMove(col, row);
+        }
+      }
+      
+      makeMove(col, row) {
+        // 检查位置是否为空
+        if (this.board[row][col] !== 0) return;
+        
+        // 记录移动
+        this.moveHistory.push({
+          row: row,
+          col: col,
+          player: this.currentPlayer
+        });
+        
+        // 放置棋子
+        this.board[row][col] = this.currentPlayer;
+        this.lastMove = { row, col };
+        
+        // 播放音效
+        this.playSound('place');
+        
+        // 重新绘制棋盘
+        this.drawBoard();
+        
+        // 检查胜利条件
+        if (this.checkWin(row, col, this.currentPlayer)) {
+          this.gameOver = true;
+          this.showWinMessage(this.currentPlayer);
+          this.playSound('win');
+          return;
+        }
+        
+        // 切换玩家
+        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+        this.updateStatus();
+        
+        // 如果是电脑回合，延迟执行电脑下棋
+        if (this.currentPlayer === 2 && !this.gameOver) {
+          this.isThinking = true;
+          document.getElementById('thinking').style.display = 'inline';
+          setTimeout(() => {
+            this.computerMove();
+            this.isThinking = false;
+            document.getElementById('thinking').style.display = 'none';
+          }, 500);
+        }
+      }
+      
+      computerMove() {
+        if (this.gameOver) return;
+        
+        // 简单的AI算法：优先选择最佳位置
+        let bestMove = this.findBestMove();
+        
+        // 记录移动
+        this.moveHistory.push({
+          row: bestMove.row,
+          col: bestMove.col,
+          player: this.currentPlayer
+        });
+        
+        // 放置棋子
+        this.board[bestMove.row][bestMove.col] = this.currentPlayer;
+        this.lastMove = { row: bestMove.row, col: bestMove.col };
+        
+        // 播放音效
+        this.playSound('place');
+        
+        // 重新绘制棋盘
+        this.drawBoard();
+        
+        // 检查胜利条件
+        if (this.checkWin(bestMove.row, bestMove.col, this.currentPlayer)) {
+          this.gameOver = true;
+          this.showWinMessage(this.currentPlayer);
+          this.playSound('win');
+          return;
+        }
+        
+        // 切换回玩家
+        this.currentPlayer = 1;
+        this.updateStatus();
+      }
+      
+      findBestMove() {
+        // 简单的AI策略：
+        // 1. 检查是否有获胜机会
+        // 2. 检查是否需要阻止玩家获胜
+        // 3. 选择靠近其他棋子的位置
+        // 4. 优先选择中心位置
+        
+        // 检查电脑是否有获胜机会
+        for (let row = 0; row < this.boardSize; row++) {
+          for (let col = 0; col < this.boardSize; col++) {
+            if (this.board[row][col] === 0) {
+              this.board[row][col] = 2;
+              if (this.checkWin(row, col, 2)) {
+                this.board[row][col] = 0;
+                return { row, col };
+              }
+              this.board[row][col] = 0;
+            }
+          }
+        }
+        
+        // 检查是否需要阻止玩家获胜
+        for (let row = 0; row < this.boardSize; row++) {
+          for (let col = 0; col < this.boardSize; col++) {
+            if (this.board[row][col] === 0) {
+              this.board[row][col] = 1;
+              if (this.checkWin(row, col, 1)) {
+                this.board[row][col] = 0;
+                return { row, col };
+              }
+              this.board[row][col] = 0;
+            }
+          }
+        }
+        
+        // 评估所有空位的分数
+        let bestScore = -1;
+        let bestRow = 7;
+        let bestCol = 7;
+        
+        for (let row = 0; row < this.boardSize; row++) {
+          for (let col = 0; col < this.boardSize; col++) {
+            if (this.board[row][col] === 0) {
+              const score = this.evaluatePosition(row, col);
+              if (score > bestScore) {
+                bestScore = score;
+                bestRow = row;
+                bestCol = col;
+              }
+            }
+          }
+        }
+        
+        return { row: bestRow, col: bestCol };
+      }
+      
+      evaluatePosition(row, col) {
+        // 简单评估函数：考虑到其他棋子的距离和潜在连线
+        let score = 0;
+        
+        // 距离中心越近分数越高
+        const centerRow = Math.floor(this.boardSize / 2);
+        const centerCol = Math.floor(this.boardSize / 2);
+        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol);
+        score += (this.boardSize - distanceToCenter) * 2;
+        
+        // 检查周围是否有棋子
+        for (let r = Math.max(0, row - 2); r <= Math.min(this.boardSize - 1, row + 2); r++) {
+          for (let c = Math.max(0, col - 2); c <= Math.min(this.boardSize - 1, col + 2); c++) {
+            if (this.board[r][c] !== 0) {
+              // 距离越近分数越高
+              const distance = Math.abs(row - r) + Math.abs(col - c);
+              score += (3 - distance) * (this.board[r][c] === 2 ? 3 : 2);
+            }
+          }
+        }
+        
+        return score;
+      }
+      
+      checkWin(row, col, player) {
+        const directions = [
+          [0, 1],  // 水平
+          [1, 0],  // 垂直
+          [1, 1],  // 对角线 \
+          [1, -1]  // 对角线 /
+        ];
+        
+        for (const [dx, dy] of directions) {
+          let count = 1; // 包括当前棋子
+          
+          // 正方向计数
+          for (let i = 1; i < 5; i++) {
+            const r = row + dx * i;
+            const c = col + dy * i;
+            if (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+              count++;
+            } else {
+              break;
+            }
+          }
+          
+          // 反方向计数
+          for (let i = 1; i < 5; i++) {
+            const r = row - dx * i;
+            const c = col - dy * i;
+            if (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+              count++;
+            } else {
+              break;
+            }
+          }
+          
+          if (count >= 5) {
+            // 记录获胜连线的起点和终点
+            this.winStart = {
+              row: row - dx * 4,
+              col: col - dy * 4
+            };
+            this.winEnd = {
+              row: row + dx * 4,
+              col: col + dy * 4
+            };
+            
+            // 调整到实际连线的端点
+            for (let i = 4; i >= 0; i--) {
+              const r = row - dx * i;
+              const c = col - dy * i;
+              if (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+                this.winStart = { row: r, col: c };
+                break;
+              }
+            }
+            
+            for (let i = 4; i >= 0; i--) {
+              const r = row + dx * i;
+              const c = col + dy * i;
+              if (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+                this.winEnd = { row: r, col: c };
+                break;
+              }
+            }
+            
+            this.drawWinLine();
+            return true;
+          }
+        }
+        
+        return false;
+      }
+      
+      drawWinLine() {
+        const markersGroup = document.getElementById('markers');
+        const startX = this.winStart.col * this.cellSize;
+        const startY = this.winStart.row * this.cellSize;
+        const endX = this.winEnd.col * this.cellSize;
+        const endY = this.winEnd.row * this.cellSize;
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', startX);
+        line.setAttribute('y1', startY);
+        line.setAttribute('x2', endX);
+        line.setAttribute('y2', endY);
+        line.setAttribute('class', 'win-line');
+        
+        markersGroup.appendChild(line);
+      }
+      
+      undoMove() {
+        if (this.moveHistory.length === 0 || this.gameOver || this.isThinking) return;
+        
+        const lastMove = this.moveHistory.pop();
+        this.board[lastMove.row][lastMove.col] = 0;
+        
+        // 播放悔棋音效
+        this.playSound('undo');
+        
+        // 如果上一步是电脑走的，再撤销一步
+        if (lastMove.player === 2 && this.moveHistory.length > 0) {
+          const playerMove = this.moveHistory.pop();
+          this.board[playerMove.row][playerMove.col] = 0;
+          this.currentPlayer = 1;
+        } else {
+          this.currentPlayer = lastMove.player;
+        }
+        
+        // 恢复上一步状态
+        if (this.moveHistory.length > 0) {
+          this.lastMove = {
+            row: this.moveHistory[this.moveHistory.length - 1].row,
+            col: this.moveHistory[this.moveHistory.length - 1].col
+          };
+        } else {
+          this.lastMove = null;
+        }
+        
+        this.updateStatus();
+        this.drawBoard();
+      }
+      
+      updateStatus() {
+        const statusElement = document.getElementById('current-player');
+        if (this.currentPlayer === 1) {
+          statusElement.innerHTML = '<span class="player-indicator player-black"></span>玩家 (黑棋)';
+        } else {
+          statusElement.innerHTML = '<span class="player-indicator player-white"></span>电脑 (白棋)';
+        }
+      }
+      
+      showWinMessage(player) {
+        const winMessage = document.getElementById('win-message');
+        const winnerText = document.getElementById('winner-text');
+        const overlay = document.getElementById('overlay');
+        
+        if (player === 1) {
+          winnerText.textContent = '玩家获胜!';
+        } else {
+          winnerText.textContent = '电脑获胜!';
+        }
+        
+        winnerText.style.color = player === 1 ? 'var(--black-stone)' : 'var(--white-stone)';
+        
+        winMessage.style.display = 'block';
+        overlay.style.display = 'block';
+      }
+      
+      closeWinMessage() {
+        const winMessage = document.getElementById('win-message');
+        const overlay = document.getElementById('overlay');
+        
+        winMessage.style.display = 'none';
+        overlay.style.display = 'none';
+      }
+      
+      restartGame() {
+        this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+        this.currentPlayer = 1;
+        this.gameOver = false;
+        this.moveHistory = [];
+        this.lastMove = null;
+        this.isThinking = false;
+        
+        this.initBoard();
+        this.drawBoard();
+        this.updateStatus();
+        document.getElementById('thinking').style.display = 'none';
+        this.closeWinMessage();
+      }
+      
+      toggleMode() {
+        // 当前只实现人机对战模式，此功能留作扩展
+        // 在完整版本中可以切换为人机对战和人人对战
+      }
+      
+      toggleSound() {
+        this.soundEnabled = !this.soundEnabled;
+        const soundBtn = document.getElementById('sound-btn');
+        soundBtn.textContent = this.soundEnabled ? '音效: 开启' : '音效: 关闭';
+        soundBtn.classList.toggle('btn-sound', this.soundEnabled);
+        soundBtn.classList.toggle('btn-secondary', !this.soundEnabled);
+      }
+    }
+    
+    // 初始化游戏
+    document.addEventListener('DOMContentLoaded', () => {
+      const game = new GobangGame();
+      
+      // 响应式调整
+      function adjustBoardSize() {
+        const board = document.getElementById('gobang-board');
+        const containerWidth = board.parentElement.clientWidth;
+        board.style.width = `${Math.min(containerWidth, 500)}px`;
+        board.style.height = `${Math.min(containerWidth, 500)}px`;
+      }
+      
+      window.addEventListener('resize', adjustBoardSize);
+      adjustBoardSize();
+    });
+  </script>
+</body>
+</html>

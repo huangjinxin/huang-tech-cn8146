@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创意画板 - 在线绘画工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .color-option {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .shape-item {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: move;
+        }
+        .shape-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .shape-item.dragging {
+            opacity: 0.5;
+        }
+        #canvas {
+            cursor: crosshair;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .eraser-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" fill="white" stroke="black" stroke-width="2"/></svg>') 10 10, auto !important;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-track {
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #3b82f6;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            margin-top: -7px;
+        }
+        input[type="range"]::-moz-range-track {
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type="range"]::-moz-range-thumb {
+            background: #3b82f6;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            border: none;
+        }
+        .brush-option {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .brush-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .brush-option.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #3b82f6;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: nwse-resize;
+        }
+        .rotate-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: grab;
+        }
+        .rotate-handle:active {
+            cursor: grabbing;
+        }
+        .selected-shape {
+            outline: 2px dashed #3b82f6;
+            outline-offset: 2px;
+        }
+        .texture-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-4 max-w-7xl">
+        <!-- 标题 -->
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">创意画板</h1>
+            <p class="text-gray-600">释放你的创造力，自由绘画和编辑图形</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- 左侧工具栏 - 形状 -->
+            <div class="lg:col-span-1 bg-white rounded-lg shadow-md p-4">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                    </svg>
+                    形状工具
+                </h3>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <!-- 基础形状 -->
+                    <div class="shape-item bg-blue-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="circle">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div class="shape-item bg-green-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="square">
+                        <div class="w-8 h-8 bg-green-500"></div>
+                    </div>
+                    <div class="shape-item bg-purple-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="triangle">
+                        <div class="w-0 h-0 border-l-8 border-r-8 border-b-16 border-l-transparent border-r-transparent border-b-purple-500"></div>
+                    </div>
+                    <div class="shape-item bg-yellow-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="star">
+                        <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    </div>
+                    <div class="shape-item bg-pink-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="heart">
+                        <svg class="w-8 h-8 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="shape-item bg-indigo-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="diamond">
+                        <div class="w-8 h-8 bg-indigo-500 transform rotate-45"></div>
+                    </div>
+                    
+                    <!-- 新增形状 -->
+                    <div class="shape-item bg-red-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="hexagon">
+                        <div class="w-8 h-8 bg-red-500" style="clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);"></div>
+                    </div>
+                    <div class="shape-item bg-teal-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="pentagon">
+                        <div class="w-8 h-8 bg-teal-500" style="clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);"></div>
+                    </div>
+                    <div class="shape-item bg-orange-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="cross">
+                        <div class="w-8 h-8 bg-orange-500" style="clip-path: polygon(40% 0%, 60% 0%, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0% 60%, 0% 40%, 40% 40%);"></div>
+                    </div>
+                    <div class="shape-item bg-cyan-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="moon">
+                        <svg class="w-8 h-8 text-cyan-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="shape-item bg-lime-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="flower">
+                        <svg class="w-8 h-8 text-lime-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="shape-item bg-rose-100 rounded-lg p-4 flex items-center justify-center" draggable="true" data-shape="cloud">
+                        <svg class="w-8 h-8 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间画板区域 -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-4">
+                <canvas id="canvas" class="w-full bg-white rounded border-2 border-gray-200"></canvas>
+            </div>
+
+            <!-- 右侧工具栏 - 画笔样式 -->
+            <div class="lg:col-span-1 space-y-4">
+                <!-- 画笔样式 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <i class="fas fa-paint-brush mr-2"></i>
+                        画笔样式
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="brush-option active bg-gray-50 rounded-lg p-3 text-center" data-brush="round">
+                            <div class="w-6 h-6 bg-black rounded-full mx-auto mb-1"></div>
+                            <span class="text-xs text-gray-600">圆形</span>
+                        </div>
+                        <div class="brush-option bg-gray-50 rounded-lg p-3 text-center" data-brush="square">
+                            <div class="w-6 h-6 bg-black mx-auto mb-1"></div>
+                            <span class="text-xs text-gray-600">方形</span>
+                        </div>
+                        <div class="brush-option bg-gray-50 rounded-lg p-3 text-center" data-brush="spray">
+                            <div class="w-6 h-6 relative mx-auto mb-1">
+                                <div class="absolute inset-0 bg-black rounded-full opacity-30"></div>
+                                <div class="absolute inset-1 bg-black rounded-full opacity-50"></div>
+                                <div class="absolute inset-2 bg-black rounded-full"></div>
+                            </div>
+                            <span class="text-xs text-gray-600">喷雾</span>
+                        </div>
+                        <div class="brush-option bg-gray-50 rounded-lg p-3 text-center" data-brush="marker">
+                            <div class="w-6 h-1 bg-black mx-auto mb-1"></div>
+                            <span class="text-xs text-gray-600">马克笔</span>
+                        </div>
+                        <div class="brush-option bg-gray-50 rounded-lg p-3 text-center" data-brush="calligraphy">
+                            <div class="w-6 h-4 bg-black mx-auto mb-1" style="clip-path: polygon(0 50%, 30% 0%, 100% 0%, 70% 100%, 0 100%)"></div>
+                            <span class="text-xs text-gray-600">毛笔</span>
+                        </div>
+                        <div class="brush-option bg-gray-50 rounded-lg p-3 text-center" data-brush="texture">
+                            <div class="texture-preview bg-gray-200 mx-auto mb-1" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,.1) 2px, rgba(0,0,0,.1) 4px);">
+                                <div class="w-4 h-4 bg-black opacity-50"></div>
+                            </div>
+                            <span class="text-xs text-gray-600">纹理</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 颜色选择器 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                        </svg>
+                        颜色选择
+                    </h3>
+                    <div class="grid grid-cols-5 gap-2 mb-4">
+                        <div class="color-option w-10 h-10 bg-black rounded cursor-pointer border-2 border-gray-300" data-color="#000000"></div>
+                        <div class="color-option w-10 h-10 bg-red-500 rounded cursor-pointer border-2 border-gray-300" data-color="#ef4444"></div>
+                        <div class="color-option w-10 h-10 bg-blue-500 rounded cursor-pointer border-2 border-gray-300" data-color="#3b82f6"></div>
+                        <div class="color-option w-10 h-10 bg-green-500 rounded cursor-pointer border-2 border-gray-300" data-color="#10b981"></div>
+                        <div class="color-option w-10 h-10 bg-yellow-400 rounded cursor-pointer border-2 border-gray-300" data-color="#fbbf24"></div>
+                        <div class="color-option w-10 h-10 bg-purple-500 rounded cursor-pointer border-2 border-gray-300" data-color="#8b5cf6"></div>
+                        <div class="color-option w-10 h-10 bg-pink-500 rounded cursor-pointer border-2 border-gray-300" data-color="#ec4899"></div>
+                        <div class="color-option w-10 h-10 bg-indigo-500 rounded cursor-pointer border-2 border-gray-300" data-color="#6366f1"></div>
+                        <div class="color-option w-10 h-10 bg-gray-500 rounded cursor-pointer border-2 border-gray-300" data-color="#6b7280"></div>
+                        <div class="color-option w-10 h-10 bg-orange-500 rounded cursor-pointer border-2 border-gray-300" data-color="#f97316"></div>
+                    </div>
+                    <input type="color" id="colorPicker" class="w-full h-10 rounded cursor-pointer" value="#000000">
+                </div>
+
+                <!-- 笔刷大小 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                        笔刷大小
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">大小:</span>
+                            <span id="brushSizeValue" class="text-sm font-semibold text-gray-800">5px</span>
+                        </div>
+                        <input type="range" id="brushSize" min="1" max="50" value="5" class="w-full">
+                        <div class="flex justify-center mt-2">
+                            <div id="brushPreview" class="bg-black rounded-full" style="width: 5px; height: 5px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 橡皮擦 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        橡皮擦
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">大小:</span>
+                            <span id="eraserSizeValue" class="text-sm font-semibold text-gray-800">10px</span>
+                        </div>
+                        <input type="range" id="eraserSize" min="5" max="100" value="10" class="w-full">
+                    </div>
+                    <button id="eraserToggle" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded transition duration-200">
+                        使用橡皮擦
+                    </button>
+                </div>
+
+                <!-- 图形编辑工具 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        图形编辑
+                    </h3>
+                    <div id="shapeControls" class="hidden">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-sm text-gray-600">大小:</label>
+                                <input type="range" id="shapeSize" min="20" max="200" value="60" class="w-full">
+                                <span id="shapeSizeValue" class="text-xs text-gray-500">60px</span>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">旋转:</label>
+                                <input type="range" id="shapeRotation" min="0" max="360" value="0" class="w-full">
+                                <span id="shapeRotationValue" class="text-xs text-gray-500">0°</span>
+                            </div>
+                            <button id="deleteShape" class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded text-sm transition duration-200">
+                                删除图形
+                            </button>
+                        </div>
+                    </div>
+                    <p id="shapeHint" class="text-sm text-gray-500">拖入图形后可进行编辑</p>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="space-y-2">
+                        <button id="undoAction" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded transition duration-200 flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                            </svg>
+                            撤销
+                        </button>
+                        <button id="clearCanvas" class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition duration-200 flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            清除画板
+                        </button>
+                        <button id="downloadCanvas" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition duration-200 flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            下载作品
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 画板初始化
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = canvas.parentElement;
+        
+        // 设置画布大小
+        function resizeCanvas() {
+            const rect = canvasContainer.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = Math.min(600, window.innerHeight - 200);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 绘画状态
+        let isDrawing = false;
+        let isErasing = false;
+        let currentColor = '#000000';
+        let brushSize = 5;
+        let eraserSize = 10;
+        let currentBrush = 'round';
+        let lastX = 0;
+        let lastY = 0;
+
+        // 形状管理
+        let shapes = [];
+        let selectedShape = null;
+        let isDragging = false;
+        let isResizing = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        // 历史记录（用于撤销功能）
+        let history = [];
+        let historyStep = -1;
+
+        // 保存当前状态到历史记录
+        function saveState() {
+            historyStep++;
+            if (historyStep < history.length) {
+                history.length = historyStep;
+            }
+            history.push({
+                imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+                shapes: shapes.map(shape => ({...shape}))
+            });
+        }
+
+        // 撤销功能
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                const state = history[historyStep];
+                ctx.putImageData(state.imageData, 0, 0);
+                shapes = state.shapes.map(shape => ({...shape}));
+                selectedShape = null;
+                renderAll();
+                document.getElementById('shapeControls').classList.add('hidden');
+                document.getElementById('shapeHint').classList.remove('hidden');
+            }
+        }
+
+        // 重绘所有内容
+        function renderAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制形状
+            shapes.forEach(shape => {
+                ctx.save();
+                ctx.translate(shape.x, shape.y);
+                ctx.rotate(shape.rotation * Math.PI / 180);
+                ctx.fillStyle = shape.color;
+                ctx.strokeStyle = shape.color;
+                ctx.lineWidth = 2;
+
+                switch(shape.type) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, shape.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'square':
+                        ctx.fillRect(-shape.size / 2, -shape.size / 2, shape.size, shape.size);
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -shape.size / 2);
+                        ctx.lineTo(-shape.size / 2, shape.size / 2);
+                        ctx.lineTo(shape.size / 2, shape.size / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'star':
+                        drawStar(ctx, 5, shape.size / 2, shape.size / 4);
+                        ctx.fill();
+                        break;
+                    case 'heart':
+                        drawHeart(ctx, shape.size / 2);
+                        ctx.fill();
+                        break;
+                    case 'diamond':
+                        ctx.fillRect(-shape.size / 2, -shape.size / 2, shape.size, shape.size);
+                        break;
+                    case 'hexagon':
+                        drawPolygon(ctx, 6, shape.size / 2);
+                        ctx.fill();
+                        break;
+                    case 'pentagon':
+                        drawPolygon(ctx, 5, shape.size / 2);
+                        ctx.fill();
+                        break;
+                    case 'cross':
+                        drawCross(ctx, shape.size);
+                        ctx.fill();
+                        break;
+                    case 'moon':
+                        drawMoon(ctx, shape.size / 2);
+                        ctx.fill();
+                        break;
+                    case 'flower':
+                        drawFlower(ctx, shape.size / 2);
+                        ctx.fill();
+                        break;
+                    case 'cloud':
+                        drawCloud(ctx, shape.size / 2);
+                        ctx.fill();
+                        break;
+                }
+                ctx.restore();
+            });
+        }
+
+        // 绘制多边形
+        function drawPolygon(ctx, sides, radius) {
+            ctx.beginPath();
+            for (let i = 0; i < sides; i++) {
+                const angle = (i * 2 * Math.PI) / sides - Math.PI / 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+        }
+
+        // 绘制十字
+        function drawCross(ctx, size) {
+            const thickness = size / 4;
+            ctx.fillRect(-thickness / 2, -size / 2, thickness, size);
+            ctx.fillRect(-size / 2, -thickness / 2, size, thickness);
+        }
+
+        // 绘制月亮
+        function drawMoon(ctx, size) {
+            ctx.beginPath();
+            ctx.arc(0, 0, size, 0.2 * Math.PI, 1.2 * Math.PI);
+            ctx.arc(0, -size / 3, size * 0.8, 1.2 * Math.PI, 0.2 * Math.PI, true);
+            ctx.closePath();
+        }
+
+        // 绘制花朵
+        function drawFlower(ctx, size) {
+            const petals = 6;
+            const petalSize = size * 0.4;
+            
+            for (let i = 0; i < petals; i++) {
+                const angle = (i * 2 * Math.PI) / petals;
+                ctx.save();
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.arc(0, -size * 0.3, petalSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            // 花心
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+        }
+
+        // 绘制云朵
+        function drawCloud(ctx, size) {
+            const circles = [
+                {x: 0, y: 0, r: size * 0.6},
+                {x: -size * 0.4, y: 0, r: size * 0.4},
+                {x: size * 0.4, y: 0, r: size * 0.4},
+                {x: -size * 0.2, y: -size * 0.3, r: size * 0.3},
+                {x: size * 0.2, y: -size * 0.3, r: size * 0.3}
+            ];
+            
+            ctx.beginPath();
+            circles.forEach(circle => {
+                ctx.arc(circle.x, circle.y, circle.r, 0, Math.PI * 2);
+            });
+            ctx.fill();
+        }
+
+        // 绘制星形
+        function drawStar(ctx, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = 0;
+            let y = 0;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0 - outerRadius);
+
+            for (let i = 0; i < spikes; i++) {
+                x = Math.cos(rot) * outerRadius;
+                y = Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = Math.cos(rot) * innerRadius;
+                y = Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+
+            ctx.lineTo(0, 0 - outerRadius);
+            ctx.closePath();
+        }
+
+        // 绘制心形
+        function drawHeart(ctx, size) {
+            ctx.beginPath();
+            const topCurveHeight = size * 0.3;
+            ctx.moveTo(0, topCurveHeight);
+            
+            ctx.bezierCurveTo(
+                0, 0, 
+                -size / 2, 0, 
+                -size / 2, topCurveHeight
+            );
+            
+            ctx.bezierCurveTo(
+                -size / 2, size / 2, 
+                0, size / 1.5,
+                0, size
+            );
+            
+            ctx.bezierCurveTo(
+                0, size / 1.5, 
+                size / 2, size / 2,
+                size / 2, topCurveHeight
+            );
+            
+            ctx.bezierCurveTo(
+                size / 2, 0, 
+                0, 0, 
+                0, topCurveHeight
+            );
+            
+            ctx.closePath();
+        }
+
+        // 画笔样式切换
+        document.querySelectorAll('.brush-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.brush-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                currentBrush = this.dataset.brush;
+                updateCursor();
+            });
+        });
+
+        // 更新光标样式
+        function updateCursor() {
+            if (!isErasing) {
+                let cursorUrl = '';
+                let cursorX = brushSize;
+                let cursorY = brushSize;
+                
+                switch(currentBrush) {
+                    case 'round':
+                        cursorUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${brushSize * 2}" height="${brushSize * 2}" viewBox="0 0 ${brushSize * 2} ${brushSize * 2}"><circle cx="${brushSize}" cy="${brushSize}" r="${brushSize}" fill="transparent" stroke="black" stroke-width="1"/></svg>`;
+                        break;
+                    case 'square':
+                        cursorUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${brushSize * 2}" height="${brushSize * 2}" viewBox="0 0 ${brushSize * 2} ${brushSize * 2}"><rect x="1" y="1" width="${brushSize * 2 - 2}" height="${brushSize * 2 - 2}" fill="transparent" stroke="black" stroke-width="1"/></svg>`;
+                        break;
+                    case 'spray':
+                        cursorUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${brushSize * 2}" height="${brushSize * 2}" viewBox="0 0 ${brushSize * 2} ${brushSize * 2}"><circle cx="${brushSize}" cy="${brushSize}" r="${brushSize}" fill="none" stroke="black" stroke-width="1" stroke-dasharray="2,2"/></svg>`;
+                        break;
+                    case 'marker':
+                        cursorX = brushSize / 2;
+                        cursorUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${brushSize * 3}" height="${brushSize * 3}" viewBox="0 0 ${brushSize * 3} ${brushSize * 3}"><line x1="${brushSize * 1.5}" y1="${brushSize * 0.5}" x2="${brushSize * 1.5}" y2="${brushSize * 2.5}" stroke="black" stroke-width="2"/></svg>`;
+                        break;
+                    case 'calligraphy':
+                        cursorUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="${brushSize * 2}" height="${brushSize * 2}" viewBox="0 0 ${brushSize * 2} ${brushSize * 2}"><path d="M${brushSize} ${brushSize * 0.2} L${brushSize * 1.8} ${brushSize * 1.8}" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>`;
+                        break;
+                }
+                
+                if (cursorUrl) {
+                    document.getElementById('canvas').style.cursor = `url('${cursorUrl}') ${cursorX} ${cursorY}, crosshair`;
+                }
+            }
+        }
+
+        // 颜色选择
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', function() {
+                currentColor = this.dataset.color;
+                document.getElementById('colorPicker').value = currentColor;
+                updateBrushPreview();
+                if (isErasing) {
+                    toggleEraser();
+                }
+                if (selectedShape) {
+                    selectedShape.color = currentColor;
+                    renderAll();
+                }
+            });
+        });
+
+        document.getElementById('colorPicker').addEventListener('change', function() {
+            currentColor = this.value;
+            updateBrushPreview();
+            if (isErasing) {
+                toggleEraser();
+            }
+            if (selectedShape) {
+                selectedShape.color = currentColor;
+                renderAll();
+            }
+        });
+
+        // 笔刷大小调整
+        document.getElementById('brushSize').addEventListener('input', function() {
+            brushSize = this.value;
+            document.getElementById('brushSizeValue').textContent = brushSize + 'px';
+            updateBrushPreview();
+            updateCursor();
+        });
+
+        // 橡皮擦大小调整
+        document.getElementById('eraserSize').addEventListener('input', function() {
+            eraserSize = this.value;
+            document.getElementById('eraserSizeValue').textContent = eraserSize + 'px';
+        });
+
+        // 橡皮擦切换
+        function toggleEraser() {
+            isErasing = !isErasing;
+            const button = document.getElementById('eraserToggle');
+            const canvasElement = document.getElementById('canvas');
+            
+            if (isErasing) {
+                button.textContent = '使用画笔';
+                button.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
+                button.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white');
+                canvasElement.classList.add('eraser-cursor');
+                canvasElement.style.cursor = 'none';
+            } else {
+                button.textContent = '使用橡皮擦';
+                button.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'text-white');
+                button.classList.add('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
+                canvasElement.classList.remove('eraser-cursor');
+                updateCursor();
+            }
+        }
+
+        document.getElementById('eraserToggle').addEventListener('click', toggleEraser);
+
+        // 更新笔刷预览
+        function updateBrushPreview() {
+            const preview = document.getElementById('brushPreview');
+            preview.style.width = brushSize + 'px';
+            preview.style.height = brushSize + 'px';
+            preview.style.backgroundColor = currentColor;
+        }
+
+        // 获取鼠标在画布中的位置
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX || e.touches[0].clientX) - rect.left,
+                y: (e.clientY || e.touches[0].clientY) - rect.top
+            };
+        }
+
+        // 绘画功能
+        function startDrawing(e) {
+            const pos = getMousePos(e);
+            
+            // 检查是否点击了形状
+            let clickedShape = null;
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                const shape = shapes[i];
+                const distance = Math.sqrt((pos.x - shape.x) ** 2 + (pos.y - shape.y) ** 2);
+                if (distance <= shape.size / 2) {
+                    clickedShape = shape;
+                    break;
+                }
+            }
+            
+            if (clickedShape) {
+                // 选中形状
+                selectedShape = clickedShape;
+                isDragging = true;
+                dragOffset = {
+                    x: pos.x - clickedShape.x,
+                    y: pos.y - clickedShape.y
+                };
+                
+                // 显示编辑控制面板
+                document.getElementById('shapeControls').classList.remove('hidden');
+                document.getElementById('shapeHint').classList.add('hidden');
+                document.getElementById('shapeSize').value = clickedShape.size;
+                document.getElementById('shapeSizeValue').textContent = clickedShape.size + 'px';
+                document.getElementById('shapeRotation').value = clickedShape.rotation;
+                document.getElementById('shapeRotationValue').textContent = clickedShape.rotation + '°';
+                
+                renderAll();
+            } else {
+                // 开始绘画
+                isDrawing = true;
+                lastX = pos.x;
+                lastY = pos.y;
+                
+                ctx.beginPath();
+                if (currentBrush === 'marker') {
+                    ctx.lineWidth = brushSize / 4;
+                } else {
+                    ctx.lineWidth = brushSize;
+                }
+                ctx.strokeStyle = currentColor;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.moveTo(pos.x, pos.y);
+            }
+        }
+
+        function draw(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            
+            if (isDragging && selectedShape) {
+                // 拖动形状
+                selectedShape.x = pos.x - dragOffset.x;
+                selectedShape.y = pos.y - dragOffset.y;
+                renderAll();
+            } else if (isDrawing) {
+                // 绘画
+                const currentX = pos.x;
+                const currentY = pos.y;
+                
+                ctx.lineWidth = isErasing ? eraserSize : (currentBrush === 'marker' ? brushSize / 4 : brushSize);
+                ctx.strokeStyle = isErasing ? '#FFFFFF' : currentColor;
+                
+                switch(currentBrush) {
+                    case 'round':
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(currentX, currentY);
+                        break;
+                        
+                    case 'square':
+                        ctx.lineCap = 'square';
+                        ctx.lineJoin = 'miter';
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(currentX, currentY);
+                        break;
+                        
+                    case 'spray':
+                        // 喷雾效果
+                        for (let i = 0; i < 20; i++) {
+                            const offsetX = (Math.random() - 0.5) * brushSize * 2;
+                            const offsetY = (Math.random() - 0.5) * brushSize * 2;
+                            const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                            if (distance <= brushSize) {
+                                ctx.fillStyle = currentColor;
+                                ctx.globalAlpha = 0.1 + Math.random() * 0.3;
+                                ctx.beginPath();
+                                ctx.arc(currentX + offsetX, currentY + offsetY, 1, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        }
+                        ctx.globalAlpha = 1;
+                        break;
+                        
+                    case 'marker':
+                        // 马克笔效果
+                        ctx.globalAlpha = 0.3;
+                        ctx.lineWidth = brushSize / 2;
+                        ctx.lineCap = 'square';
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                        ctx.globalAlpha = 0.6;
+                        ctx.lineWidth = brushSize / 4;
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(currentX, currentY);
+                        break;
+                        
+                    case 'calligraphy':
+                        // 毛笔效果
+                        const angle = Math.atan2(currentY - lastY, currentX - lastX);
+                        const distance = Math.sqrt((currentX - lastX) ** 2 + (currentY - lastY) ** 2);
+                        const pressure = Math.min(distance / 50, 1);
+                        
+                        ctx.lineWidth = brushSize * (0.3 + 0.7 * pressure);
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(currentX, currentY);
+                        break;
+                        
+                    case 'texture':
+                        // 纹理效果
+                        for (let i = -2; i <= 2; i++) {
+                            for (let j = -2; j <= 2; j++) {
+                                if (Math.random() > 0.7) {
+                                    ctx.fillStyle = currentColor;
+                                    ctx.globalAlpha = 0.2;
+                                    ctx.fillRect(currentX + i * 2, currentY + j * 2, 2, 2);
+                                }
+                            }
+                        }
+                        ctx.globalAlpha = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(currentX, currentY);
+                        break;
+                }
+                
+                lastX = currentX;
+                lastY = currentY;
+            }
+        }
+
+        function stopDrawing() {
+            if (isDragging) {
+                isDragging = false;
+                saveState();
+            } else if (isDrawing) {
+                isDrawing = false;
+                ctx.beginPath();
+                ctx.globalAlpha = 1;
+                saveState();
+            }
+        }
+
+        // 鼠标事件
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // 触摸事件（移动设备）
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // 图形拖放功能
+        let draggedShape = null;
+
+        document.querySelectorAll('.shape-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                draggedShape = this.dataset.shape;
+                this.classList.add('dragging');
+            });
+
+            item.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+            });
+        });
+
+        // 设置画布为拖放区域
+        canvas.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = '#f3f4f6';
+        });
+
+        canvas.addEventListener('dragleave', function(e) {
+            this.style.backgroundColor = '#ffffff';
+        });
+
+        canvas.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = '#ffffff';
+            
+            if (!draggedShape) return;
+            
+            const pos = getMousePos(e);
+            const newShape = {
+                type: draggedShape,
+                x: pos.x,
+                y: pos.y,
+                size: 60,
+                color: currentColor,
+                rotation: 0
+            };
+            
+            shapes.push(newShape);
+            selectedShape = newShape;
+            
+            // 显示编辑控制面板
+            document.getElementById('shapeControls').classList.remove('hidden');
+            document.getElementById('shapeHint').classList.add('hidden');
+            document.getElementById('shapeSize').value = 60;
+            document.getElementById('shapeSizeValue').textContent = '60px';
+            document.getElementById('shapeRotation').value = 0;
+            document.getElementById('shapeRotationValue').textContent = '0°';
+            
+            renderAll();
+            saveState();
+            draggedShape = null;
+        });
+
+        // 图形控制
+        document.getElementById('shapeSize').addEventListener('input', function() {
+            if (selectedShape) {
+                selectedShape.size = parseInt(this.value);
+                document.getElementById('shapeSizeValue').textContent = this.value + 'px';
+                renderAll();
+            }
+        });
+
+        document.getElementById('shapeRotation').addEventListener('input', function() {
+            if (selectedShape) {
+                selectedShape.rotation = parseInt(this.value);
+                document.getElementById('shapeRotationValue').textContent = this.value + '°';
+                renderAll();
+            }
+        });
+
+        document.getElementById('deleteShape').addEventListener('click', function() {
+            if (selectedShape) {
+                const index = shapes.indexOf(selectedShape);
+                if (index > -1) {
+                    shapes.splice(index, 1);
+                    selectedShape = null;
+                    document.getElementById('shapeControls').classList.add('hidden');
+                    document.getElementById('shapeHint').classList.remove('hidden');
+                    renderAll();
+                    saveState();
+                }
+            }
+        });
+
+        // 撤销功能
+        document.getElementById('undoAction').addEventListener('click', undo);
+
+        // 清除画板
+        document.getElementById('clearCanvas').addEventListener('click', function() {
+            if (confirm('确定要清除整个画板吗？')) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                shapes = [];
+                selectedShape = null;
+                document.getElementById('shapeControls').classList.add('hidden');
+                document.getElementById('shapeHint').classList.remove('hidden');
+                saveState();
+            }
+        });
+
+        // 下载画板内容
+        document.getElementById('downloadCanvas').addEventListener('click', function() {
+            // 创建临时画布
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制白色背景
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // 复制画布内容
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // 下载
+            const link = document.createElement('a');
+            link.download = '我的画作_' + new Date().getTime() + '.png';
+            link.href = tempCanvas.toDataURL();
+            link.click();
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+        });
+
+        // 初始化
+        saveState();
+        updateBrushPreview();
+        updateCursor();
+    </script>
+</body>
+</html>

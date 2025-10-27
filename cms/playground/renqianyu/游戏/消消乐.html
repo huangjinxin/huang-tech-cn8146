@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>SVG 消消乐</title>
+<style>
+    body {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background:#f0f4f7;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        margin:0;
+        padding:20px;
+    }
+    h1 {margin:0 0 10px;}
+    #score {font-size:1.2rem;margin-bottom:10px;}
+    #board {
+        display:grid;
+        grid-template-columns: repeat(8, 50px);
+        grid-template-rows: repeat(8, 50px);
+        gap:4px;
+        background:#fff;
+        padding:6px;
+        border-radius:8px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    }
+    .cell {
+        width:50px;height:50px;
+        cursor:pointer;
+        position:relative;
+        transition:transform .2s;
+    }
+    .cell:active {transform:scale(0.94);}
+    .fade-out{
+        animation:fadeOut .4s forwards;
+    }
+    @keyframes fadeOut{
+        to {opacity:0; transform:scale(0.5);}
+    }
+    .fade-in{
+        animation:fadeIn .4s;
+    }
+    @keyframes fadeIn{
+        from{opacity:0; transform:scale(0.5);}
+        to{opacity:1; transform:scale(1);}
+    }
+    #controls{
+        margin-top:12px;
+        display:flex;
+        gap:8px;
+        align-items:center;
+    }
+    button{
+        padding:6px 12px;
+        font-size:0.9rem;
+        border:none;
+        border-radius:4px;
+        background:#4ECDC4;
+        color:#fff;
+        cursor:pointer;
+        transition:background .2s;
+    }
+    button:hover{background:#3aa8a0;}
+</style>
+</head>
+<body>
+
+<h1>SVG 消消乐</h1>
+<div id="score">得分:0</div>
+<div id="board"></div>
+
+<div id="controls">
+    <button id="restartBtn">重新开始</button>
+    <label><input type="checkbox" id="soundToggle" checked> 音效</label>
+    <button class="homeBtn" onclick="location.href='inedx.html'">返回首页</button>
+</div>
+
+
+<script>
+/* ---------- 基础数据 ---------- */
+const ROWS = 8, COLS = 8;
+const COLORS = ["#FF6B6B","#4ECDC4","#FFD93D","#FF9F1C","#5B5EA6"];
+let board = [];             // 二维数组保存颜色字符串或 null
+let score = 0;
+let soundOn = true;
+
+/* ---------- 音效 ---------- */
+const popSound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YRYAAAAA");
+function playPop(){ if(soundOn) popSound.currentTime=0, popSound.play(); }
+
+/* ---------- UI 渲染 ---------- */
+const boardEl = document.getElementById('board');
+function createCellSvg(color){
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns,'svg');
+    svg.setAttribute('width',50);
+    svg.setAttribute('height',50);
+    const circle = document.createElementNS(ns,'circle');
+    circle.setAttribute('cx',25);
+    circle.setAttribute('cy',25);
+    circle.setAttribute('r',20);
+    circle.setAttribute('fill',color);
+    svg.appendChild(circle);
+    return svg;
+}
+function renderBoard(){
+    boardEl.innerHTML='';
+    for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+            const cell = document.createElement('div');
+            cell.className='cell';
+            cell.dataset.r=r; cell.dataset.c=c;
+            const color = board[r][c];
+            if(color){
+                cell.appendChild(createCellSvg(color));
+            }
+            boardEl.appendChild(cell);
+        }
+    }
+}
+
+/* ---------- 初始化 ---------- */
+function initBoard(){
+    board = [];
+    for(let r=0;r<ROWS;r++){
+        const row=[];
+        for(let c=0;c<COLS;c++){
+            row.push(randomColor());
+        }
+        board.push(row);
+    }
+    score=0; updateScore();
+    renderBoard();
+}
+function randomColor(){ return COLORS[Math.floor(Math.random()*COLORS.length)]; }
+function updateScore(){ document.getElementById('score').textContent='得分：'+score; }
+
+/* ---------- 匹配 & 消除 ---------- */
+function getNeighbors(r,c){
+    const neigh=[];
+    if(r>0) neigh.push([r-1,c]);
+    if(r<ROWS-1) neigh.push([r+1,c]);
+    if(c>0) neigh.push([r,c-1]);
+    if(c<COLS-1) neigh.push([r,c+1]);
+    return neigh;
+}
+function floodFill(r,c,color,visited){
+    const stack=[[r,c]];
+    const group=[];
+    while(stack.length){
+        const [cr,cc]=stack.pop();
+        const key=cr+','+cc;
+        if(visited.has(key)) continue;
+        if(board[cr][cc]!==color) continue;
+        visited.add(key);
+        group.push([cr,cc]);
+        for(const [nr,nc] of getNeighbors(cr,cc)){
+            stack.push([nr,nc]);
+        }
+    }
+    return group;
+}
+function handleClick(e){
+    const cell = e.target.closest('.cell');
+    if(!cell) return;
+    const r=+cell.dataset.r, c=+cell.dataset.c;
+    const color=board[r][c];
+    if(!color) return;
+    const visited=new Set();
+    const group=floodFill(r,c,color,visited);
+    if(group.length<3) return; // 少于3个不消除
+    // 消除动画
+    group.forEach(([gr,gc])=>{
+        const idx = gr*COLS+gc;
+        const cellEl = boardEl.children[idx];
+        cellEl.classList.add('fade-out');
+    });
+    setTimeout(()=>{ // 动画结束后真正删除
+        group.forEach(([gr,gc])=> board[gr][gc]=null);
+        collapseBoard();
+        score+=group.length*10;
+        updateScore();
+        renderBoard();
+        playPop();
+    },400);
+}
+
+/* ---------- 重力下坠 & 填充 ---------- */
+function collapseBoard(){
+    for(let c=0;c<COLS;c++){
+        const column=[];
+        // 收集非空格子
+        for(let r=ROWS-1;r>=0;r--){
+            if(board[r][c]) column.push(board[r][c]);
+        }
+        // 填充空格
+        for(let r=ROWS-1;r>=0;r--){
+            board[r][c]= column.shift() || randomColor();
+        }
+    }
+}
+
+/* ---------- 控件 ---------- */
+document.getElementById('board').addEventListener('click',handleClick);
+document.getElementById('restartBtn').addEventListener('click',initBoard);
+document.getElementById('soundToggle').addEventListener('change',e=>soundOn=e.target.checked);
+
+/* ---------- 启动游戏 ---------- */
+initBoard();
+
+</script>
+</body>
+</html>

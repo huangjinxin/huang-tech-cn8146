@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电磁学奇妙之旅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background-color: #e6f2ff;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        h1 {
+            color: #2c5aa0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #5a8bc4;
+            font-size: 1.2rem;
+        }
+        
+        .section {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #3a6ea5;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .interactive-demo {
+            background-color: #f5f9ff;
+            border: 2px dashed #a8c6df;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+            min-height: 200px;
+        }
+        
+        .btn {
+            background-color: #5a9fd4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(90,159,212,0.3);
+        }
+        
+        .btn:hover {
+            background-color: #3a8bc4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(90,159,212,0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .quiz-container {
+            background-color: #fffaf0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #ffd6a5;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #d17a00;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            background-color: #fff;
+            border: 2px solid #ffcc99;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background-color: #fff8e6;
+            border-color: #ff9933;
+        }
+        
+        .option.correct {
+            background-color: #e6ffed;
+            border-color: #4caf50;
+        }
+        
+        .option.incorrect {
+            background-color: #ffe6e6;
+            border-color: #f44336;
+        }
+        
+        .result-message {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .magnetic-field {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .electron {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ff6b6b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255,107,107,0.5);
+            transition: all 0.1s linear;
+        }
+        
+        .lightning {
+            position: absolute;
+            width: 3px;
+            height: 60px;
+            background-color: #ffeb3b;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 10px #ffeb3b;
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+        
+        @keyframes moveDown {
+            0% { top: -20px; }
+            100% { top: 100%; }
+        }
+        
+        .lightning.active {
+            animation: moveDown 1s linear, flicker 0.2s infinite;
+        }
+        
+        .info-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        .fun-fact {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+            font-style: italic;
+        }
+        
+        .experiment-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .experiment-item {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            width: 200px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .experiment-item:hover {
+            transform: scale(1.05);
+            background-color: #e0e0e0;
+        }
+        
+        .experiment-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .nav-btn {
+            background-color: #a0c8ff;
+            color: #2c5aa0;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background-color: #8ab8ff;
+        }
+        
+        .highlight {
+            background-color: #ffecb3;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #ff6f00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ 电磁学奇妙之旅 ✨</h1>
+            <p class="subtitle">探索电与磁的神奇世界</p>
+        </header>
+        
+        <div class="navigation">
+            <button class="nav-btn" onclick="scrollToSection('electricity')">电是什么</button>
+            <button class="nav-btn" onclick="scrollToSection('magnetism')">磁是什么</button>
+            <button class="nav-btn" onclick="scrollToSection('electromagnetic')">电磁关系</button>
+            <button class="nav-btn" onclick="scrollToSection('applications')">实际应用</button>
+            <button class="nav-btn" onclick="scrollToSection('quiz')">知识小测试</button>
+        </div>
+        
+        <section id="electricity" class="section">
+            <h2>⚡ 电是什么？</h2>
+            <p>电是一种自然现象，是由电子的流动产生的。我们日常生活中使用的电，是由电子在导线中流动形成的。</p>
+            
+            <div class="info-box">
+                <strong>小知识：</strong> 物质是由原子组成的，原子中有带负电的电子和带正电的质子。当电子从一个地方移动到另一个地方，就形成了电流！
+            </div>
+            
+            <div class="interactive-demo">
+                <h3>互动实验：电子流动</h3>
+                <p>点击按钮，观察电子如何在导线中流动</p>
+                <button class="btn" onclick="startElectronFlow()">开始电子流动</button>
+                <button class="btn" onclick="stopElectronFlow()">停止电子流动</button>
+                <div class="magnetic-field" id="electronContainer"></div>
+            </div>
+            
+            <div class="fun-fact">
+                <strong>🌟 有趣的事实：</strong> 闪电是自然界中最强大的电现象！一次闪电可以产生高达10亿伏特的电压，比我们家里用的电压高100万倍！
+            </div>
+        </section>
+        
+        <section id="magnetism" class="section">
+            <h2>🧲 磁是什么？</h2>
+            <p>磁是一种特殊的力，可以吸引某些物质（如铁、镍、钴等）。磁铁有两个磁极：北极（N极）和南极（S极）。</p>
+            
+            <svg width="100%" height="200" id="magnetSvg">
+                <!-- 磁铁SVG -->
+                <rect x="100" y="50" width="200" height="100" rx="10" fill="#ff6b6b" />
+                <rect x="100" y="50" width="100" height="100" rx="10" fill="#ff0000" />
+                <rect x="200" y="50" width="100" height="100" rx="10" fill="#0000ff" />
+                <text x="150" y="105" text-anchor="middle" fill="white" font-size="30" font-weight="bold">N</text>
+                <text x="250" y="105" text-anchor="middle" fill="white" font-size="30" font-weight="bold">S</text>
+                <!-- 磁力线 -->
+                <path d="M50,150 Q200,50 350,150" stroke="#5a9fd4" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                <path d="M50,150 Q200,50 350,150" stroke="#5a9fd4" stroke-width="2" fill="none" stroke-dasharray="5,5" transform="translate(0, 10)"/>
+                <path d="M50,150 Q200,50 350,150" stroke="#5a9fd4" stroke-width="2" fill="none" stroke-dasharray="5,5" transform="translate(0, -10)"/>
+            </svg>
+            
+            <div class="interactive-demo">
+                <h3>磁极互动</h3>
+                <p>将一个磁极靠近另一个磁极，观察它们如何相互作用</p>
+                <div style="display: flex; justify-content: space-around;">
+                    <div>
+                        <p>选择第一个磁极：</p>
+                        <button class="btn" onclick="selectPole('north')">北极 (N)</button>
+                        <button class="btn" onclick="selectPole('south')">南极 (S)</button>
+                    </div>
+                    <div>
+                        <p>选择第二个磁极：</p>
+                        <button class="btn" onclick="showPoleInteraction('north', 'north')">北极 (N)</button>
+                        <button class="btn" onclick="showPoleInteraction('north', 'south')">南极 (S)</button>
+                    </div>
+                </div>
+                <div id="poleResult" style="margin-top: 20px; font-size: 1.2rem; font-weight: bold; min-height: 30px;"></div>
+            </div>
+            
+            <div class="info-box">
+                <strong>记住这个规则：</strong> 同名磁极相互排斥，异名磁极相互吸引！这就像磁铁之间的"推"和"拉"。
+            </div>
+        </section>
+        
+        <section id="electromagnetic" class="section">
+            <h2>🔗 电与磁的关系</h2>
+            <p>科学家发现电和磁之间有着密切的关系！电流可以产生磁场，变化的磁场也可以产生电流。</p>
+            
+            <div class="interactive-demo">
+                <h3>奥斯特实验</h3>
+                <p>当电流通过导线时，会在导线周围产生磁场</p>
+                <svg width="100%" height="300" id="oerstedSvg">
+                    <!-- 导线 -->
+                    <line x1="150" y1="50" x2="150" y2="250" stroke="#888" stroke-width="5"/>
+                    <!-- 磁力线 -->
+                    <g id="magneticField">
+                        <circle cx="150" cy="150" r="30" stroke="#5a9fd4" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                        <circle cx="150" cy="150" r="50" stroke="#5a9fd4" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                        <circle cx="150" cy="150" r="70" stroke="#5a9fd4" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                        <!-- 磁力线箭头 -->
+                        <polygon points="180,150 185,145 185,155" fill="#5a9fd4"/>
+                        <polygon points="150,120 145,115 155,115" fill="#5a9fd4"/>
+                        <polygon points="120,150 115,155 115,145" fill="#5a9fd4"/>
+                        <polygon points="150,180 155,185 145,185" fill="#5a9fd4"/>
+                    </g>
+                    <!-- 电流方向指示 -->
+                    <g id="currentIndicator" style="display: none;">
+                        <circle cx="150" cy="30" r="10" fill="#ff6b6b"/>
+                        <text x="150" y="35" text-anchor="middle" fill="white" font-size="12" font-weight="bold">I</text>
+                        <text x="150" y="15" text-anchor="middle" fill="#333">电流方向</text>
+                    </g>
+                    <!-- 标签 -->
+                    <text x="200" y="150" text-anchor="start" fill="#5a9fd4" font-size="14">磁场</text>
+                </svg>
+                <button class="btn" onclick="toggleCurrent()">切换电流</button>
+            </div>
+            
+            <div class="fun-fact">
+                <strong>🌟 有趣的事实：</strong> 丹麦物理学家奥斯特在1820年发现电可以产生磁，这一发现彻底改变了物理学！
+            </div>
+        </section>
+        
+        <section id="applications" class="section">
+            <h2>🚀 电磁学在生活中的应用</h2>
+            <p>电磁学原理被广泛应用于我们的日常生活中，让我们一起看看吧！</p>
+            
+            <div class="experiment-container">
+                <div class="experiment-item" onclick="showExperimentDetail('generator')">
+                    <div class="experiment-icon">⚡</div>
+                    <h3>发电机</h3>
+                    <p>利用电磁感应发电</p>
+                </div>
+                
+                <div class="experiment-item" onclick="showExperimentDetail('motor')">
+                    <div class="experiment-icon">🔧</div>
+                    <h3>电动机</h3>
+                    <p>利用电磁力转动</p>
+                </div>
+                
+                <div class="experiment-item" onclick="showExperimentDetail('compass')">
+                    <div class="experiment-icon">🧭</div>
+                    <h3>指南针</h3>
+                    <p>利用地球磁场导航</p>
+                </div>
+                
+                <div class="experiment-item" onclick="showExperimentDetail('phone')">
+                    <div class="experiment-icon">📱</div>
+                    <h3>智能手机</h3>
+                    <p>包含多种电磁学应用</p>
+                </div>
+            </div>
+            
+            <div id="experimentDetail" class="info-box" style="display: none;">
+                <h3 id="experimentTitle"></h3>
+                <p id="experimentDescription"></p>
+            </div>
+            
+            <div class="interactive-demo">
+                <h3>制作简易电磁铁</h3>
+                <p>你需要：电池、铁钉、导线</p>
+                <ol>
+                    <li>将导线紧密地缠绕在铁钉上</li>
+                    <li>将导线的两端连接到电池的正负极</li>
+                    <li>试试你的电磁铁能吸起多少个回形针！</li>
+                </ol>
+                <svg width="100%" height="200" id="electromagnetSvg">
+                    <!-- 电池 -->
+                    <rect x="50" y="80" width="30" height="60" fill="#ff9800" stroke="#333" stroke-width="2"/>
+                    <rect x="55" y="75" width="20" height="10" fill="#333"/>
+                    <rect x="55" y="135" width="20" height="10" fill="#333"/>
+                    <text x="65" y="110" text-anchor="middle" fill="white" font-size="12" font-weight="bold">+</text>
+                    <text x="65" y="145" text-anchor="middle" fill="white" font-size="12" font-weight="bold">−</text>
+                    <!-- 导线 -->
+                    <path d="M80,80 L80,30 L200,30 L200,80" stroke="#ffeb3b" stroke-width="3" fill="none"/>
+                    <path d="M80,140 L80,190 L200,190 L200,140" stroke="#ffeb3b" stroke-width="3" fill="none"/>
+                    <!-- 铁钉 -->
+                    <rect x="180" y="75" width="8" height="50" fill="#9e9e9e"/>
+                    <rect x="178" y="70" width="12" height="10" fill="#616161"/>
+                    <!-- 回形针 -->
+                    <g id="paperclips" transform="translate(180, 0)">
+                        <ellipse cx="0" cy="50" rx="5" ry="10" fill="#bdbdbd" transform="rotate(20 0 50)"/>
+                        <ellipse cx="10" cy="45" rx="5" ry="10" fill="#bdbdbd" transform="rotate(-20 10 45)"/>
+                        <ellipse cx="20" cy="40" rx="5" ry="10" fill="#bdbdbd" transform="rotate(20 20 40)"/>
+                    </g>
+                    <!-- 开关 -->
+                    <circle cx="140" cy="30" r="5" fill="#4caf50"/>
+                    <circle cx="155" cy="30" r="5" fill="#4caf50"/>
+                    <line id="switchLine" x1="145" y1="30" x2="150" y2="30" stroke="#333" stroke-width="2"/>
+                </svg>
+                <button class="btn" onclick="toggleElectromagnet()">切换开关</button>
+                <p id="electromagnetResult" style="margin-top: 10px;"></p>
+            </div>
+        </section>
+        
+        <section id="quiz" class="section">
+            <h2>🧠 电磁学知识小测试</h2>
+            <p>测试一下你对电磁学的理解程度吧！</p>
+            
+            <div class="quiz-container">
+                <div class="question" id="question1">
+                    问题1：电子的流向会产生什么？
+                </div>
+                <div class="options" id="options1">
+                    <div class="option" onclick="checkAnswer(1, this, false)">光</div>
+                    <div class="option" onclick="checkAnswer(1, this, true)">电流和磁场</div>
+                    <div class="option" onclick="checkAnswer(1, this, false)">声音</div>
+                    <div class="option" onclick="checkAnswer(1, this, false)">热能</div>
+                </div>
+                <div class="result-message" id="result1"></div>
+            </div>
+            
+            <div class="quiz-container">
+                <div class="question" id="question2">
+                    问题2：磁铁的两个磁极是什么？
+                </div>
+                <div class="options" id="options2">
+                    <div class="option" onclick="checkAnswer(2, this, false)">东极和西极</div>
+                    <div class="option" onclick="checkAnswer(2, this, false)">上极和下极</div>
+                    <div class="option" onclick="checkAnswer(2, this, true)">北极和南极</div>
+                    <div class="option" onclick="checkAnswer(2, this, false)">左极和右极</div>
+                </div>
+                <div class="result-message" id="result2"></div>
+            </div>
+            
+            <div class="quiz-container">
+                <div class="question" id="question3">
+                    问题3：以下哪个不是电磁学的应用？
+                </div>
+                <div class="options" id="options3">
+                    <div class="option" onclick="checkAnswer(3, this, false)">电动机</div>
+                    <div class="option" onclick="checkAnswer(3, this, false)">变压器</div>
+                    <div class="option" onclick="checkAnswer(3, this, true)">自行车</div>
+                    <div class="option" onclick="checkAnswer(3, this, false)">无线充电</div>
+                </div>
+                <div class="result-message" id="result3"></div>
+            </div>
+            
+            <button class="btn" onclick="resetQuiz()">重新开始测试</button>
+        </section>
+    </div>
+    
+    <script>
+        // 电子流动动画
+        let electronFlowInterval;
+        const electronContainer = document.getElementById('electronContainer');
+        
+        function startElectronFlow() {
+            stopElectronFlow();
+            
+            // 创建电子
+            for (let i = 0; i < 5; i++) {
+                createElectron(i * 100);
+            }
+            
+            // 添加电子流动动画
+            electronFlowInterval = setInterval(() => {
+                const electrons = document.querySelectorAll('.electron');
+                electrons.forEach(electron => {
+                    let currentTop = parseFloat(electron.style.top);
+                    let currentLeft = parseFloat(electron.style.left);
+                    
+                    // 更新位置
+                    currentTop += 2;
+                    currentLeft = electronContainer.offsetWidth / 2 + Math.sin(currentTop * 0.05) * 50;
+                    
+                    // 如果超出容器，重置位置
+                    if (currentTop > electronContainer.offsetHeight) {
+                        currentTop = -20;
+                    }
+                    
+                    electron.style.top = currentTop + 'px';
+                    electron.style.left = currentLeft + 'px';
+                });
+            }, 30);
+        }
+        
+        function createElectron(left) {
+            const electron = document.createElement('div');
+            electron.className = 'electron';
+            electron.innerHTML = 'e⁻';
+            electron.style.top = '-20px';
+            electron.style.left = left + 'px';
+            electronContainer.appendChild(electron);
+        }
+        
+        function stopElectronFlow() {
+            if (electronFlowInterval) {
+                clearInterval(electronFlowInterval);
+            }
+        }
+        
+        // 磁极互动
+        function selectPole(pole) {
+            window.selectedPole = pole;
+        }
+        
+        function showPoleInteraction(pole1, pole2) {
+            const resultDiv = document.getElementById('poleResult');
+            
+            if (pole1 === pole2) {
+                resultDiv.innerHTML = '<span style="color: #f44336;">⚡ 同名磁极相互排斥！</span>';
+                resultDiv.innerHTML += '<svg width="200" height="100" style="margin: 10px auto; display: block;"><line x1="50" y1="50" x2="80" y2="50" stroke="#f44336" stroke-width="5"/><line x1="120" y1="50" x2="150" y2="50" stroke="#2196f3" stroke-width="5"/><line x1="30" y1="50" x2="20" y2="40" stroke="#f44336" stroke-width="2"/><line x1="30" y1="50" x2="20" y2="60" stroke="#f44336" stroke-width="2"/><line x1="170" y1="50" x2="180" y2="40" stroke="#2196f3" stroke-width="2"/><line x1="170" y1="50" x2="180" y2="60" stroke="#2196f3" stroke-width="2"/><text x="65" y="30" text-anchor="middle" fill="#333">N</text><text x="135" y="30" text-anchor="middle" fill="#333">N</text></svg>';
+            } else {
+                resultDiv.innerHTML = '<span style="color: #4caf50;">🧲 异名磁极相互吸引！</span>';
+                resultDiv.innerHTML += '<svg width="200" height="100" style="margin: 10px auto; display: block;"><line x1="50" y1="50" x2="120" y2="50" stroke="#f44336" stroke-width="5"/><line x1="120" y1="50" x2="150" y2="50" stroke="#2196f3" stroke-width="5"/><text x="65" y="30" text-anchor="middle" fill="#333">N</text><text x="135" y="30" text-anchor="middle" fill="#333">S</text><path d="M100,50 Q110,40 120,50" stroke="#4caf50" stroke-width="2" fill="none"/><path d="M100,50 Q110,60 120,50" stroke="#4caf50" stroke-width="2" fill="none"/></svg>';
+            }
+        }
+        
+        // 奥斯特实验
+        let currentOn = false;
+        
+        function toggleCurrent() {
+            currentOn = !currentOn;
+            const magneticField = document.getElementById('magneticField');
+            const currentIndicator = document.getElementById('currentIndicator');
+            
+            if (currentOn) {
+                magneticField.style.opacity = '1';
+                currentIndicator.style.display = 'block';
+                
+                // 添加磁场动画
+                const circles = magneticField.querySelectorAll('circle');
+                circles.forEach((circle, index) => {
+                    circle.style.opacity = '0';
+                    circle.style.transition = 'opacity 0.5s';
+                    
+                    setTimeout(() => {
+                        circle.style.opacity = '1';
+                    }, index * 200);
+                });
+            } else {
+                magneticField.style.opacity = '0.3';
+                currentIndicator.style.display = 'none';
+            }
+        }
+        
+        // 实验详情
+        function showExperimentDetail(experiment) {
+            const detailDiv = document.getElementById('experimentDetail');
+            const titleElement = document.getElementById('experimentTitle');
+            const descElement = document.getElementById('experimentDescription');
+            
+            const details = {
+                'generator': {
+                    title: '发电机 🚀',
+                    description: '发电机利用电磁感应原理将机械能转化为电能。当线圈在磁场中旋转时，会产生电流。这是我们家里电力的主要来源！'
+                },
+                'motor': {
+                    title: '电动机 ⚙️',
+                    description: '电动机利用电磁力将电能转化为机械能。当电流通过线圈时，线圈会在磁场中转动，带动各种机器运转。'
+                },
+                'compass': {
+                    title: '指南针 🧭',
+                    description: '指南针的小磁针会受到地球磁场的影响而指向南北方向。这是人类最早利用磁场的工具之一。'
+                },
+                'phone': {
+                    title: '智能手机 📱',
+                    description: '智能手机中包含多种电磁学应用：扬声器、麦克风、触摸屏、无线充电、GPS导航等，都离不开电磁学的原理。'
+                }
+            };
+            
+            const detail = details[experiment];
+            titleElement.textContent = detail.title;
+            descElement.textContent = detail.description;
+            detailDiv.style.display = 'block';
+        }
+        
+        // 电磁铁实验
+        function toggleElectromagnet() {
+            const switchLine = document.getElementById('switchLine');
+            const paperclips = document.getElementById('paperclips');
+            const result = document.getElementById('electromagnetResult');
+            
+            if (switchLine.getAttribute('x2') === '150') {
+                // 关闭开关
+                switchLine.setAttribute('x2', '145');
+                paperclips.innerHTML = '';
+                result.textContent = '';
+                result.style.color = '#333';
+            } else {
+                // 打开开关
+                switchLine.setAttribute('x2', '150');
+                paperclips.innerHTML = `
+                    <ellipse cx="0" cy="50" rx="5" ry="10" fill="#bdbdbd" transform="rotate(20 0 50)"/>
+                    <ellipse cx="10" cy="45" rx="5" ry="10" fill="#bdbdbd" transform="rotate(-20 10 45)"/>
+                    <ellipse cx="20" cy="40" rx="5" ry="10" fill="#bdbdbd" transform="rotate(20 20 40)"/>
+                    <ellipse cx="30" cy="35" rx="5" ry="10" fill="#bdbdbd" transform="rotate(-20 30 35)"/>
+                `;
+                result.textContent = '电磁铁通电后产生了磁性，成功吸起了回形针！';
+                result.style.color = '#4caf50';
+            }
+        }
+        
+        // 测验功能
+        function checkAnswer(questionNum, element, isCorrect) {
+            const options = element.parentElement.querySelectorAll('.option');
+            const resultDiv = document.getElementById(`result${questionNum}`);
+            
+            // 禁用所有选项
+            options.forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                resultDiv.textContent = '✅ 回答正确！太棒了！';
+                resultDiv.style.color = '#4caf50';
+            } else {
+                element.classList.add('incorrect');
+                resultDiv.textContent = '❌ 回答不正确，请再想想看！';
+                resultDiv.style.color = '#f44336';
+            }
+            
+            // 显示正确答案
+            setTimeout(() => {
+                options.forEach(option => {
+                    if (option.onclick.toString().includes('true')) {
+                        option.style.backgroundColor = '#e6ffed';
+                        option.style.borderColor = '#4caf50';
+                    }
+                });
+            }, 500);
+        }
+        
+        function resetQuiz() {
+            for (let i = 1; i <= 3; i++) {
+                const options = document.querySelectorAll(`#options${i} .option`);
+                const resultDiv = document.getElementById(`result${i}`);
+                
+                options.forEach(option => {
+                    option.classList.remove('correct', 'incorrect');
+                    option.style.pointerEvents = 'auto';
+                    option.style.backgroundColor = 'white';
+                    option.style.borderColor = '#ffcc99';
+                });
+                
+                resultDiv.textContent = '';
+            }
+        }
+        
+        // 页面导航
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 添加页面加载动画
+        window.addEventListener('load', () => {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'opacity 0.5s, transform 0.5s';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>

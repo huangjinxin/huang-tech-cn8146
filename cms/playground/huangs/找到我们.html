@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>苹湖少儿创客空间</title>
+    <style>
+        /* 基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', sans-serif;
+            background: #f0f8ff;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 响应式容器 */
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* 通用样式 */
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+
+        .contact-info {
+            margin-top: 30px;
+        }
+
+        .contact-info h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #1abc9c;
+        }
+
+        .contact-item {
+            margin: 15px 0;
+            display: inline-block;
+            padding: 10px 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: transform 0.3s ease;
+        }
+
+        .contact-item:hover {
+            transform: scale(1.05);
+        }
+
+        .intro {
+            margin-top: 40px;
+            font-size: 1em;
+            color: #555;
+        }
+
+        /* SVG图标样式 */
+        .icon {
+            width: 40px;
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 10px;
+            fill: #1abc9c;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            p {
+                font-size: 1em;
+            }
+
+            .contact-info h2 {
+                font-size: 1.6em;
+            }
+
+            .contact-item {
+                display: block;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 公司Logo -->
+        <svg class="icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" stroke="#1abc9c" stroke-width="5" fill="none" />
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="24" fill="#1abc9c">
+                苹湖
+            </text>
+        </svg>
+
+        <!-- 公司名称 -->
+        <h1>苹湖少儿创客空间</h1>
+
+        <!-- 联系方式 -->
+        <div class="contact-info">
+            <h2>联系我们</h2>
+            <div class="contact-item">
+                <svg class="icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 50 L40 50 L40 20 L60 20 L60 50 L100 50 L100 30 L60 30 L60 60 L40 60 L40 90 L10 90 L10 50 Z M60 50 L60 30 L100 30 L100 90 L60 90 L60 60 L60 50 Z" fill="#1abc9c"/>
+                </svg>微信：<a href="https://wx.qq.com/" target="_blank" style="color: #3498db; text-decoration: none;">hjx260</a>
+            </div>
+            <div class="contact-item">
+                <svg class="icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="#1abc9c" />
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="20" fill="white">
+                        Q
+                    </text>
+                </svg>QQ：328462767
+            </div>
+            <div class="contact-item">
+                <svg class="icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 50 L40 50 L40 20 L60 20 L60 50 L100 50 L100 30 L60 30 L60 60 L40 60 L40 90 L10 90 L10 50 Z M60 50 L60 30 L100 30 L100 90 L60 90 L60 60 L60 50 Z" fill="#1abc9c"/>
+                </svg>地址：谷城县城关镇粉水路阳光花园小区1楼
+            </div>
+        </div>
+
+        <!-- 公司简介 -->
+        <div class="intro">
+            <p>专注于少儿创新创造的空间，我们致力于为儿童提供丰富的科技教育资源和实践机会，培养他们的创造力和解决问题的能力。</p>
+        </div>
+
+        <!-- 交互按钮 -->
+        <button onclick="showIntro()" style="margin-top: 30px; padding: 12px 24px; font-size: 1.1em; background: #1abc9c; color: white; border: none; border-radius: 25px; cursor: pointer; transition: background 0.3s ease;">
+            了解更多
+        </button>
+
+        <script>
+            function showIntro() {
+                const intro = document.querySelector('.intro');
+                intro.style.display = intro.style.display === 'none' ? 'block' : 'none';
+            }
+        </script>
+    </div>
+</body>
+</html>

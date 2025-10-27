@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>火柴人对打（键盘）</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- jQuery & Bootstrap Bundle -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- React & ReactDOM (UMD) and Babel for JSX in-browser -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { background: linear-gradient(#0f1724, #071027); color: #eef2ff; font-family: "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+    .container-game { max-width: 1100px; margin: 18px auto; }
+    .stage { background: linear-gradient(#6fb3ff, #3a8bd1); border-radius: 8px; padding: 12px; box-shadow: 0 8px 28px rgba(0,0,0,0.6); }
+    .hud { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+    .bar { height:18px; background:#2b2b2b; border-radius:12px; overflow:hidden; width:360px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.5); }
+    .fill { height:100%; transition: width 0.12s linear; background: linear-gradient(90deg,#ff5f5f,#ff9a9a); }
+    .fill2 { background: linear-gradient(90deg,#58ff9a,#8cffbe); }
+    .center-info { text-align:center; color:#041124; }
+    .svg-stage { width:100%; height:360px; background: linear-gradient(#9fd8ff,#7cc7ff); border-radius:6px; display:block; }
+    .btn-wide { min-width:120px; }
+    .name-tag { font-weight:700; font-size:0.95rem; color:#fff; }
+    .round-dot { width:14px; height:14px; border-radius:50%; background: rgba(255,255,255,0.12); display:inline-block; margin:0 3px; }
+    .round-dot.active { background: gold; box-shadow:0 0 6px rgba(255,215,0,0.6); }
+    .small-muted { font-size:0.85rem; color:rgba(255,255,255,0.9); }
+    .instr { font-size:0.85rem; color:rgba(255,255,255,0.85); margin-top:8px; }
+    /* stickman styles */
+    .stick-stroke { stroke-linecap: round; stroke-linejoin: round; stroke-width:6; }
+    .shadow { opacity: 0.18; }
+    @media (max-width:720px){
+      .bar { width:42vw; }
+      .svg-stage { height:280px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container container-game">
+    <h3 style="color:#fff;">火柴人对打 — 键盘双人（单文件）</h3>
+    <div id="app"></div>
+    <div style="margin-top:8px; color:rgba(255,255,255,0.65); font-size:0.85rem;">提示：若发现反斜杠键不灵敏，请在浏览器控制台按下你想用的键查看 e.key 值，然后告诉我我可帮你改键。</div>
+  </div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    /* ---------------- 音效（WebAudio）---------------- */
+    class Sfx {
+      constructor(){
+        try {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) { this.ctx = null; }
+      }
+      _tone(freq, dur=0.06, type='sine'){
+        if(!this.ctx) return;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        g.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.12, this.ctx.currentTime + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + dur);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(); o.stop(this.ctx.currentTime + dur + 0.02);
+      }
+      punch(){ this._tone(140,0.08,'square'); }
+      hit(){ this._tone(260,0.07,'sawtooth'); }
+      jump(){ this._tone(540,0.08,'sine'); }
+      win(){ this._tone(880,0.15,'triangle'); this._tone(640,0.12,'sine'); }
+      tick(){ this._tone(380,0.05,'sine'); }
+    }
+    const sfx = new Sfx();
+
+    /* ---------------- 键盘状态 ---------------- */
+    const KeyState = {
+      _map: {},
+      setDown(key, code){
+        this._map[key] = true;
+        if(code) this._map[code] = true;
+      },
+      setUp(key, code){
+        delete this._map[key];
+        if(code) delete this._map[code];
+      },
+      is(...keys){
+        for(const k of keys) if(this._map[k]) return true;
+        return false;
+      },
+      clear(){ this._map = {}; }
+    };
+    window.addEventListener('keydown', (e) => {
+      const t = e.target;
+      const tag = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if(!tag){
+        KeyState.setDown(e.key, e.code);
+        const blocked = [' ', 'Space','Spacebar','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','\\','Backslash'];
+        if(blocked.includes(e.key) || blocked.includes(e.code)) e.preventDefault();
+      }
+    });
+    window.addEventListener('keyup', (e) => { KeyState.setUp(e.key, e.code); });
+
+    /* ---------------- 工具函数 ---------------- */
+    function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+    function rectOverlap(a,b){
+      return !(a.x + a.w < b.x || a.x > b.x + b.w || a.y + a.h < b.y || a.y > b.y + b.h);
+    }
+
+    /* ---------------- Fighter 初始化 ---------------- */
+    function createFighter(x, facing, color){
+      return {
+        x,                 // 中心x
+        y: 280,            // 底部 y（地面）
+        vx: 0, vy:0,
+        facing,            // 1 = 右, -1 = 左
+        onGround: true,
+        state: 'idle',     // idle, walk, jump, crouch, attack, hit
+        health: 100,
+        maxHealth: 100,
+        attackCooldown: 0,
+        stun: 0,
+        rounds: 0,
+        color
+      };
+    }
+
+    /* ---------------- React 组件 ---------------- */
+    function App(){
+      const stage = { width: 1000, height: 360, groundY: 280 };
+      const [tick, setTick] = useState(0); // 用于重绘
+      const stateRef = useRef({
+        running: false,
+        timer: 99,
+        round: 1,
+        winner: null,
+        message: '按 Start 开始',
+        p1: createFighter(280, 1, '#ff6b6b'),
+        p2: createFighter(720, -1, '#59ffb6'),
+      });
+      const rafRef = useRef(null);
+      const lastRef = useRef(performance.now());
+
+      /* 启动/暂停/重置 */
+      function resetAll(resetRounds = true){
+        const s = stateRef.current;
+        s.p1 = createFighter(280,1,'#ff6b6b');
+        s.p2 = createFighter(720,-1,'#59ffb6');
+        s.timer = 99;
+        s.message = '准备...';
+        if(resetRounds){
+          s.p1.rounds = 0; s.p2.rounds = 0; s.round = 1; s.winner = null;
+        }
+        setTick(t=>t+1);
+        sfx.tick();
+      }
+      function start(){
+        const s = stateRef.current;
+        if(s.winner){
+          resetAll(true);
+        }
+        s.running = true;
+        s.message = 'FIGHT!';
+        lastRef.current = performance.now();
+        if(!rafRef.current) rafRef.current = requestAnimationFrame(loop);
+      }
+      function pause(){
+        const s = stateRef.current;
+        s.running = false;
+        s.message = '已暂停';
+        if(rafRef.current){ cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+        setTick(t=>t+1);
+      }
+
+      function endRound(winner){ // 'p1' | 'p2' | 'draw'
+        const s = stateRef.current;
+        if(winner === 'p1') { s.p1.rounds += 1; s.message = 'PLAYER 1 赢回合'; sfx.win(); }
+        else if(winner === 'p2'){ s.p2.rounds += 1; s.message = 'PLAYER 2 赢回合'; sfx.win(); }
+        else { s.message = '平局（时间到）'; sfx.tick(); }
+        // 检查比赛结束（先到2胜）
+        if(s.p1.rounds >= 2 || s.p2.rounds >= 2){
+          s.winner = s.p1.rounds >= 2 ? 'PLAYER 1' : 'PLAYER 2';
+          s.message = s.winner + ' 胜利！';
+          s.running = false;
+          if(rafRef.current){ cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+        } else {
+          // 小幅恢复以进入下一回合
+          s.round += 1;
+          // reset health & positions for next round, keep rounds count
+          s.p1 = createFighter(280,1,'#ff6b6b'); s.p1.rounds = s.p1.rounds || 0; s.p1.rounds = stateRef.current.p1.rounds;
+          s.p2 = createFighter(720,-1,'#59ffb6'); s.p2.rounds = stateRef.current.p2.rounds;
+          s.timer = 99;
+        }
+        setTick(t=>t+1);
+      }
+
+      /* 攻击判定：attack 手臂延伸矩形与对方躯干矩形碰撞 */
+      function getTorsoBox(f){
+        // 用于被判定的盒子（x,y,w,h）
+        const w = 28, h = 60;
+        return { x: f.x - w/2, y: f.y - (h + 20), w, h }; // y: 躯干上端
+      }
+      function getAttackBox(att){
+        // 手臂起点（肩部）向前延伸
+        const shoulderY = att.y - 86 + 22; // 头顶->肩
+        const shoulderX = att.x + att.facing * 8;
+        const reach = 46; const w = 44, h = 22;
+        const cx = shoulderX + att.facing * (reach + w/2 + 2);
+        return { x: cx - w/2, y: shoulderY - h/2, w, h };
+      }
+
+      /* 更新控制与物理 */
+      function updateControlsAndPhysics(f, isP1, dt){
+        // key checks
+        const left = isP1 ? KeyState.is('a','A') : KeyState.is('ArrowLeft');
+        const right = isP1 ? KeyState.is('d','D') : KeyState.is('ArrowRight');
+        const up = isP1 ? KeyState.is('w','W') : KeyState.is('ArrowUp');
+        const down = isP1 ? KeyState.is('s','S') : KeyState.is('ArrowDown');
+        const attackKey = isP1 ? KeyState.is(' ','Space','Spacebar') : KeyState.is('\\','Backslash');
+
+        // update facing toward opponent handled externally
+        // stun / hit recovery
+        if(f.stun > 0){
+          f.stun = Math.max(0, f.stun - dt);
+          if(f.stun <= 0) f.state = 'idle';
+          return;
+        }
+
+        // cooldown reduce
+        if(f.attackCooldown > 0) f.attackCooldown = Math.max(0, f.attackCooldown - dt);
+
+        // attack
+        if(attackKey && f.attackCooldown <= 0 && f.state !== 'attack'){
+          f.state = 'attack';
+          f.attackCooldown = 0.35;
+          // immediate attack detection (简化)
+          const attacker = f === stateRef.current.p1 ? stateRef.current.p1 : stateRef.current.p2;
+          const defender = f === stateRef.current.p1 ? stateRef.current.p2 : stateRef.current.p1;
+          const aBox = getAttackBox(attacker);
+          const dBox = getTorsoBox(defender);
+          if(rectOverlap(aBox, dBox)){
+            // 命中
+            defender.health = clamp(defender.health - 12, 0, defender.maxHealth);
+            defender.state = 'hit';
+            defender.stun = 0.26;
+            // 轻微击退
+            defender.x += attacker.facing * 18;
+            sfx.punch();
+          } else {
+            sfx.hit();
+          }
+          // attack animation ends shortly (handled by timer below)
+        }
+
+        // jump
+        if(up && f.onGround && f.state !== 'attack'){
+          f.vy = -520; f.onGround = false; f.state = 'jump'; sfx.jump();
+        }
+
+        // crouch
+        if(down && f.onGround && f.state !== 'attack'){
+          f.state = 'crouch';
+          f.vx = 0;
+        } else if(f.onGround && f.state !== 'attack'){
+          // move
+          if(left && !right){ f.vx = -200; f.state = 'walk'; }
+          else if(right && !left){ f.vx = 200; f.state = 'walk'; }
+          else {
+            // friction
+            f.vx *= 0.84;
+            if(Math.abs(f.vx) < 6) { f.vx = 0; if(f.onGround) f.state = 'idle'; }
+          }
+        }
+
+        // integrate
+        // clamp horizontal position
+        f.x += f.vx * dt;
+        f.x = clamp(f.x, 40, stage.width - 40);
+
+        // vertical physics
+        if(!f.onGround){
+          f.vy += 1400 * dt;
+          f.y += f.vy * dt;
+          if(f.y >= stage.groundY){ f.y = stage.groundY; f.onGround = true; f.vy = 0; if(f.state === 'jump') f.state = 'idle'; }
+        }
+
+        // finish attack state after short time
+        if(f.state === 'attack'){
+          // we use cooldown as rough timer marker: if attackCooldown < 0.2 treat attack finished
+          // (we already set attackCooldown at attack start)
+          if(f.attackCooldown <= 0.15) {
+            if(f.state === 'attack') f.state = 'idle';
+          }
+        }
+
+        // keep inside stage
+        f.x = clamp(f.x, 36, stage.width - 36);
+      }
+
+      /* 主循环 */
+      function loop(now){
+        const s = stateRef.current;
+        const dt = Math.min(0.04, (now - lastRef.current) / 1000);
+        lastRef.current = now;
+
+        if(s.running){
+          // timer
+          s.timer -= dt;
+          if(s.timer <= 0){
+            s.timer = 0;
+            // 比较血量决定回合胜方
+            if(s.p1.health > s.p2.health) endRound('p1');
+            else if(s.p2.health > s.p1.health) endRound('p2');
+            else endRound('draw');
+            // early break
+            setTick(t=>t+1); return;
+          }
+
+          // face each other
+          if(s.p1.x < s.p2.x){ s.p1.facing = 1; s.p2.facing = -1; } else { s.p1.facing = -1; s.p2.facing = 1; }
+
+          // update both
+          updateControlsAndPhysics(s.p1, true, dt);
+          updateControlsAndPhysics(s.p2, false, dt);
+
+          // death check
+          if(s.p1.health <= 0 || s.p2.health <= 0){
+            const winner = s.p1.health <= 0 ? 'p2' : 'p1';
+            endRound(winner);
+            setTick(t=>t+1);
+            return;
+          }
+
+          // small clamp to keep inside
+          s.p1.x = clamp(s.p1.x, 36, stage.width - 36);
+          s.p2.x = clamp(s.p2.x, 36, stage.width - 36);
+        }
+
+        // re-render (tick) and next frame
+        setTick(t=>t+1);
+        rafRef.current = requestAnimationFrame(loop);
+      }
+
+      /* mount / unmount */
+      useEffect(()=> {
+        resetAll(true);
+        // start RAF but it will only update visuals; game logic gated by running flag
+        lastRef.current = performance.now();
+        if(!rafRef.current) rafRef.current = requestAnimationFrame(loop);
+        return ()=> { if(rafRef.current){ cancelAnimationFrame(rafRef.current); rafRef.current = null; } KeyState.clear(); };
+      }, []);
+
+      /* UI render helpers */
+      const s = stateRef.current;
+      const p1Pct = Math.round(clamp(s.p1.health / s.p1.maxHealth * 100, 0, 100));
+      const p2Pct = Math.round(clamp(s.p2.health / s.p2.maxHealth * 100, 0, 100));
+
+      /* Stickman SVG renderer */
+      function StickmanSVG(f){
+        // parameters
+        const headR = 10;
+        const torsoTopY = f.y - 86;
+        const torsoBottomY = f.y - 36;
+        const shoulderX = f.x;
+        const shoulderY = torsoTopY + 14;
+        const hipX = f.x;
+        const hipY = torsoBottomY;
+        // legs
+        const legOffset = 14;
+        const leftFoot = { x: hipX - 18, y: f.y };
+        const rightFoot = { x: hipX + 18, y: f.y };
+        // arms: default angles; attack extends forward
+        const armLength = 36;
+        let armReach = 0;
+        if(f.state === 'attack') armReach = 36;
+        if(f.state === 'crouch') armReach = 8;
+        const handX = shoulderX + f.facing * (armLength/2 + armReach);
+        const handY = shoulderY + 14 + (f.state === 'jump' ? -6 : 0);
+
+        // torso box used for hit detection (draw optionally)
+        // color flash on hit
+        const strokeColor = f.state === 'hit' ? '#ffefb5' : '#fff';
+        const stickColor = f.color;
+
+        return (
+          <g key={f === s.p1 ? 'p1' : 'p2'}>
+            {/* shadow */}
+            <ellipse className="shadow" cx={f.x} cy={f.y+6} rx="28" ry="6" fill="#000" />
+            {/* head */}
+            <circle cx={f.x} cy={torsoTopY+4} r={headR} fill="#fff" stroke="#222" strokeWidth="2" />
+            {/* torso */}
+            <line x1={f.x} y1={torsoTopY+16} x2={hipX} y2={hipY-12} stroke={stickColor} className="stick-stroke" />
+            {/* left arm */}
+            <line x1={shoulderX - 18} y1={shoulderY} x2={handX - (f.facing>0?6: -6)} y2={handY} stroke={stickColor} className="stick-stroke" />
+            {/* neck->shoulder small connector */}
+            <line x1={f.x} y1={torsoTopY+8} x2={shoulderX - 6} y2={shoulderY-2} stroke={stickColor} className="stick-stroke" />
+            {/* legs */}
+            <line x1={hipX} y1={hipY-8} x2={leftFoot.x} y2={leftFoot.y} stroke={stickColor} className="stick-stroke" />
+            <line x1={hipX} y1={hipY-8} x2={rightFoot.x} y2={rightFoot.y} stroke={stickColor} className="stick-stroke" />
+            {/* hand indicator (attack reach visual when attacking) */}
+            {f.state === 'attack' ? <rect x={getAttackBox(f).x} y={getAttackBox(f).y} width={getAttackBox(f).w} height={getAttackBox(f).h} fill="rgba(255,255,255,0.06)"></rect> : null}
+            {/* name */}
+            <text x={f.x} y={torsoTopY-6} textAnchor="middle" fontSize="12" fill="#fff">{f === s.p1 ? 'PLAYER 1' : 'PLAYER 2'}</text>
+            {/* health small text */}
+            <text x={f.x} y={f.y + 18} textAnchor="middle" fontSize="11" fill="#fff">{Math.max(0,Math.round(f.health))}</text>
+          </g>
+        );
+      }
+
+      /* render */
+      return (
+        <div className="stage p-2">
+          <div className="hud">
+            <div style={{display:'flex', flexDirection:'column', gap:6}}>
+              <div style={{display:'flex', alignItems:'center'}}>
+                <div className="name-tag me-2">PLAYER 1</div>
+                <div className="bar me-2"><div className="fill" style={{width: p1Pct + '%'}}></div></div>
+              </div>
+              <div>{[1,2,3].map((i)=> <span key={i} className={'round-dot '+ (i<=s.p1.rounds? 'active':'')}></span>)}</div>
+            </div>
+
+            <div style={{textAlign:'center'}}>
+              <div style={{fontWeight:700, color:'#041124'}}>{s.message}</div>
+              <div className="small-muted">时间：{Math.floor(s.timer)}</div>
+              <div style={{marginTop:8}}>
+                <button className="btn btn-sm btn-outline-light btn-wide me-2" onClick={()=>{ if(!s.running) start(); else pause(); }}>{ s.running ? '暂停' : 'Start' }</button>
+                <button className="btn btn-sm btn-outline-warning btn-wide" onClick={()=>{ resetAll(true); pause(); s.message = '已重置'; setTick(t=>t+1); }}>Reset</button>
+              </div>
+            </div>
+
+            <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end'}}>
+              <div style={{display:'flex', alignItems:'center'}}>
+                <div className="name-tag me-2">PLAYER 2</div>
+                <div className="bar"><div className="fill fill2" style={{width: p2Pct + '%'}}></div></div>
+              </div>
+              <div style={{marginTop:6}}><small className="small-muted">回合 {s.round} / 3</small></div>
+            </div>
+          </div>
+
+          {/* SVG 舞台 */}
+          <svg className="svg-stage" viewBox={`0 0 ${stage.width} ${stage.height}`} preserveAspectRatio="xMidYMid meet">
+            {/* sky rect (background) */}
+            <rect x="0" y="0" width={stage.width} height={stage.height} fill="transparent" />
+
+            {/* ground */}
+            <rect x="0" y={stage.groundY + 1} width={stage.width} height={stage.height - stage.groundY - 1} fill="#4b2f12" />
+            <rect x="0" y={stage.groundY} width={stage.width} height="6" fill="#d4b16b" />
+
+            {/* decorative */}
+            <ellipse cx={stage.width/2} cy={stage.groundY - 110} rx="260" ry="60" fill="rgba(255,255,255,0.03)" />
+
+            {/* fighters */}
+            { StickmanSVG(s.p1) }
+            { StickmanSVG(s.p2) }
+          </svg>
+
+          <div style={{display:'flex', justifyContent:'space-between', marginTop:10}}>
+            <div className="instr">操作：P1 = W/A/S/D（W 跳，S 蹲）+ Space 攻击；P2 = ↑/←/↓/→ + <span>{'\\'}</span> 攻击</div>
+            <div className="small-muted">Built with React · SVG · WebAudio</div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+  </script>
+</body>
+</html>

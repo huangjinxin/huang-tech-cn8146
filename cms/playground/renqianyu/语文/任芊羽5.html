@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>桐 - 文字与自然的结合</title>
+<style>
+    /* ==== 基础布局 ==== */
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{
+        height:100%;
+        font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+        background: linear-gradient(180deg, #dff0d8 0%, #cde5c5 100%);
+        overflow:hidden;
+        color:#4a2c1f;
+    }
+    .container{
+        position:relative;
+        width:90%;
+        max-width:800px;
+        margin:auto;
+        top:50%;
+        transform:translateY(-50%);
+        text-align:center;
+        padding:2rem;
+        background:rgba(255,255,255,0.85);
+        border-radius:12px;
+        box-shadow:0 8px 20px rgba(0,0,0,0.15);
+    }
+    /* ==== 文字展示 ==== */
+    .char{
+        font-size:6rem;
+        font-weight:700;
+        cursor:pointer;
+        transition:transform .3s ease, color .3s ease;
+        display:inline-block;
+    }
+    .char:hover{
+        transform:scale(1.2) rotate(5deg);
+        color:#2e7d32;
+    }
+    .title{
+        margin-top:0.5rem;
+        font-size:1.8rem;
+        letter-spacing:2px;
+    }
+    .desc{
+        margin-top:1rem;
+        line-height:1.6;
+        text-align:left;
+    }
+    .more-btn{
+        margin-top:1.5rem;
+        padding:0.6rem 1.2rem;
+        font-size:1rem;
+        background:#4a2c1f;
+        color:#fff;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        transition:background .3s;
+    }
+    .more-btn:hover{
+        background:#2e7d32;
+    }
+    /* ==== 叶子动画 ==== */
+    .leaf{
+        position:absolute;
+        top:-50px;
+        width:30px;
+        height:30px;
+        background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="%2364a05d" d="M32 2c-5 12-15 22-15 38 0 9 7 16 15 16s15-7 15-16c0-16-10-26-15-38z"/></svg>') no-repeat center/contain;
+        animation: fall linear infinite;
+        opacity:0.8;
+    }
+    @keyframes fall{
+        0%   {transform:translateX(0) translateY(0) rotate(0deg);}
+        100% {transform:translateX(100vw) translateY(110vh) rotate(360deg);}
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="char" id="char">桐</div>
+    <div class="title">桐 (tóng)</div>
+    <div class="desc">
+        <p><strong>基本含义：</strong>指桐树，一种落叶乔木，木质轻软，常用于制作乐器（如古琴、箫）和家具。</p>
+        <p><strong>字源：</strong>会意字。左边“木”表示树木，右边“同”象征树干笔直、枝叶相同，合起来即指形似且生长相似的树。</p>
+        <p><strong>常用词组：</strong>桐花、桐庐、梧桐、桐油。</p>
+        <p><strong>文化象征：</strong>古代诗文常用“梧桐”来象征思乡、离别和幽静，桐木亦因音质清脆而被赞美为“雅乐之材”。</p>
+    </div>
+    <button class="more-btn" id="moreBtn">了解更多</button>
+</div>
+
+<script>
+    // ==== 叶子生成 ====
+    const leafCount = 30; // 叶子数量
+    for(let i=0;i<leafCount;i++){
+        const leaf = document.createElement('div');
+        leaf.className = 'leaf';
+        // 随机起始位置与延迟
+        leaf.style.left = Math.random()*window.innerWidth + 'px';
+        leaf.style.animationDuration = (5+Math.random()*8) + 's';
+        leaf.style.animationDelay = -Math.random()*10 + 's';
+        document.body.appendChild(leaf);
+    }
+
+    // ==== 按钮弹窗 ====
+    const info = `
+        <h2>桐树的诗意</h2>
+        <p>春风拂槛露华浓，桐花万里映青松。<br>
+        梧桐不语暗自泣，夜雨潇潇思故人。</p>
+        <p>—— 采自《古诗语录》</p>
+    `;
+    document.getElementById('moreBtn').addEventListener('click',()=>{
+        const modal = document.createElement('div');
+        modal.style.position='fixed';
+        modal.style.top=0;modal.style.left=0;
+        modal.style.width='100%';modal.style.height='100%';
+        modal.style.background='rgba(0,0,0,0.6)';
+        modal.style.display='flex';
+        modal.style.alignItems='center';
+        modal.style.justifyContent='center';
+        modal.style.zIndex=1000;
+
+        const box = document.createElement('div');
+        box.style.background='#fff';
+        box.style.padding='2rem';
+        box.style.borderRadius='8px';
+        box.style.maxWidth='600px';
+        box.style.textAlign='center';
+        box.innerHTML = info + '<br><button id="closeBtn">关闭</button>';
+        modal.appendChild(box);
+        document.body.appendChild(modal);
+
+        document.getElementById('closeBtn').onclick = ()=>{
+            document.body.removeChild(modal);
+        };
+    });
+
+    // ==== 汉字放大动画（点击） ====
+    const charElem = document.getElementById('char');
+    charElem.addEventListener('click', ()=>{
+        charElem.animate([
+            {transform:'scale(1) rotate(0deg)', offset:0},
+            {transform:'scale(1.5) rotate(360deg)', offset:0.6},
+            {transform:'scale(1) rotate(0deg)', offset:1}
+        ],{
+            duration:1500,
+            easing:'ease-out'
+        });
+    });
+</script>
+</body>
+</html>

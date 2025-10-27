@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>圆的半径、直径、周长、面积 ─ 互动教学</title>
+<style>
+    /*------------------- 基础布局 -------------------*/
+    body{
+        margin:0; padding:0;
+        font-family:"Segoe UI",Arial,sans-serif;
+        background:#f6f9fc;
+        color:#333;
+        display:flex;
+        min-height:100vh;
+    }
+    .sidebar{
+        flex:0 0 280px;
+        background:#2c3e50;
+        color:#ecf0f1;
+        padding:20px;
+        box-sizing:border-box;
+        text-align:center;
+        position:relative;
+    }
+    .main{
+        flex:1;
+        padding:30px;
+        box-sizing:border-box;
+    }
+
+    /*------------------- 电脑模型 -------------------*/
+    .monitor{
+        width:260px;
+        height:180px;
+        background:#111;
+        border-radius:6px;
+        margin:0 auto;
+        box-shadow:0 8px 30px rgba(0,0,0,0.4);
+        position:relative;
+    }
+    .screen{
+        width:240px;
+        height:140px;
+        margin:10px auto;
+        background:#0b3d91;
+        border-radius:4px;
+        overflow:hidden;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#fff;
+        font-size:1.2rem;
+        font-weight:bold;
+        background:linear-gradient(135deg,#0b3d91,#1a73e8);
+    }
+    .base{ width:120px;height:12px;background:#111;margin:5px auto;border-radius:2px; }
+    .stand{ width:24px;height:6px;background:#111;margin:2px auto; }
+
+    /*------------------- 教学文字 -------------------*/
+    h1{font-size:2rem;color:#2c3e50;margin-top:0;}
+    .section{margin-bottom:2rem;}
+    .section h2{
+        font-size:1.4rem;color:#2c3e50;
+        border-left:4px solid #2980b9;
+        padding-left:8px;
+        margin-bottom:0.6rem;
+    }
+    p{line-height:1.6;}
+
+    /*------------------- 计算器 -------------------*/
+    .calc-box{
+        display:grid;
+        grid-template-columns:1fr auto;
+        gap:10px;
+        margin-top:1rem;
+    }
+    .calc-box input{
+        padding:8px;
+        font-size:1rem;
+        border:1px solid #bbb;
+        border-radius:4px;
+    }
+    .calc-box button{
+        padding:8px 12px;
+        font-size:1rem;
+        background:#2980b9;
+        color:#fff;
+        border:none;
+        border-radius:4px;
+        cursor:pointer;
+        transition:background .2s;
+    }
+    .calc-box button:hover{background:#1f639a;}
+    .result{
+        margin-top:0.8rem;
+        font-weight:600;
+        color:#27ae60;
+    }
+
+    /*------------------- 圆形绘图 -------------------*/
+    .canvas-wrapper{
+        margin-top:1.5rem;
+        text-align:center;
+    }
+    .canvas-wrapper canvas{
+        border:1px solid #bbb;
+        background:#fff;
+        border-radius:4px;
+    }
+
+    /*------------------- 小测验 -------------------*/
+    .quiz{
+        margin-top:2rem;
+        padding:15px;
+        background:#fff;
+        border-left:5px solid #e67e22;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    .quiz input{
+        width:90px;
+        padding:5px;
+        margin-left:5px;
+        font-size:1rem;
+    }
+    .quiz button{
+        margin-left:10px;
+        background:#e67e22;
+        color:#fff;
+        border:none;
+        padding:6px 12px;
+        border-radius:4px;
+        cursor:pointer;
+        transition:background .2s;
+    }
+    .quiz button:hover{background:#cf711f;}
+    .feedback{
+        margin-top:0.6rem;
+        font-weight:600;
+    }
+    .feedback.success{color:#27ae60;}
+    .feedback.error{color:#c0392b;}
+
+    /*------------------- 响应式 -------------------*/
+    @media (max-width:800px){
+        body{flex-direction:column;}
+        .sidebar{flex:0 0 auto;width:100%;}
+        .main{padding:15px;}
+    }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="monitor">
+        <div class="screen">圆的世界</div>
+        <div class="base"></div>
+        <div class="stand"></div>
+    </div>
+    <p style="margin-top:1rem;">让数学像玩游戏一样有趣！</p>
+</div>
+
+<div class="main">
+    <h1>圆的半径、直径、周长、面积</h1>
+
+    <!-- 教学文字 -->
+    <section class="section">
+        <h2>📘 基本概念</h2>
+        <p><strong>半径 (r)</strong>：圆心到圆周上任一点的距离。</p>
+        <p><strong>直径 (d)</strong>：穿过圆心、连接圆周两端的线段，长度是半径的两倍。</p>
+        <p>公式：<code>d = 2 × r</code></p>
+
+        <p><strong>周长 (C)</strong>：圆的外边缘长度。</p>
+        <p>公式：<code>C = 2 × π × r = π × d</code></p>
+
+        <p><strong>面积 (A)</strong>：圆内部所包含的面积。</p>
+        <p>公式：<code>A = π × r²</code></p>
+
+        <p>其中 <code>π ≈ 3.14159</code>（用 <code>Math.PI</code> 更精确）。</p>
+    </section>
+
+    <!-- 交互计算器 -->
+    <section class="section">
+        <h2>🧮 交互计算器</h2>
+        <div class="calc-box">
+            <input type="number" id="radiusInput" placeholder="请输入半径 r" min="0" step="any">
+            <button onclick="calcAll()">计算</button>
+        </div>
+        <div class="result" id="calcResult"></div>
+
+        <!-- 动态绘制圆 -->
+        <div class="canvas-wrapper">
+            <canvas id="circleCanvas" width="300" height="300"></canvas>
+        </div>
+    </section>
+
+    <!-- 小测验 -->
+    <section class="section">
+        <h2>❓ 小测验：求直径</h2>
+        <div class="quiz">
+            <p id="quizPrompt">点击 “开始测验” 来获取随机半径。</p>
+            <button id="startQuizBtn">开始测验</button>
+
+            <div id="quizArea" style="display:none;">
+                <label>半径 r = <span id="quizR"></span>，请输入直径 d：</label>
+                <input type="number" id="quizAnswer" step="any">
+                <button onclick="checkQuiz()">提交</button>
+                <div class="feedback" id="quizFeedback"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+/* ---------- 声音工具 ---------- */
+const beep = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, duration=0.12){
+    const osc = beep.createOscillator();
+    const gain = beep.createGain();
+    osc.frequency.value = freq;
+    osc.type = "sine";
+    osc.connect(gain);
+    gain.connect(beep.destination);
+    osc.start();
+    gain.gain.setValueAtTime(0.001, beep.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, beep.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, beep.currentTime + duration);
+    osc.stop(beep.currentTime + duration);
+}
+
+/* ---------- 计算器 ---------- */
+function calcAll(){
+    const r = parseFloat(document.getElementById('radiusInput').value);
+    const resultDiv = document.getElementById('calcResult');
+    if(isNaN(r) || r <= 0){
+        resultDiv.innerHTML = '<span style="color:#c0392b;">请输入大于 0 的半径！</span>';
+        playTone(220);   // 低音提示错误
+        clearCanvas();
+        return;
+    }
+    const d = 2 * r;
+    const C = 2 * Math.PI * r;
+    const A = Math.PI * r * r;
+    resultDiv.innerHTML = `
+        <p>直径 d = <strong>${d.toFixed(3)}</strong></p>
+        <p>周长 C = <strong>${C.toFixed(3)}</strong></p>
+        <p>面积 A = <strong>${A.toFixed(3)}</strong></p>
+    `;
+    drawCircle(r);
+    playTone(880);   // 成功的高音
+}
+
+/* ---------- 绘制圆形 ---------- */
+function drawCircle(radius){
+    const canvas = document.getElementById('circleCanvas');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const scale = Math.min(w, h) / (2 * (radius + 20)); // 留点边距
+    const R = radius * scale;
+
+    // 清空
+    ctx.clearRect(0,0,w,h);
+
+    // 圆
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, R, 0, Math.PI*2);
+    ctx.strokeStyle = '#2980b9';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // 半径线
+    ctx.beginPath();
+    ctx.moveTo(w/2, h/2);
+    ctx.lineTo(w/2 + R, h/2);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 直径线
+    ctx.beginPath();
+    ctx.moveTo(w/2 - R, h/2);
+    ctx.lineTo(w/2 + R, h/2);
+    ctx.strokeStyle = '#e67e22';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 标注文字
+    ctx.font = '14px sans-serif';
+    ctx.fillStyle = '#2c3e50';
+    // 半径
+    ctx.fillText('r', w/2 + R/2 - 10, h/2 - 6);
+    // 直径
+    ctx.fillText('d', w/2, h/2 - 10);
+}
+function clearCanvas(){
+    const canvas = document.getElementById('circleCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+/* ---------- 小测验 ---------- */
+let currentR = 0;
+document.getElementById('startQuizBtn').addEventListener('click', () => {
+    currentR = (Math.random()*9 + 1).toFixed(2); // 1~10 随机保留两位
+    document.getElementById('quizR').innerText = currentR;
+    document.getElementById('quizArea').style.display = 'block';
+    document.getElementById('quizPrompt').innerText = '请根据给出的半径算出对应的直径。';
+    document.getElementById('quizFeedback').innerHTML = '';
+    document.getElementById('quizAnswer').value = '';
+    document.getElementById('startQuizBtn').disabled = true;
+});
+
+function checkQuiz(){
+    const ans = parseFloat(document.getElementById('quizAnswer').value);
+    const correct = (2*currentR).toFixed(2);
+    const feedback = document.getElementById('quizFeedback');
+
+    if(isNaN(ans)){
+        feedback.innerHTML = '<span class="error">请输入数值！</span>';
+        playTone(220);
+        return;
+    }
+    if (Math.abs(ans - correct) < 0.01){
+        feedback.innerHTML = `<span class="success">恭喜，答对了！直径 = ${correct}</span>`;
+        playTone(880);
+    }else{
+        feedback.innerHTML = `<span class="error">答错了，正确答案是 ${correct}</span>`;
+        playTone(220);
+    }
+    // 结束本轮
+    document.getElementById('startQuizBtn').disabled = false;
+}
+</script>
+</body>
+</html>

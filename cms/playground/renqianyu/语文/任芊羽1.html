@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>《寡人之于国也》知识测验</title>
+<style>
+    body{font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;background:#f8f9fa;margin:0;padding:0;}
+    .container{max-width:800px;margin:auto;padding:20px;background:#fff;box-shadow:0 0 10px rgba(0,0,0,.1);}
+    h1{text-align:center;color:#2c3e50;}
+    .question{margin:20px 0;padding:15px;border:1px solid #e0e0e0;border-radius:5px;background:#fafafa;}
+    .question h3{margin:0 0 10px;font-size:1.1em;color:#34495e;}
+    .options label{display:block;margin:5px 0;cursor:pointer;}
+    .options input{margin-right:8px;}
+    .feedback{margin-top:8px;font-size:.9em;}
+    .correct{color:#27ae60;}
+    .wrong{color:#c0392b;}
+    #submitBtn{display:block;width:100%;padding:12px;background:#3498db;color:#fff;border:none;border-radius:5px;font-size:1em;cursor:pointer;margin-top:30px;}
+    #submitBtn:hover{background:#2980b9;}
+    #result{margin-top:30px;padding:20px;background:#ecf0f1;border-radius:5px;text-align:center;font-size:1.2em;}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>《寡人之于国也》知识测验</h1>
+    <form id="quizForm">
+        <!-- 题目会通过 JavaScript 动态插入 -->
+    </form>
+    <button id="submitBtn">交卷</button>
+    <div id="result"></div>
+</div>
+
+<script>
+/* --------------- 题库 --------------- */
+const questions = [
+    {
+        q: "《寡人之于国也》出自哪本书？",
+        o: ["《论语》", "《孟子》", "《庄子》", "《韩非子》"],
+        a: 1
+    },
+    {
+        q: "孟子主张的治国理念最核心的词语是？",
+        o: ["法家", "君主专制", "仁政", "兼爱"],
+        a: 2
+    },
+    {
+        q: "孟子提出的民本思想是：",
+        o: ["民为贵，社稷次之，君为轻", "君为贵，民为次，社稷为轻", "社稷为贵，民为轻，君为次", "民为轻，君为贵，社稷为次"],
+        a: 0
+    },
+    {
+        q: "孟子认为王道的起点是？",
+        o: ["让百姓安居乐业", "使民养生丧死无憾", "让诸侯服从", "推进商业贸易"],
+        a: 1
+    },
+    {
+        q: "文中“狗彘食人食而不知检”所反映的社会现象是？",
+        o: ["统治者不关心百姓生死", "动物灾害频发", "百姓对君主失望", "贵族之间的争斗"],
+        a: 0
+    },
+    {
+        q: "孟子批评梁惠王的“移民”“移粟”做法是因为它们",
+        o: ["没有解决根本问题，不能使民养生丧死无憾", "太过于奢侈浪费", "致使国家财政赤字", "导致军队兵力下降"],
+        a: 0
+    },
+    {
+        q: "下列哪句是孟子用来讽刺梁惠王的比喻？",
+        o: ["五十步笑百步", "千里迢迢", "画蛇添足", "杯弓蛇影"],
+        a: 0
+    },
+    {
+        q: "孟子在文中指出的王道措施不包括下面哪一项？",
+        o: ["养生丧死无憾", "春耕秋收", "庙堂礼义教育", "强制徭役"],
+        a: 3
+    },
+    {
+        q: "“弃甲曳兵而走”中“曳兵而走”的意思是？",
+        o: ["拖着武器撤退", "用兵打仗", "训练士兵", "收割庄稼"],
+        a: 0
+    },
+    {
+        q: "“王无罪岁”中的“罪岁”指的是？",
+        o: ["把罪责归咎于年成不好", "君主的年龄", "国家的灾年", "人民的错误"],
+        a: 0
+    },
+    {
+        q: "孟子在文章里使用的主要论证方法是？",
+        o: ["归纳法", "演绎法", "类比法", "实验法"],
+        a: 1
+    },
+    {
+        q: "以下哪句话最能概括孟子的王道政治？",
+        o: ["以民为本，施行仁政", "以武力扩张领土", "以税收为根本", "以礼乐为唯一手段"],
+        a: 0
+    },
+    {
+        q: "孟子认为“七十者衣帛食肉，黎民不饥不寒”指的是？",
+        o: ["富人奢华，贫民安稳", "富裕阶层的生活状态与普通百姓的富足", "只有贵族才能享受食物", "贫富差距的扩大"],
+        a: 1
+    },
+    {
+        q: "文中“直不百步耳，是亦走也”是对哪句话的解释？",
+        o: ["五十步笑百步", "不违农时", "五亩之宅", "拿刀杀人"],
+        a: 0
+    },
+    {
+        q: "孟子在《寡人之于国也》中提到的“七十者”主要指的是？",
+        o: ["七十岁以上的老年人", "七十种粮食作物", "七十位官员", "七十个兄弟"],
+        a: 0
+    }
+];
+
+/* --------------- 渲染题目 --------------- */
+const form = document.getElementById('quizForm');
+
+questions.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = `q${idx}`;
+
+    const title = document.createElement('h3');
+    title.textContent = `第 ${idx + 1} 题：${item.q}`;
+    div.appendChild(title);
+
+    const optDiv = document.createElement('div');
+    optDiv.className = 'options';
+    item.o.forEach((opt, oIdx) => {
+        const label = document.createElement('label');
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `ans${idx}`;
+        radio.value = oIdx;
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(opt));
+        optDiv.appendChild(label);
+    });
+    div.appendChild(optDiv);
+
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+    div.appendChild(fb);
+
+    form.appendChild(div);
+});
+
+/* --------------- 检查答案 --------------- */
+document.getElementById('submitBtn').addEventListener('click', function () {
+    let score = 0;
+    questions.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="ans${idx}"]:checked`);
+        const feedbackDiv = document.querySelector(`#q${idx} .feedback`);
+        feedbackDiv.innerHTML = '';   // 先清空
+
+        if (!selected) { // 未作答
+            feedbackDiv.innerHTML = `<span class="wrong">未作答，正确答案：<strong>${item.o[item.a]}</strong></span>`;
+            return;
+        }
+
+        const userAns = parseInt(selected.value, 10);
+        if (userAns === item.a) {
+            score++;
+            feedbackDiv.innerHTML = `<span class="correct">答对啦！</span>`;
+        } else {
+            feedbackDiv.innerHTML = `<span class="wrong">答错了，正确答案：<strong>${item.o[item.a]}</strong></span>`;
+        }
+    });
+
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `您的总得分是 <strong>${score}</strong> / ${questions.length} 分`;
+    // 防止二次点击后再次改变分数
+    this.disabled = true;
+});
+</script>
+</body>
+</html>

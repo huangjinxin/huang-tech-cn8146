@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>马关条约——小学生互动历史课</title>
+  <style>
+    :root {
+      --primary: #4a7c9e;
+      --secondary: #ffac80;
+      --light: #f5f8fa;
+      --dark: #2c3e50;
+      --accent: #9b59b6;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background-color: #f0f8ff;
+      color: var(--dark);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.7;
+    }
+
+    h1, h2, h3 {
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .section {
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #e8f4ff;
+      border-left: 6px solid var(--primary);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      margin: 10px auto;
+      display: block;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #3a6c8b;
+      transform: scale(1.05);
+    }
+
+    .card {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      margin: 20px auto;
+      max-width: 800px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      margin: 20px auto;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: absolute;
+      z-index: 1;
+      bottom: 150%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .timeline {
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .timeline::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      background-color: var(--primary);
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .timeline-item {
+      padding: 10px 40px;
+      position: relative;
+    }
+
+    .timeline-item::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: var(--secondary);
+      border-radius: 50%;
+      top: 15px;
+      left: calc(50% - 10px);
+      border: 3px solid var(--primary);
+    }
+
+    .timeline-item:nth-child(odd) {
+      margin-left: 60px;
+    }
+
+    .timeline-item:nth-child(even) {
+      margin-right: 60px;
+    }
+
+    .timeline-item h4 {
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .timeline-item p {
+      font-size: 15px;
+      color: #444;
+    }
+
+    .map {
+      margin-top: 20px;
+      background-color: #e8f4ff;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .map svg {
+      max-height: 400px;
+      overflow: auto;
+    }
+
+    .highlight {
+      background-color: #fff9e6;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* 地图区域 */
+    .map-title {
+      text-align: center;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    /* 拖拽交互 */
+    .draggable {
+      cursor: move;
+      transition: all 0.3s ease;
+    }
+
+    .draggable:hover {
+      transform: translateY(-2px);
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+      h1 { font-size: 1.8em; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎯 马关条约——小学生历史探索之旅</h1>
+
+  <p>
+    这是一个关于中国近代史的重要故事！
+    1895年，中国和日本签订了《马关条约》。  
+    在这个故事里，你将看到：
+  </p>
+
+  <div class="section">
+    <h2>🧭 知识地图：你学到了什么？</h2>
+    
+    <div class="card">
+      <p>👉 地理 💡：中国和日本的位置、台湾的归属变化</p>
+      <p>👉 历史 📅：1895年发生了什么？</p>
+      <p>👉 数学 📊：如何用数字计算赔款金额？</p>
+      <p>👉 物理 🌪：战争中的风、雨、火与影响</p>
+      <p>👉 化学 🌿：战争如何影响植物和土地？</p>
+      <p>👉 生物 🐉：战后台湾的动植物生活有何变化？</p>
+    </div>
+
+    <button class="btn" onclick="showSection('map')">📍 点击查看中国与日本地图</button>
+    <button class="btn" onclick="showSection('timeline')">📅 点击查看时间线</button>
+    <button class="btn" onclick="showSection('math')">📊 点击计算赔款金额</button>
+    <button class="btn" onclick="showSection('science')">🔬 点击探索战争中的科学</button>
+  </div>
+
+  <div id="map-section" class="section hidden">
+    <h2>📍 地图：马关条约中的中国和日本</h2>
+    <div class="map">
+      <p>在1895年，日本打败了中国，在甲午战争中获胜。于是中国不得不签订《马关条约》，把台湾和辽东半岛割让给日本。</p>
+      <svg viewBox="0 0 800 400">
+        <!-- 清晰的中国与日本位置 -->
+        <rect x="200" y="150" width="300" height="200" fill="#e8f4ff" stroke="#4a7c9e" stroke-width="3"/>
+        <text x="350" y="210" font-size="18" fill="#4a7c9e" text-anchor="middle">中国 🇨🇳</text>
+        <circle cx="500" cy="300" r="40" fill="#ffac80" stroke="#2c3e50"/>
+        <text x="500" y="315" font-size="16" fill="#2c3e50" text-anchor="middle">日本 🇯🇵</text>
+        <line x1="450" y1="280" x2="350" y2="300" stroke="#9b59b6" stroke-width="4"/>
+        <text x="380" y="295" font-size="14" fill="#333">台湾省</text>
+        <circle cx="280" cy="180" r="30" fill="#a8d8b3" />
+        <text x="275" y="190" font-size="12" fill="#333">辽东半岛</text>
+        <circle cx="400" cy="320" r="60" fill="#ffebcd"/>
+        <text x="400" y="350" font-size="12" fill="#333">战争影响区域</text>
+      </svg>
+    </div>
+
+    <button class="btn" onclick="showSection('science')">🔬 深入科学影响</button>
+  </div>
+
+  <div id="timeline-section" class="section hidden">
+    <h2>📅 时间线：马关条约的历程</h2>
+    
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>1894年：甲午战争开始</h4>
+        <p>中国和日本打仗。中国军队在战场上连连失利，尤其是在黄海大战中，船很多被击沉。</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>1895年：日本胜利，提出新条约</h4>
+        <p>战争结束后，日本要求中国签订新的《马关条约》。地点在马关（今山口县）召开。</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>1895年4月：《马关条约》正式签署</h4>
+        <p>中国代表李鸿章与日本首相伊藤博文在马关城签了字。</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>1895年：台湾被割让给日本</h4>
+        <p>中国首次把整个岛屿（台湾）交给一个外国，这是中国近代史上的重要变化。</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>1895年：中国需支付2亿两白银赔款</h4>
+        <p>约等于今天的1.3亿元人民币。这笔钱用于帮助中国重建军队和国家发展。</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>1895年后：台湾逐渐发展</h4>
+        <p>虽然台湾被日本管理，但它的文化、农业和教育逐步发展起来。</p>
+      </div>
+    </div>
+
+    <button class="btn" onclick="showSection('math')">📊 计算赔款金额</button>
+  </div>
+
+  <div id="math-section" class="section hidden">
+    <h2>📊 数学时间：如何计算赔款？</h2>
+    
+    <div class="card">
+      <p>《马关条约》中，中国需要支付：<strong>2亿两白银</strong></p>
+      
+      <h3>什么是“两”？</h3>
+      <p>“两”是中国古代的重量单位，1两 ≈ 50克</p>
+
+      <h3>我们来算一下：</h3>
+      <ul>
+        <li>2亿 = 200,000,000</li>
+        <li>每两 = 50克 ⇒ 总质量 = 200,000,000 × 50 = <strong>10,000,000,000 克</strong></li>
+        <li>10,000,000,000 克 = <strong>10,000 吨</strong></li>
+        <li>相当于多少辆货车？一辆中型货车装 10 吨 ⇒ 约 <strong>1000 辆车</strong></li>
+      </ul>
+
+      <p><span class="highlight">👉 这笔赔款是当时中国国家经济的“大压力”！</span></p>
+    </div>
+
+    <button class="btn" onclick="showSection('science')">🔬 探索战争中的科学</button>
+  </div>
+
+  <div id="science-section" class="section hidden">
+    <h2>🔬 科学与战争：你观察到了什么？</h2>
+    
+    <div class="card">
+      <p>在战争和条约签订期间，很多科学变化发生了：</p>
+
+      <h3>物理 ✅</h3>
+      <p>战时的风、雨和火球改变了战场。军队使用了更先进的炮舰，它们的速度快、射程远。</p>
+
+      <h3>化学 🌿</h3>
+      <p>士兵们使用的弹药含火药（化学物质），点燃后喷出热气和烟雾。战后，土地上的植物也变得更茂盛了。</p>
+
+      <h3>生物 🐘</h3>
+      <p>很多农作物（如稻米、茶叶）被烧毁，但后来在台湾引入了新的农业技术。台湾的居民也开始种植甘蔗和稻米，生活更好。</p>
+
+      <h3>地理 🌍</h3>
+      <p>战争改变了中国的地形连接。以前的铁路和公路很多受损，但战后逐步修复。</p>
+
+      <div class="tooltip">
+        <span>💡 小实验：你可以用一杯水 + 火柴模拟战场！</span>
+        <span class="tooltiptext">
+          点燃火柴 → 水变热 → 就像战场上的炮火和雨带来温度变化！  
+          红烟冒出 → 就像弹药中的火药反应，是化学变化！
+        </span>
+      </div>
+
+    </div>
+
+    <button class="btn" onclick="showSection('map')">📍 返回地图</button>
+  </div>
+
+  <footer style="text-align: center; margin-top: 50px; color: #666;">
+    <p>👩‍🏫 教师说：马关条约是中国人第一次把领土交给外国，开启近代化之路！</p>
+    <p>✨ 用科学的眼光看历史 —— 小学生也能轻松理解！</p>
+  </footer>
+
+</div>
+
+<script>
+  // 默认隐藏所有内容
+  document.querySelectorAll('.section').forEach(el => {
+    el.classList.add('hidden');
+  });
+
+  // 显示指定部分的函数
+  function showSection(sectionId) {
+    document.querySelectorAll('.section').forEach(el => {
+      el.classList.add('hidden');
+    });
+
+    const targetSection = document.getElementById(sectionId + '-section');
+    if (targetSection) {
+      targetSection.classList.remove('hidden');
+      
+      // 如果是“地图”或“时间线”，自动展开
+      if (sectionId === 'map' || sectionId === 'timeline') {
+        window.scrollTo({ top: targetSection.offsetTop - 150, behavior: 'smooth' });
+      }
+    }
+
+    // 将激活的按钮高亮
+    document.querySelectorAll('.btn').forEach(btn => {
+      if (btn.textContent.includes(`点击${sectionId}`)) {
+        btn.style.backgroundColor = '#ffac80';
+      }
+    });
+    
+    // 重置其他按钮
+    document.querySelectorAll('.btn').forEach(btn => {
+      if (btn.textContent.includes('返回') || btn.textContent.includes('点击')) {
+        setTimeout(() => {
+          if (btn.className.includes('btn') && !btn.textContent.includes('返回')) {
+            btn.style.backgroundColor = '#4a7c9e';
+          }
+        }, 300);
+      }
+    });
+    
+    // 添加一个“返回”按钮，每次点击后自动添加
+  }
+
+  // 自动触发初触效果：当页面加载时，显示“地图”和“时间线”
+  window.onload = function() {
+    document.querySelector('.btn:nth-child(1)').style.backgroundColor = '#4a7c9e';
+    document.querySelector('.btn:nth-child(2)').style.backgroundColor = '#4a7c9e';
+  };
+
+  // 拖拽功能：点击任一按钮，它可以“游动”
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mousedown', function(e) {
+      this.classList.add('draggable');
+    });
+
+    btn.addEventListener('mouseup', function() {
+      this.classList.remove('draggable');
+    });
+  });
+
+</script>
+
+</body>
+</html>

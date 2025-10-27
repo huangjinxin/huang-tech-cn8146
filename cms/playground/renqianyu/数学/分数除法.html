@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>分数除法学习工具</title>
+<style>
+    /* ---------- 全局样式 ---------- */
+    body {
+        margin: 0;
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        background: #f0f4f8;
+        color: #333;
+        line-height: 1.6;
+    }
+    h1, h2 {
+        color: #2c3e50;
+    }
+    a { color: #2980b9; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ---------- 容器 ---------- */
+    .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* ---------- 卡片 ---------- */
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.08);
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* ---------- 教学文字 ---------- */
+    .intro p {
+        text-indent: 2em;
+        margin: 0 0 1em;
+    }
+    .step {
+        margin-left: 1.5em;
+        padding-left: .5em;
+        border-left: 3px solid #3498db;
+        margin-bottom: .8em;
+    }
+
+    /* ---------- 计算器 ---------- */
+    .calculator input[type="number"] {
+        width: 70px;
+        padding: 6px;
+        margin: 0 4px;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        text-align: center;
+    }
+    .calculator button {
+        background: #27ae60;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background .2s;
+    }
+    .calculator button:hover {
+        background: #219150;
+    }
+    .result {
+        margin-top: 12px;
+        font-weight: bold;
+        color: #c0392b;
+    }
+
+    /* ---------- 练习题 ---------- */
+    .quiz .question {
+        font-size: 1.1em;
+        margin-bottom: .8em;
+    }
+    .quiz input[type="text"] {
+        width: 80px;
+        padding: 4px 6px;
+        border: 1px solid #95a5a6;
+        border-radius: 4px;
+        text-align: center;
+    }
+    .quiz button {
+        background: #2980b9;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 10px;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: background .2s;
+    }
+    .quiz button:hover {
+        background: #2472a4;
+    }
+    .feedback {
+        margin-top: 8px;
+        font-weight: bold;
+    }
+    .feedback.correct { color: #27ae60; }
+    .feedback.wrong   { color: #e74c3c; }
+
+    /* ---------- 响应式 ---------- */
+    @media (max-width: 600px) {
+        .calculator input[type="number"] { width: 55px; }
+        .quiz input[type="text"] { width: 60px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 1️⃣ 标题 -->
+    <h1>📚 分数除法学习工具</h1>
+
+    <!-- 2️⃣ 教学文字 -->
+    <section class="card intro">
+        <h2>🔎 什么是分数除法？</h2>
+        <p>分数除法其实等价于把第一个分数（被除数）乘以第二个分数（除数）的倒数。</p>
+        <div class="step"><strong>步骤一：</strong>写出除数的倒数（即把分子分母互换）。</div>
+        <div class="step"><strong>步骤二：</strong>把被除数和倒数相乘。</div>
+        <div class="step"><strong>步骤三：</strong>约分，得到最简结果。</div>
+        <p>记住：<em>“除以某个数 = 乘以该数的倒数”</em>，这是分数除法唯一需要掌握的关键点。</p>
+
+        <h3>⚡ 例子演示</h3>
+        <p>把 <code>3/4 ÷ 2/5</code> 进行运算：</p>
+        <ol>
+            <li>倒数：<code>2/5 → 5/2</code></li>
+            <li>相乘：<code>3/4 × 5/2 = 15/8</code></li>
+            <li>约分：<code>15/8</code> 已经是最简形式。</li>
+        </ol>
+        <p>于是 <code>3/4 ÷ 2/5 = 15/8</code>（亦可写成 <code>1 7/8</code>）。</p>
+    </section>
+
+    <!-- 3️⃣ 交互式计算器 -->
+    <section class="card calculator">
+        <h2>🧮 分数除法计算器</h2>
+        <p>输入两个分数，点击「计算」即得结果（自动约分）。</p>
+        <div>
+            <label>被除数&nbsp;
+                <input type="number" id="num1" placeholder="分子" min="0">
+                /
+                <input type="number" id="den1" placeholder="分母" min="1">
+            </label>
+            &nbsp;&nbsp;÷&nbsp;&nbsp;
+            <label>除数&nbsp;
+                <input type="number" id="num2" placeholder="分子" min="0">
+                /
+                <input type="number" id="den2" placeholder="分母" min="1">
+            </label>
+            <button id="calcBtn">计算</button>
+        </div>
+        <div class="result" id="calcResult"></div>
+    </section>
+
+    <!-- 4️⃣ 练习题 -->
+    <section class="card quiz">
+        <h2>✏️ 课堂练习</h2>
+        <p>系统会随机生成一道分数除法题，输入你的答案后点击「检查」。</p>
+        <div class="question" id="quizQuestion"></div>
+        <input type="text" id="quizAnswer" placeholder="如 3/5">
+        <button id="checkBtn">检查</button>
+        <div class="feedback" id="quizFeedback"></div>
+    </section>
+
+</div>
+
+<script>
+/* ---------- 工具函数 ---------- */
+// 求最大公约数（欧几里得算法）
+function gcd(a, b) {
+    while (b !== 0) {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    return Math.abs(a);
+}
+// 将分数约分成最简形式
+function simplify(num, den) {
+    if (den === 0) return [num, den];
+    const g = gcd(num, den);
+    return [num / g, den / g];
+}
+// 把分数转成字符串（带负号、带整数部分）
+function fractionToString(num, den) {
+    if (den === 0) return "未定义 (分母为0)";
+    const sign = (num * den < 0) ? "-" : "";
+    num = Math.abs(num);
+    den = Math.abs(den);
+    const [n, d] = simplify(num, den);
+    if (n % d === 0) return sign + (n / d);
+    if (n > d) {
+        const intPart = Math.floor(n / d);
+        const newNum = n % d;
+        return sign + intPart + " " + newNum + "/" + d;
+    }
+    return sign + n + "/" + d;
+}
+
+/* ---------- 计算器 ---------- */
+document.getElementById('calcBtn').addEventListener('click', function () {
+    const n1 = parseInt(document.getElementById('num1').value, 10);
+    const d1 = parseInt(document.getElementById('den1').value, 10);
+    const n2 = parseInt(document.getElementById('num2').value, 10);
+    const d2 = parseInt(document.getElementById('den2').value, 10);
+
+    if (isNaN(n1) || isNaN(d1) || isNaN(n2) || isNaN(d2) ||
+        d1 === 0 || d2 === 0) {
+        document.getElementById('calcResult').textContent = "请输入合法的分数（分母不能为 0）！";
+        return;
+    }
+
+    // 除以 n2/d2 相当于乘以 d2/n2
+    const resultNum = n1 * d2;
+    const resultDen = d1 * n2;
+    const [sn, sd] = simplify(resultNum, resultDen);
+    const resultStr = fractionToString(sn, sd);
+    document.getElementById('calcResult').textContent = `${n1}/${d1} ÷ ${n2}/${d2} = ${resultStr}`;
+});
+
+/* ---------- 练习题 ---------- */
+let currentQuiz = {};
+
+function generateQuiz() {
+    // 随机生成两个正分数，分子、分母范围 1~9
+    const aNum = Math.floor(Math.random() * 9) + 1;
+    const aDen = Math.floor(Math.random() * 9) + 1;
+    const bNum = Math.floor(Math.random() * 9) + 1;
+    const bDen = Math.floor(Math.random() * 9) + 1;
+
+    currentQuiz = {
+        aNum, aDen, bNum, bDen,
+        // 正确答案（约分后）
+        answer: simplify(aNum * bDen, aDen * bNum)
+    };
+    document.getElementById('quizQuestion').innerHTML =
+        `求 <strong>${aNum}/${aDen} ÷ ${bNum}/${bDen}</strong> 的最简结果：`;
+    document.getElementById('quizAnswer').value = "";
+    document.getElementById('quizFeedback').textContent = "";
+}
+
+document.getElementById('checkBtn').addEventListener('click', function () {
+    const userInput = document.getElementById('quizAnswer').value.trim();
+    if (!userInput) {
+        alert('请先填写答案！');
+        return;
+    }
+
+    // 解析用户答案，支持 “整数”“a/b”“c d/e”
+    let userNum, userDen;
+    const mixed = userInput.match(/^(\d+)\s+(\d+)\/(\d+)$/); // 例： 1 2/3
+    if (mixed) {
+        const intPart = parseInt(mixed[1],10);
+        const n = parseInt(mixed[2],10);
+        const d = parseInt(mixed[3],10);
+        userNum = intPart * d + n;
+        userDen = d;
+    } else if (userInput.includes('/')) {
+        const parts = userInput.split('/');
+        userNum = parseInt(parts[0],10);
+        userDen = parseInt(parts[1],10);
+    } else {
+        // 纯整数
+        userNum = parseInt(userInput,10);
+        userDen = 1;
+    }
+
+    if (isNaN(userNum) || isNaN(userDen) || userDen===0) {
+        document.getElementById('quizFeedback').className = 'feedback wrong';
+        document.getElementById('quizFeedback').textContent = "答案格式不正确，请使用整数或分数形式（如 3/5、2 1/4）。";
+        return;
+    }
+
+    const [uNum, uDen] = simplify(userNum, userDen);
+    const [cNum, cDen] = currentQuiz.answer;
+
+    const feedbackEl = document.getElementById('quizFeedback');
+    if (uNum === cNum && uDen === cDen) {
+        feedbackEl.className = 'feedback correct';
+        feedbackEl.textContent = "✅ 正确！很好！";
+    } else {
+        feedbackEl.className = 'feedback wrong';
+        feedbackEl.textContent = `❌ 错误！正确答案是 ${fractionToString(cNum, cDen)}。`;
+    }
+    // 生成下一题
+    setTimeout(generateQuiz, 2000);
+});
+
+// 初始化第一题
+generateQuiz();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>100 以内乘法练习试卷</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    :root{
+        --bg:#f7fbff;
+        --card:#fff;
+        --primary:#1976d2;
+        --primary-light:#63a4ff;
+        --success:#388e3c;
+        --danger:#d32f2f;
+        --radius:8px;
+        --shadow:0 4px 12px rgba(0,0,0,.08);
+        --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    }
+    body{
+        margin:0;
+        padding:2rem 1rem;
+        font-family:var(--font);
+        background:var(--bg);
+        color:#333;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        min-height:100vh;
+        box-sizing:border-box;
+    }
+    h1{
+        color:var(--primary);
+        margin-bottom:.5rem;
+    }
+    .card{
+        background:var(--card);
+        border-radius:var(--radius);
+        box-shadow:var(--shadow);
+        max-width:600px;
+        width:100%;
+        padding:1.5rem;
+    }
+    .question{
+        display:flex;
+        align-items:center;
+        margin:.8rem 0;
+        font-size:1.1rem;
+    }
+    .question label{
+        margin-right:.4rem;
+    }
+    .question input{
+        width:3.4rem;
+        padding:.3rem;
+        font-size:1rem;
+        text-align:center;
+        border:1px solid #bbb;
+        border-radius:4px;
+        margin-left:.6rem;
+    }
+    .controls{
+        text-align:center;
+        margin-top:1.5rem;
+    }
+    button{
+        background:var(--primary);
+        color:#fff;
+        border:none;
+        padding:.6rem 1.2rem;
+        font-size:1rem;
+        border-radius:4px;
+        cursor:pointer;
+        transition:background .2s;
+    }
+    button:hover{
+        background:var(--primary-light);
+    }
+    #timer{
+        position:fixed;
+        top:1rem;
+        right:1rem;
+        background:#fff;
+        padding:.6rem 1rem;
+        border-radius:var(--radius);
+        box-shadow:var(--shadow);
+        font-weight:bold;
+        color:var(--primary);
+    }
+    .result{
+        text-align:center;
+    }
+    .result h2{
+        color:var(--success);
+    }
+    .answer-list{
+        margin-top:1rem;
+        text-align:left;
+        line-height:1.6;
+    }
+    footer{
+        margin-top:auto;
+        padding:1rem 0;
+        font-size:.85rem;
+        color:#777;
+        text-align:center;
+        width:100%;
+    }
+</style>
+</head>
+<body>
+
+<div id="timer">00:00</div>
+
+<div class="card" id="quiz-card">
+    <h1>100 以内乘法练习</h1>
+    <p>随机生成的 12 题，全部答案 ≤ 100。请填写所有答案后点击「提交」。</p>
+    <form id="quiz-form"></form>
+    <div class="controls">
+        <button type="button" id="submit-btn">提交</button>
+    </div>
+</div>
+
+<div class="card" id="result-card" style="display:none;">
+    <div class="result">
+        <h2>🎉 你的成绩</h2>
+        <p id="score-text"></p>
+        <p id="time-text"></p>
+        <h3>正确答案</h3>
+        <ul class="answer-list" id="answer-list"></ul>
+    </div>
+</div>
+
+<footer>
+今天是 2025/8/23 18:05:27，运行于 mac（arm64 架构）上的系统中，用户 Unknown Username 正在使用 zh-CN 语言，借助模型 gpt-oss-120b 完成操作。
+</footer>
+
+<script>
+/* ---------- 参数设置 ---------- */
+const QUESTION_COUNT = 12;   // 题目数量（10~15 之间）
+const MAX_PRODUCT   = 100;   // 乘积上限
+/* -------------------------------- */
+
+let quizData = [];   // [{a,b,answer,user}]
+let timerId;
+let elapsed = 0;
+
+// ---- 计时器 ----
+function startTimer(){
+    timerId = setInterval(()=>{
+        elapsed++;
+        const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+        const s = String(elapsed%60).padStart(2,'0');
+        document.getElementById('timer').textContent = `${m}:${s}`;
+    },1000);
+}
+function stopTimer(){ clearInterval(timerId); }
+
+// ---- 产生符合条件的乘法题 ----
+function generateQuestion(){
+    // 随机挑选两个数，确保乘积不超过 MAX_PRODUCT
+    while(true){
+        const a = Math.floor(Math.random()* (MAX_PRODUCT+1));
+        const b = Math.floor(Math.random()* (MAX_PRODUCT+1));
+        if(a===0 || b===0) continue; // 忽略 0*X，太简单
+        if(a*b <= MAX_PRODUCT) return {a,b,answer:a*b};
+    }
+}
+
+// ---- 渲染题目 ----
+function renderQuestions(){
+    const form = document.getElementById('quiz-form');
+    form.innerHTML = '';
+    for(let i=0;i<QUESTION_COUNT;i++){
+        const q = generateQuestion();
+        quizData.push(q);
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+            <label>${q.a} × ${q.b} = </label>
+            <input type="number" min="0" max="${MAX_PRODUCT}" required data-index="${i}">
+        `;
+        form.appendChild(div);
+    }
+}
+
+// ---- 评判答案 ----
+function evaluate(){
+    let correct = 0;
+    const inputs = document.querySelectorAll('#quiz-form input');
+    inputs.forEach(inp=>{
+        const idx = Number(inp.dataset.index);
+        const val = Number(inp.value);
+        quizData[idx].user = val;
+        if(val === quizData[idx].answer) correct++;
+    });
+    return correct;
+}
+
+// ---- 显示结果页面 ----
+function showResult(score){
+    stopTimer();
+    document.getElementById('quiz-card').style.display = 'none';
+    const resultCard = document.getElementById('result-card');
+    resultCard.style.display = 'block';
+
+    const total = QUESTION_COUNT;
+    document.getElementById('score-text').textContent = `得分：${score} / ${total}`;
+    const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+    const s = String(elapsed%60).padStart(2,'0');
+    document.getElementById('time-text').textContent = `用时：${m} 分 ${s} 秒`;
+
+    const ul = document.getElementById('answer-list');
+    ul.innerHTML = '';
+    quizData.forEach((q,i)=>{
+        const li = document.createElement('li');
+        const ok = q.user === q.answer;
+        li.innerHTML = `
+            第 ${i+1} 题： ${q.a} × ${q.b} = ${q.answer}
+            （你填 ${q.user===undefined?'':q.user}） 
+            <span style="color:${ok?'var(--success)':'var(--danger)'};">
+                ${ok?'✔ 正确':'✘ 错误'}
+            </span>
+        `;
+        ul.appendChild(li);
+    });
+}
+
+// ---- 提交按钮事件 ----
+document.getElementById('submit-btn').addEventListener('click',()=>{
+    const inputs = document.querySelectorAll('#quiz-form input');
+    for(const inp of inputs){
+        if(inp.value.trim() === ''){
+            alert('请先完成所有题目！');
+            inp.focus();
+            return;
+        }
+    }
+    const score = evaluate();
+    showResult(score);
+});
+
+// ---- 初始化 ----
+window.addEventListener('load',()=>{
+    renderQuestions();
+    startTimer();
+});
+</script>
+</body>
+</html>

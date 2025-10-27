@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平滑弹球游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #222;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            height: 70vh;
+            background: #111;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        #ball {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #2eb8ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #2eb8ff;
+        }
+        
+        .trail {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #2eb8ff;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+        
+        #paddle {
+            position: absolute;
+            bottom: 20px;
+            width: 80px;
+            height: 12px;
+            background: #ff6b6b;
+            border-radius: 6px;
+            box-shadow: 0 0 10px #ff6b6b;
+        }
+        
+        .brick {
+            position: absolute;
+            width: 50px;
+            height: 20px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        
+        #score {
+            color: white;
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 600px;
+            margin-top: 10px;
+        }
+        
+        .control-btn {
+            width: 48%;
+            padding: 10px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            #controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="ball"></div>
+        <div id="paddle"></div>
+        <div id="bricks"></div>
+    </div>
+    <div id="score">分数: 0 | 生命: 3</div>
+    <div id="controls">
+        <button class="control-btn" id="left-btn">←</button>
+        <button class="control-btn" id="right-btn">→</button>
+    </div>
+
+    <script>
+        // 获取元素
+        const gameContainer = document.getElementById('game-container');
+        const ball = document.getElementById('ball');
+        const paddle = document.getElementById('paddle');
+        const bricksContainer = document.getElementById('bricks');
+        const scoreDisplay = document.getElementById('score');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        
+        // 游戏状态
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let ballX = 300;
+        let ballY = 200;
+        let ballSpeedX = 3;
+        let ballSpeedY = 3;
+        let paddleX = 260;
+        const paddleWidth = 80;
+        const ballSize = 16;
+        let bricks = [];
+        let lastTimestamp = 0;
+        let trailParticles = [];
+        
+        // 初始化游戏
+        function initGame() {
+            // 重置球和挡板位置
+            ballX = gameContainer.offsetWidth / 2;
+            ballY = gameContainer.offsetHeight / 2;
+            paddleX = gameContainer.offsetWidth / 2 - paddleWidth / 2;
+            
+            // 随机初始角度
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 4;
+            ballSpeedX = Math.cos(angle) * speed;
+            ballSpeedY = Math.sin(angle) * speed;
+            
+            // 防止初始垂直角度过大
+            if (Math.abs(ballSpeedY) < 1) {
+                ballSpeedY = ballSpeedY > 0 ? 1 : -1;
+            }
+            
+            // 清空粒子
+            trailParticles = [];
+            document.querySelectorAll('.trail').forEach(el => el.remove());
+            
+            // 生成砖块
+            bricksContainer.innerHTML = '';
+            bricks = [];
+            const brickRows = 4;
+            const brickCols = Math.floor(gameContainer.offsetWidth / 55);
+            
+            const colors = ['#ff6b6b', '#ffa502', '#20bf6b', '#778ca3'];
+            
+            for (let r = 0; r < brickRows; r++) {
+                for (let c = 0; c < brickCols; c++) {
+                    const brick = document.createElement('div');
+                    brick.className = 'brick';
+                    brick.style.left = c * 55 + 'px';
+                    brick.style.top = r * 25 + 20 + 'px';
+                    brick.style.background = colors[r % colors.length];
+                    bricksContainer.appendChild(brick);
+                    
+                    bricks.push({
+                        element: brick,
+                        x: c * 55,
+                        y: r * 25 + 20,
+                        width: 50,
+                        height: 20,
+                        visible: true
+                    });
+                }
+            }
+            
+            // 重置分数
+            score = 0;
+            lives = 3;
+            updateScore();
+        }
+        
+        // 更新分数显示
+        function updateScore() {
+            scoreDisplay.textContent = `分数: ${score} | 生命: ${lives}`;
+        }
+        
+        // 创建拖尾粒子
+        function createTrail(x, y) {
+            const trail = document.createElement('div');
+            trail.className = 'trail';
+            trail.style.left = x + 'px';
+            trail.style.top = y + 'px';
+            gameContainer.appendChild(trail);
+            
+            return {
+                element: trail,
+                x: x,
+                y: y,
+                life: 30 // 粒子存在帧数
+            };
+        }
+        
+        // 游戏循环
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            
+            // 计算时间增量(ΔT)
+            const deltaTime = lastTimestamp ? (timestamp - lastTimestamp) / 16 : 1;
+            lastTimestamp = timestamp;
+            
+            // 更新球位置
+            ballX += ballSpeedX * deltaTime;
+            ballY += ballSpeedY * deltaTime;
+            
+            // 边界检测 (左右墙)
+            if (ballX < ballSize / 2 || ballX > gameContainer.offsetWidth - ballSize / 2) {
+                ballSpeedX = -ballSpeedX;
+                ballX = Math.max(ballSize / 2, Math.min(ballX, gameContainer.offsetWidth - ballSize / 2));
+            }
+            
+            // 边界检测 (上墙)
+            if (ballY < ballSize / 2) {
+                ballSpeedY = -ballSpeedY;
+                ballY = ballSize / 2;
+            }
+            
+            // 检测球是否掉到底部
+            if (ballY > gameContainer.offsetHeight) {
+                loseLife();
+                return;
+            }
+            
+            // 检测与挡板碰撞
+            if (
+                ballY + ballSize / 2 >= gameContainer.offsetHeight - 32 &&
+                ballY - ballSize / 2 <= gameContainer.offsetHeight - 20 &&
+                ballX + ballSize / 2 >= paddleX &&
+                ballX - ballSize / 2 <= paddleX + paddleWidth
+            ) {
+                // 根据击中挡板的位置改变反弹角度
+                const hitPosition = (ballX - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+                ballSpeedX = hitPosition * 5;
+                ballSpeedY = -Math.abs(ballSpeedY) - 0.2;
+                
+                // 创建碰撞粒子效果
+                for (let i = 0; i < 5; i++) {
+                    trailParticles.push(createTrail(
+                        ballX + (Math.random() - 0.5) * 10,
+                        gameContainer.offsetHeight - 32 + (Math.random() - 0.5) * 5
+                    ));
+                }
+            }
+            
+            // 检测与砖块碰撞
+            let bricksLeft = 0;
+            for (const brick of bricks) {
+                if (!brick.visible) continue;
+                
+                bricksLeft++;
+                
+                if (
+                    ballX - ballSize / 2 < brick.x + brick.width &&
+                    ballX + ballSize / 2 > brick.x &&
+                    ballY - ballSize / 2 < brick.y + brick.height &&
+                    ballY + ballSize / 2 > brick.y
+                ) {
+                    brick.visible = false;
+                    brick.element.style.display = 'none';
+                    score += 10;
+                    updateScore();
+                    
+                    // 判断从哪个方向碰撞
+                    const ballRight = ballX + ballSize / 2;
+                    const ballLeft = ballX - ballSize / 2;
+                    const ballBottom = ballY + ballSize / 2;
+                    const ballTop = ballY - ballSize / 2;
+                    
+                    const brickRight = brick.x + brick.width;
+                    const brickLeft = brick.x;
+                    const brickBottom = brick.y + brick.height;
+                    const brickTop = brick.y;
+                    
+                    // 从上方或下方碰撞
+                    if (ballBottom > brickTop && ballTop < brickBottom) {
+                        ballSpeedX = -ballSpeedX;
+                    } 
+                    // 从左方或右方碰撞
+                    else {
+                        ballSpeedY = -ballSpeedY;
+                    }
+                    
+                    // 创建砖块碰撞粒子
+                    for (let i = 0; i < 3; i++) {
+                        trailParticles.push(createTrail(
+                            brick.x + brick.width / 2 + (Math.random() - 0.5) * 20,
+                            brick.y + brick.height / 2 + (Math.random() - 0.5) * 10
+                        ));
+                    }
+                    
+                    break; // 每次只检测一个碰撞
+                }
+            }
+            
+            // 检查是否清除所有砖块
+            if (bricksLeft === 0) {
+                winGame();
+                return;
+            }
+            
+            // 更新球的位置
+            ball.style.left = ballX - ballSize / 2 + 'px';
+            ball.style.top = ballY - ballSize / 2 + 'px';
+            
+            // 更新拖尾粒子
+            for (let i = trailParticles.length - 1; i >= 0; i--) {
+                const particle = trailParticles[i];
+                particle.life -= 1;
+                particle.element.style.opacity = particle.life / 30;
+                
+                if (particle.life <= 0) {
+                    particle.element.remove();
+                    trailParticles.splice(i, 1);
+                }
+            }
+            
+            // 每隔3帧添加一个新拖尾粒子
+            if (timestamp % 3 === 0) {
+                trailParticles.push(createTrail(ballX, ballY));
+            }
+            
+            // 更新挡板位置
+            paddle.style.left = paddleX + 'px';
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 失去生命
+        function loseLife() {
+            lives--;
+            updateScore();
+            
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                resetBall();
+            }
+        }
+        
+        // 重置球
+        function resetBall() {
+            ballX = gameContainer.offsetWidth / 2;
+            ballY = gameContainer.offsetHeight / 2;
+            
+            // 重置球速度
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 4;
+            ballSpeedX = Math.cos(angle) * speed;
+            ballSpeedY = Math.sin(angle) * speed;
+            
+            if (Math.abs(ballSpeedY) < 1) {
+                ballSpeedY = ballSpeedY > 0 ? 1 : -1;
+            }
+            
+            setTimeout(() => {
+                lastTimestamp = 0;
+                gameRunning = true;
+                gameLoop();
+            }, 1000);
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            gameRunning = false;
+            alert(`游戏结束！最终得分: ${score}`);
+            initGame();
+            gameRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 获胜
+        function winGame() {
+            gameRunning = false;
+            alert(`恭喜胜利！得分: ${score}`);
+            initGame();
+            gameRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 移动挡板
+        function movePaddle(amount) {
+            paddleX = Math.max(
+                0,
+                Math.min(
+                    gameContainer.offsetWidth - paddleWidth,
+                    paddleX + amount
+                )
+            );
+        }
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') movePaddle(-20);
+            if (e.key === 'ArrowRight') movePaddle(20);
+        });
+        
+        // 触摸控制
+        leftBtn.addEventListener('touchstart', () => {
+            paddleMoveInterval = setInterval(() => movePaddle(-10), 16);
+        });
+        
+        rightBtn.addEventListener('touchstart', () => {
+            paddleMoveInterval = setInterval(() => movePaddle(10), 16);
+        });
+        
+        const clearPaddleMove = () => {
+            clearInterval(paddleMoveInterval);
+        };
+        
+        leftBtn.addEventListener('touchend', clearPaddleMove);
+        leftBtn.addEventListener('touchcancel', clearPaddleMove);
+        rightBtn.addEventListener('touchend', clearPaddleMove);
+        rightBtn.addEventListener('touchcancel', clearPaddleMove);
+        
+        // 鼠标/触摸滑动控制
+        gameContainer.addEventListener('mousemove', (e) => {
+            const rect = gameContainer.getBoundingClientRect();
+            const newX = e.clientX - rect.left - paddleWidth / 2;
+            paddleX = Math.max(0, Math.min(rect.width - paddleWidth, newX));
+        });
+        
+        gameContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = gameContainer.getBoundingClientRect();
+            const newX = e.touches[0].clientX - rect.left - paddleWidth / 2;
+            paddleX = Math.max(0, Math.min(rect.width - paddleWidth, newX));
+        }, { passive: false });
+        
+        // 开始游戏
+        initGame();
+        gameRunning = true;
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

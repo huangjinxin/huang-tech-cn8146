@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>分子（化学）</title>
+<style>
+    /* ---------- 变量 ---------- */
+    :root{
+        --bg-from:#f0f9ff;   /* 背景渐变起点 */
+        --bg-to:#cbebff;     /* 背景渐变终点 */
+        --primary:#0d6efd;   /* 主色（标题、重点） */
+        --accent:#66b2ff;    /* 次色（按钮、交互） */
+        --text:#212529;      /* 正文字色 */
+        --radius:10px;
+        --shadow:0 4px 12px rgba(0,0,0,0.08);
+        --font:"Noto Serif SC",serif;
+        --font-mono:"Courier New",monospace;
+    }
+
+    /* ---------- 页面整体 ---------- */
+    body{
+        margin:0;
+        font-family:var(--font);
+        background:linear-gradient(135deg,var(--bg-from),var(--bg-to));
+        color:var(--text);
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        min-height:100vh;
+        padding:30px 15px;
+    }
+    .card{
+        background:#fff;
+        border-radius:var(--radius);
+        box-shadow:var(--shadow);
+        max-width:800px;
+        width:100%;
+        padding:2rem;
+        text-align:center;
+    }
+    h1{
+        font-size:2.4rem;
+        color:var(--primary);
+        margin-bottom:0.4rem;
+    }
+    h2{
+        font-size:1.8rem;
+        color:var(--primary);
+        margin:1.2rem 0 0.6rem;
+        text-align:left;
+    }
+    p{
+        font-size:1.1rem;
+        line-height:1.7;
+        margin:0.8rem 0;
+        text-align:left;
+    }
+    strong{color:var(--primary);}
+
+    /* ---------- 交互区域 ---------- */
+    .section{
+        margin-top:2rem;
+        padding-top:1rem;
+        border-top:1px solid #e0e0e0;
+    }
+    .demo{
+        margin-top:1rem;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:1rem;
+    }
+    input, button, select{
+        font-size:1rem;
+        padding:.5rem .8rem;
+        border-radius:6px;
+        border:none;
+        outline:none;
+    }
+    input{
+        border:2px solid var(--accent);
+        width:140px;
+        text-align:center;
+    }
+    button{
+        background:var(--primary);
+        color:#fff;
+        cursor:pointer;
+        transition:background .3s;
+    }
+    button:hover{background:var(--accent);}
+    .result{
+        font-family:var(--font-mono);
+        font-size:1.1rem;
+        color:var(--primary);
+        min-height:1.4rem;
+    }
+
+    /* ---------- Canvas 动画 ---------- */
+    #canvas{
+        background:#f9fdff;
+        border:1px solid #cfe8ff;
+        border-radius:6px;
+        margin-top:0.5rem;
+    }
+    .slider{
+        width:260px;
+    }
+
+    /* ---------- 动画效果 ---------- */
+    @keyframes pop{
+        0%{transform:scale(0.5);opacity:0;}
+        70%{transform:scale(1.2);opacity:1;}
+        100%{transform:scale(1);opacity:1;}
+    }
+    .show{
+        animation:pop .5s ease-out;
+    }
+</style>    
+</head>
+<body>
+<div class="card">
+    <h1>分子（化学）</h1>
+    <p>
+        欢迎来到“分子”小课堂。<br>
+        在物理学里，<strong>分子</strong>是由两个或多个原子通过化学键结合而成的最小独立单位，能够保持物质的化学性质。<br>
+        下面我们将一起听听分子的定义、运动特性，并通过两个互动实验来感受它们的魅力。
+    </p>
+
+    <!-- 1️⃣ 计算分子数 -->
+    <div class="section">
+        <h2>① 计算分子数（阿伏伽德罗常数）</h2>
+        <p>
+            给定一定质量的物质，我们可以利用摩尔质量和阿伏伽德罗常数（<code>6.022×10²³</code>）求出其中包含的分子数。<br>
+            公式：<code> N = (m / M) × Nₐ </code>，其中 <code>m</code> 为质量（克），<code>M</code> 为摩尔质量（克/摩尔），<code>Nₐ</code> 为阿伏伽德罗常数。
+        </p>
+        <div class="demo">
+            <div>
+                <input id="mass" type="number" placeholder="质量 (g)" min="0">
+                <input id="mw"   type="number" placeholder="摩尔质量 (g/mol)" min="0">
+                <button onclick="calcMolecules()">计算分子数</button>
+            </div>
+            <div class="result" id="molResult"></div>
+        </div>
+    </div>
+
+    <!-- 2️⃣ 分子运动模拟 -->
+    <div class="section">
+        <h2>② 分子运动模拟（温度·速度）</h2>
+        <p>
+            分子在气体状态下无规则地做布朗运动。温度越高，分子的平均动能越大，运动速度也越快。<br>
+            拖动下面的滑块，改变“温度（K）”，观察画布里小圆球的运动变化。
+        </p>
+        <div class="demo">
+            <label for="temp">温度（K）：
+                <input id="temp" type="range" min="100" max="800" value="300" class="slider">
+                <span id="tempVal">300 K</span>
+            </label>
+            <canvas id="canvas" width="600" height="200"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ---------- 计算分子数 ---------- */
+const NA = 6.022e23;  // 阿伏伽德罗常数
+function calcMolecules(){
+    const m = Number(document.getElementById('mass').value);
+    const M = Number(document.getElementById('mw').value);
+    const out = document.getElementById('molResult');
+
+    if(isNaN(m) || isNaN(M) || M===0){
+        out.textContent = '请填写有效的质量和摩尔质量。';
+        out.classList.remove('show');
+        return;
+    }
+    const N = (m / M) * NA;
+    // 使用国际化数字格式化，保留两位有效数字
+    const fmt = new Intl.NumberFormat('zh-CN', {notation:"scientific", maximumSignificantDigits:3});
+    out.textContent = `${m} g / ${M} g·mol⁻¹ 约等于 ${fmt.format(N)} 个分子`;
+    out.classList.remove('show');
+    void out.offsetWidth; // 重绘触发动画
+    out.classList.add('show');
+}
+
+/* ---------- 分子运动模拟 ---------- */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const tempSlider = document.getElementById('temp');
+const tempVal = document.getElementById('tempVal');
+
+const PARTICLE_COUNT = 80;
+let particles = [];
+
+// 生成粒子
+function initParticles(){
+    particles = [];
+    for(let i=0;i<PARTICLE_COUNT;i++){
+        particles.push({
+            x: Math.random()*canvas.width,
+            y: Math.random()*canvas.height,
+            vx: 0,
+            vy: 0,
+            r: 4 + Math.random()*3,
+            color: `hsl(${Math.random()*360},70%,60%)`
+        });
+    }
+}
+
+// 根据温度设置速度幅度（kT 与速度的关系简化处理）
+function updateVelocities(temp){
+    // 简单模型：速度均值与 sqrt(T) 成正比
+    const speedFactor = Math.sqrt(temp/300); // 300K 为基准
+    particles.forEach(p=>{
+        const angle = Math.random()*2*Math.PI;
+        const speed = speedFactor * (0.5 + Math.random()*0.5); // 0.5~1.0 的随机系数
+        p.vx = Math.cos(angle)*speed;
+        p.vy = Math.sin(angle)*speed;
+    });
+}
+
+// 动画循环
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+        // 移动
+        p.x += p.vx;
+        p.y += p.vy;
+        // 碰壁反弹
+        if(p.x < p.r || p.x > canvas.width-p.r) p.vx = -p.vx;
+        if(p.y < p.r || p.y > canvas.height-p.r) p.vy = -p.vy;
+
+        // 绘制
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+
+// 初始化
+initParticles();
+updateVelocities(tempSlider.value);
+animate();
+
+// 滑块交互
+tempSlider.addEventListener('input', ()=>{
+    const t = Number(tempSlider.value);
+    tempVal.textContent = `${t} K`;
+    updateVelocities(t);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>分数乘法课堂小工具</title>
+    <style>
+        /* --------- 基础布局 ---------- */
+        body{
+            margin:0;
+            padding:0;
+            font-family:"Microsoft YaHei",Arial,sans-serif;
+            background:#f4f8fb;
+            color:#333;
+        }
+        header{
+            background:#2c7be5;
+            color:#fff;
+            text-align:center;
+            padding:1.5rem 0;
+            font-size:2rem;
+        }
+        main{
+            max-width:900px;
+            margin:2rem auto;
+            padding:0 1rem;
+        }
+        section{
+            background:#fff;
+            border-radius:8px;
+            margin-bottom:1.5rem;
+            box-shadow:0 2px 6px rgba(0,0,0,.1);
+            padding:1.5rem;
+        }
+        h2{
+            margin-top:0;
+            color:#2c7be5;
+        }
+        /* --------- 电脑形象 ---------- */
+        .computer{
+            width:260px;
+            margin:1rem auto;
+            perspective:800px;
+            cursor:pointer;
+        }
+        .monitor{
+            width:100%;
+            height:180px;
+            background:#111;
+            border-radius:6px 6px 2px 2px;
+            position:relative;
+            overflow:hidden;
+            box-shadow:0 4px 8px rgba(0,0,0,.2);
+        }
+        .monitor::after{
+            content:"";
+            position:absolute;
+            top:0; left:0;
+            width:100%; height:100%;
+            background:linear-gradient(135deg,rgba(255,255,255,.05),transparent);
+        }
+        .screen{
+            position:absolute;
+            top:12px; left:12px;
+            right:12px; bottom:12px;
+            background:#1e1e1e;
+            border-radius:4px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#0f0;
+            font-family:"Courier New",monospace;
+            font-size:1.2rem;
+            letter-spacing:2px;
+        }
+        .keyboard{
+            width:100%;
+            height:30px;
+            background:#444;
+            border-radius:0 0 6px 6px;
+            margin-top:-4px;
+            box-shadow:inset 0 2px 4px rgba(0,0,0,.5);
+        }
+        /* --------- 计算器弹窗 ---------- */
+        .modal{
+            position:fixed;
+            top:0; left:0;
+            width:100%; height:100%;
+            background:rgba(0,0,0,.5);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            z-index:1000;
+        }
+        .modal-content{
+            background:#fff;
+            border-radius:8px;
+            width:320px;
+            padding:1.5rem;
+            box-shadow:0 4px 12px rgba(0,0,0,.3);
+        }
+        .modal h3{
+            margin-top:0;
+            color:#2c7be5;
+        }
+        .input-group{
+            display:flex;
+            align-items:center;
+            margin:0.8rem 0;
+        }
+        .input-group input{
+            width:60px;
+            padding:0.4rem;
+            margin:0 0.2rem;
+            text-align:center;
+            border:1px solid #ccc;
+            border-radius:4px;
+        }
+        .btn{
+            background:#2c7be5;
+            color:#fff;
+            border:none;
+            padding:0.6rem 1rem;
+            border-radius:4px;
+            cursor:pointer;
+            transition:background .2s;
+        }
+        .btn:hover{
+            background:#1a5bb8;
+        }
+        .result{
+            margin-top:1rem;
+            font-weight:bold;
+            text-align:center;
+        }
+        /* --------- 练习题 ---------- */
+        .question{
+            background:#fafafa;
+            border:1px solid #e0e0e0;
+            border-radius:6px;
+            padding:1rem;
+            margin-bottom:1rem;
+        }
+        .question p{
+            margin:0 0 .5rem;
+        }
+        .question input{
+            width:70px;
+            padding:0.3rem;
+            margin-right:0.3rem;
+            text-align:center;
+            border:1px solid #bbb;
+            border-radius:4px;
+        }
+        .feedback{
+            display:inline-block;
+            margin-left:0.5rem;
+            font-weight:bold;
+        }
+        .correct{color:#28a745;}
+        .wrong{color:#dc3545;}
+    </style>
+</head>
+<body>
+
+<header>分数乘法 · 课堂互动小工具</header>
+
+<main>
+    <!-- 说明区 -->
+    <section>
+        <h2>📚 学习目标</h2>
+        <ul>
+            <li>了解分数乘法的定义：<strong>分子相乘、分母相乘</strong></li>
+            <li>学会化简结果（约分）</li>
+            <li>掌握分数乘法在实际情境中的应用</li>
+        </ul>
+    </section>
+
+    <!-- 电脑形象 + 计算器弹窗 -->
+    <section>
+        <h2>💻 “计算机”来帮忙</h2>
+        <div class="computer" id="computer">
+            <div class="monitor">
+                <div class="screen">FRACTION</div>
+            </div>
+            <div class="keyboard"></div>
+        </div>
+        <p style="text-align:center;color:#666;">点击电脑 → 打开分数乘法计算器</p>
+
+        <!-- 弹窗 -->
+        <div class="modal" id="calcModal">
+            <div class="modal-content">
+                <h3>分数乘法计算器</h3>
+                <div class="input-group">
+                    <label>分数1：</label>
+                    <input type="number" id="aNum" placeholder="分子" min="0">
+                    <span>/</span>
+                    <input type="number" id="aDen" placeholder="分母" min="1">
+                </div>
+                <div class="input-group">
+                    <label>分数2：</label>
+                    <input type="number" id="bNum" placeholder="分子" min="0">
+                    <span>/</span>
+                    <input type="number" id="bDen" placeholder="分母" min="1">
+                </div>
+                <button class="btn" id="calcBtn">计算</button>
+                <div class="result" id="calcResult"></div>
+                <button class="btn" style="margin-top:0.8rem;background:#6c757d;" id="closeBtn">关闭</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 练习题区 -->
+    <section>
+        <h2>✏️ 实战练习</h2>
+        <div id="questionArea"></div>
+        <button class="btn" id="newSetBtn">换一组新题</button>
+    </section>
+</main>
+
+<script>
+    // ---------- 工具函数 ----------
+    function gcd(m, n) {
+        return n ? gcd(n, m % n) : Math.abs(m);
+    }
+    function simplify(num, den) {
+        const g = gcd(num, den);
+        return [num / g, den / g];
+    }
+    function fractionToString(num, den) {
+        if (den === 1) return `${num}`;
+        return `${num}/${den}`;
+    }
+
+    // ---------- 计算器 ----------
+    const computer = document.getElementById('computer');
+    const modal = document.getElementById('calcModal');
+    const closeBtn = document.getElementById('closeBtn');
+    const calcBtn = document.getElementById('calcBtn');
+    const resultDiv = document.getElementById('calcResult');
+
+    computer.addEventListener('click', () => modal.style.display = 'flex');
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+
+    calcBtn.addEventListener('click', () => {
+        const aNum = parseInt(document.getElementById('aNum').value);
+        const aDen = parseInt(document.getElementById('aDen').value);
+        const bNum = parseInt(document.getElementById('bNum').value);
+        const bDen = parseInt(document.getElementById('bDen').value);
+
+        if (isNaN(aNum) || isNaN(aDen) || isNaN(bNum) || isNaN(bDen) ||
+            aDen===0 || bDen===0) {
+            resultDiv.innerHTML = '<span class="wrong">请输入合法的分数（分母不能为0）</span>';
+            return;
+        }
+
+        const num = aNum * bNum;
+        const den = aDen * bDen;
+        const [sNum, sDen] = simplify(num, den);
+        const origin = fractionToString(num, den);
+        const simplified = fractionToString(sNum, sDen);
+        resultDiv.innerHTML = `结果：<strong>${origin}</strong> → <strong>${simplified}</strong>`;
+    });
+
+    // ---------- 练习题 ----------
+    const questionArea = document.getElementById('questionArea');
+    const newSetBtn = document.getElementById('newSetBtn');
+
+    function randomInt(min, max){
+        return Math.floor(Math.random()*(max-min+1))+min;
+    }
+    function genFraction(){
+        const den = randomInt(2,9);
+        const num = randomInt(1,den-1); // 保证真分数
+        return [num, den];
+    }
+    function createQuestion(id){
+        const [aNum,aDen] = genFraction();
+        const [bNum,bDen] = genFraction();
+        const trueNum = aNum * bNum;
+        const trueDen = aDen * bDen;
+        const [simpNum, simpDen] = simplify(trueNum,trueDen);
+        const answerStr = fractionToString(simpNum,simpDen);
+
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+            <p>题目 ${id+1}： <strong>${aNum}/${aDen} × ${bNum}/${bDen} = ?</strong></p>
+            <input type="text" placeholder="答案(如 3/4)" id="ans${id}">
+            <button class="btn" style="font-size:0.9rem;" onclick="checkAnswer(${id},'${answerStr}')">提交</button>
+            <span class="feedback" id="feed${id}"></span>
+        `;
+        return div;
+    }
+
+    function renderSet(){
+        questionArea.innerHTML = '';
+        for(let i=0;i<3;i++){
+            questionArea.appendChild(createQuestion(i));
+        }
+    }
+
+    function checkAnswer(idx, correct){
+        const userInput = document.getElementById(`ans${idx}`).value.trim();
+        const feed = document.getElementById(`feed${idx}`);
+        if(userInput === ''){
+            feed.textContent = '请填写答案';
+            feed.className = 'feedback wrong';
+            return;
+        }
+        // 简单标准化：去掉空格、统一分子分母顺序
+        const norm = userInput.replace(/\s+/g,'');
+        if(norm === correct){
+            feed.textContent = '✓ 正确';
+            feed.className = 'feedback correct';
+        }else{
+            feed.textContent = `✗ 错误，正确答案是 ${correct}`;
+            feed.className = 'feedback wrong';
+        }
+    }
+
+    // 把检查函数挂到全局（因为内联 onclick 需要）
+    window.checkAnswer = checkAnswer;
+
+    newSetBtn.addEventListener('click', renderSet);
+    // 初始渲染
+    renderSet();
+</script>
+</body>
+</html>

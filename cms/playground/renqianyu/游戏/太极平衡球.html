@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太极平衡 - 重力+触控</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Microsoft YaHei', sans-serif;
+            color: white;
+        }
+
+        #game-container {
+            position: relative;
+            width: 90vmin;
+            height: 90vmin;
+            max-width: 500px;
+            max-height: 500px;
+            perspective: 1000px;
+        }
+
+        #taiji-platform {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .taiji-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #111 50%, #eee 50%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yin, .yang {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            transform-origin: 100% 50%;
+        }
+
+        .yin {
+            left: 0;
+            background: #111;
+            border-radius: 100% 0 0 100%;
+        }
+
+        .yang {
+            right: 0;
+            background: #eee;
+            border-radius: 0 100% 100% 0;
+        }
+
+        .yin-dot, .yang-dot {
+            position: absolute;
+            width: 15%;
+            height: 15%;
+            border-radius: 50%;
+        }
+
+        .yin-dot {
+            background: #eee;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .yang-dot {
+            background: #111;
+            top: 20%;
+            right: 50%;
+            transform: translateX(50%);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .orb {
+            position: absolute;
+            width: 8%;
+            height: 8%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffcc00, #ff6600);
+            transform: translate(-50%, -50%);
+            box-shadow: 
+                0 0 15px #ffcc00,
+                0 0 30px rgba(255, 204, 0, 0.4);
+            z-index: 10;
+        }
+
+        #score-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8em;
+            text-shadow: 0 0 10px cyan;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        #controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.2em;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            border-radius: 50%;
+            color: white;
+        }
+
+        #game-over h2 {
+            margin: 0;
+            font-size: 2em;
+            text-shadow: 0 0 5px white;
+        }
+
+        #game-over p {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        #restart-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(to right, #ffcc00, #ff6600);
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #111;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #touch-controls {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            pointer-events: auto;
+        }
+
+        #touch-controls area {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        #touch-controls .left {
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        #touch-controls .right {
+            right: 50%;
+            transform: translateX(50%);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        #touch-controls .top {
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #touch-controls .bottom {
+            bottom: 50%;
+            transform: translateY(50%);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #touch-controls .left:hover,
+        #touch-controls .right:hover,
+        #touch-controls .top:hover,
+        #touch-controls .bottom:hover {
+            background: rgba(255, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="taiji-platform">
+            <div class="taiji-bg">
+                <div class="yin"></div>
+                <div class="yang"></div>
+                <div class="yin-dot"></div>
+                <div class="yang-dot"></div>
+            </div>
+        </div>
+        <div class="orb"></div>
+        <div id="score-display">0</div>
+        <div id="controls-hint">倾斜设备或点击屏幕控制太极盘</div>
+        <div id="game-over">
+            <h2>游戏结束</h2>
+            <p>你的分数: <span id="final-score">0</span></p>
+            <button id="restart-btn">重新开始</button>
+        </div>
+        <div id="touch-controls">
+            <area class="left" title="左倾" />
+            <area class="right" title="右倾" />
+            <area class="top" title="上倾" />
+            <area class="bottom" title="下倾" />
+        </div>
+    </div>
+
+    <script>
+        // 游戏元素
+        const platform = document.getElementById('taiji-platform');
+        const orb = document.querySelector('.orb');
+        const scoreDisplay = document.getElementById('score-display');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScore = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const touchControls = document.getElementById('touch-controls');
+
+        // 状态变量
+        let score = 0;
+        let gameActive = false;
+        let orbPos = { x: 0.5, y: 0.5 };
+        let orbVel = { x: 0.002, y: 0.003 };
+        let gravityFactor = 0.0005;
+        let lastBeta = 0;
+        let lastGamma = 0;
+        let controlMethod = 'gravity'; // 'gravity' 或 'touch'
+        let currentTilt = { x: 0, y: 0 };
+        let isTiltActive = false;
+
+        // 初始化小球位置
+        function initOrb() {
+            orb.style.left = `${orbPos.x * 100}%`;
+            orb.style.top = `${orbPos.y * 100}%`;
+        }
+        initOrb();
+
+        // 游戏开始
+        function startGame(method) {
+            controlMethod = method;
+            if (method === 'gravity') {
+                touchControls.style.display = 'none';
+                controlHint.textContent = '倾斜设备或点击屏幕控制太极盘';
+                setupOrientation();
+            } else {
+                touchControls.style.display = 'block';
+                controlHint.textContent = '点击屏幕区域控制太极盘';
+                setupTouchControl();
+            }
+            gameActive = true;
+            score = 0;
+            orbVel.x = 0.002;
+            orbVel.y = 0.003;
+            gravityFactor = 0.0005;
+            currentTilt = { x: 0, y: 0 };
+            finalScore.textContent = '0';
+            scoreDisplay.textContent = '0';
+            platform.style.transform = '';
+        }
+
+        // 设置重力感应控制
+        function setupOrientation() {
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+
+        function handleOrientation(event) {
+            if (!gameActive || controlMethod !== 'gravity') return;
+
+            const beta = event.beta; // 前后倾斜角（-180 ~ 180）
+            const gamma = event.gamma; // 左右倾斜角（-90 ~ 90）
+
+            // 滤波
+            lastBeta = lastBeta * 0.3 + beta * 0.7;
+            lastGamma = lastGamma * 0.3 + gamma * 0.7;
+
+            // 转换为-1~1区间
+            currentTilt.y = clamp(lastBeta / 90, -1, 1);
+            currentTilt.x = clamp(lastGamma / 90, -1, 1);
+            updatePlatformRotation();
+        }
+
+        // 设置触控控制
+        function setupTouchControl() {
+            const areas = touchControls.querySelectorAll('area');
+            areas.forEach(area => {
+                area.addEventListener('click', () => {
+                    if (gameActive && controlMethod === 'touch') {
+                        const areaRect = area.getBoundingClientRect();
+                        isTiltActive = true;
+
+                        // 手动控制倾斜
+                        let tiltX = 0;
+                        let tiltY = 0;
+
+                        if (area.classList.contains('left')) {
+                            tiltX = -1;
+                        } else if (area.classList.contains('right')) {
+                            tiltX = 1;
+                        } else if (area.classList.contains('top')) {
+                            tiltY = 1;
+                        } else if (area.classList.contains('bottom')) {
+                            tiltY = -1;
+                        }
+
+                        currentTilt.x = tiltX;
+                        currentTilt.y = tiltY;
+                        updatePlatformRotation();
+                        isTiltActive = false;
+                    }
+                });
+            });
+        }
+
+        // 更新太极盘角度
+        function updatePlatformRotation() {
+            platform.style.transform = 
+                `rotateX(${currentTilt.y * 20}deg) rotateY(${-currentTilt.x * 20}deg)`;
+        }
+
+        // 游戏物理
+        function updatePhysics() {
+            if (!gameActive) return;
+
+            // 根据当前倾斜计算加速度
+            const acceleration = {
+                x: currentTilt.x * gravityFactor,
+                y: currentTilt.y * gravityFactor
+            };
+
+            orbVel.x += acceleration.x;
+            orbVel.y += acceleration.y;
+
+            // 限制速度范围
+            orbVel.x = clamp(orbVel.x, -0.008, 0.008);
+            orbVel.y = clamp(orbVel.y, -0.008, 0.008);
+
+            // 更新位置
+            orbPos.x += orbVel.x;
+            orbPos.y += orbVel.y;
+
+            // 边界检测
+            if (orbPos.x < 0 || orbPos.x > 1 || orbPos.y < 0 || orbPos.y > 1) {
+                gameOver();
+                return;
+            }
+
+            // 更新小球位置
+            orb.style.left = `${orbPos.x * 100}%`;
+            orb.style.top = `${orbPos.y * 100}%`;
+
+            // 小球旋转效果
+            const rotation = Math.atan2(orbVel.y, orbVel.x) * (180 / Math.PI);
+            orb.style.transform = `translate(-50%, -50%) rotate(${rotation + 90}deg)`;
+
+            // 增加分数
+            score += 1;
+            scoreDisplay.textContent = Math.floor(score / 10);
+
+            // 升级难度
+            if (score % 500 === 0) {
+                gravityFactor = Math.min(gravityFactor + 0.00005, 0.001);
+            }
+        }
+
+        // 限制值的范围
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        // 游戏结束
+        function gameOver() {
+            gameActive = false;
+            finalScore.textContent = Math.floor(score / 10);
+            gameOverScreen.style.display = 'flex';
+            touchControls.style.display = 'none';
+            window.removeEventListener('deviceorientation', handleOrientation);
+        }
+
+        // 重新开始
+        restartBtn.addEventListener('click', () => {
+            gameActive = true;
+            orbPos = { x: 0.5, y: 0.5 };
+            orbVel = { x: 0.002, y: 0.003 };
+            score = 0;
+            gravityFactor = 0.0005;
+            currentTilt = { x: 0, y: 0 };
+            scoreDisplay.textContent = '0';
+            initOrb();
+            platform.style.transform = 'none';
+            gameOverScreen.style.display = 'none';
+        });
+
+        // 游戏循环
+        function gameLoop() {
+            updatePhysics();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 初始化游戏
+        function initialize() {
+            if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS 13+，特别需要权限
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            // 启动游戏默认使用重力感应
+                            startGame('gravity');
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                startGame('touch');
+            }
+        }
+
+        // 启动游戏
+        initialize();
+    </script>
+</body>
+</html>

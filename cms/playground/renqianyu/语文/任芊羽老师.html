@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>小猫和小狗的友谊故事</title>
+    <style>
+        body {
+            font-family: "华文娃娃体", cursive;
+            background: linear-gradient(to right, #FFE6E6, #FFB6C1);
+            color: #4B0082;
+            text-align: center;
+            padding: 20px;
+        }
+        .story-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 4px solid #FF69B4;
+            border-radius: 15px;
+            padding: 20px;
+            background: #fff0f5;
+            box-shadow: 0 0 20px #FF69B4;
+        }
+        .page {
+            font-size: 24px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .page span {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #FFE5B4;
+        }
+        .page span:hover {
+            background: #FFD580;
+            transform: scale(1.1);
+        }
+        .buttons {
+            margin: 20px;
+        }
+        .buttons button {
+            padding: 15px 30px;
+            margin: 0 10px;
+            font-size: 20px;
+            border: none;
+            border-radius: 25px;
+            background: #FFC0CB;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 10px #FF69B4;
+        }
+        .buttons button:hover {
+            background: #FFA0C0;
+            transform: scale(1.1);
+        }
+        .buttons button:active {
+            background: #FF69B4;
+        }
+        #readBtn, #stopBtn {
+            margin: 10px;
+            background: #87CEEB;
+            color: #fff;
+        }
+        #readBtn:hover, #stopBtn:hover {
+            background: #4682B4;
+        }
+        #readBtn:active, #stopBtn:active {
+            background: #00BFFF;
+        }
+        /* 新增：页码显示样式 */
+        #pageNumber {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #8B0000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="story-container">
+        <h1>小猫和小狗</h1>
+        <div id="storyContent" class="page"></div>
+        <div class="buttons">
+            <button id="prevBtn">‹ 上一页</button>
+            <button id="nextBtn">下一页 ›</button>
+        </div>
+        <div class="buttons">
+            <button id="readBtn">朗读故事</button>
+            <button id="stopBtn">停止朗读</button>
+        </div>
+        <!-- 新增：页码显示区域 -->
+        <div id="pageNumber">当前页：1/5</div>
+    </div>
+
+    <script>
+        // 故事内容（分5页）
+        const storyPages = [
+            "在一个阳光明媚的早晨，小猫和小狗在森林里相遇了。",
+            "小猫叫毛毛，喜欢在树上跳跃；小狗叫汪汪，擅长在地上奔跑。",
+            "它们一起玩耍，追蝴蝶、捉迷藏，笑声传遍整个森林。",
+            "有一天，小猫迷路了，小狗找到了它，带它回家。",
+            "从那以后，小猫和小狗成了最好的朋友，每天一起冒险。"
+        ];
+
+        // 单个字的朗读
+        const speechSynthesis = window.speechSynthesis;
+        let utterance = null;
+        let isSpeaking = false;
+
+        // 当前页索引
+        let currentPage = 0;
+
+        // 初始化故事内容
+        function initializeStory() {
+            const contentDiv = document.getElementById('storyContent');
+            contentDiv.innerHTML = '';
+            const pageText = storyPages[currentPage];
+            
+            // 拆分每个字符
+            pageText.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.addEventListener('click', () => speakText(char));
+                contentDiv.appendChild(span);
+            });
+
+            // 更新页码显示
+            updatePageNumber();
+        }
+
+        // 朗读文本
+        function speakText(text) {
+            if (utterance) speechSynthesis.cancel();
+            
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            speechSynthesis.speak(utterance);
+            isSpeaking = true;
+            
+            // 更新按钮状态
+            updateReadButtons();
+        }
+
+        // 朗读整个页面
+        function speakPage() {
+            if (utterance) speechSynthesis.cancel();
+            
+            utterance = new SpeechSynthesisUtterance(storyPages[currentPage]);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            speechSynthesis.speak(utterance);
+            isSpeaking = true;
+            
+            updateReadButtons();
+        }
+
+        // 停止朗读
+        function stopSpeaking() {
+            if (utterance) speechSynthesis.cancel();
+            isSpeaking = false;
+            updateReadButtons();
+        }
+
+        // 更新按钮状态
+        function updateReadButtons() {
+            document.getElementById('readBtn').disabled = isSpeaking;
+            document.getElementById('stopBtn').disabled = !isSpeaking;
+        }
+
+        // 切换页面
+        function changePage(direction) {
+            if (direction === 'prev') {
+                currentPage = Math.max(0, currentPage - 1);
+            } else {
+                currentPage = Math.min(storyPages.length - 1, currentPage + 1);
+            }
+            initializeStory();
+        }
+
+        // 更新页码显示
+        function updatePageNumber() {
+            const pageNumberEl = document.getElementById('pageNumber');
+            pageNumberEl.textContent = `当前页：${currentPage + 1}/${storyPages.length}`;
+        }
+
+        // 初始化时显示第一页
+        initializeStory();
+
+        // 添加事件监听
+        document.getElementById('prevBtn').addEventListener('click', () => changePage('prev'));
+        document.getElementById('nextBtn').addEventListener('click', () => changePage('next'));
+
+        document.getElementById('readBtn').addEventListener('click', speakPage);
+        document.getElementById('stopBtn').addEventListener('click', stopSpeaking);
+    </script>
+</body>
+</html>

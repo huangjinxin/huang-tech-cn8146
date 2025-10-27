@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>柒零陆工作汇总报告</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; background:#f5f5f5; margin:0; padding:0;}
+    header { background:#00695c; color:white; padding:20px; text-align:center;}
+    nav { background:#e0f2f1; padding:10px; text-align:center;}
+    nav button { margin:0 10px; padding:8px 12px; border:none; border-radius:6px; background:#00695c; cursor:pointer;}
+    nav button svg { width:22px; height:22px; fill:white; }
+    main { max-width:950px; margin:20px auto; padding:20px; background:white; border-radius:12px; box-shadow:0 0 12px rgba(0,0,0,0.1);}
+    section { margin-bottom:30px;}
+    h2 { color:#00695c; border-left:5px solid #00695c; padding-left:10px;}
+    .card { padding:15px; margin:10px 0; background:#e0f2f1; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+    table { width:100%; border-collapse:collapse; margin:10px 0;}
+    th, td { border:1px solid #bbb; padding:10px; text-align:left;}
+    th { background:#c8e6c9; color:#212121;}
+    footer { background:#00695c; color:white; text-align:center; padding:15px; margin-top:30px;}
+    .toggle { cursor:pointer; color:#00695c; text-decoration:underline; }
+    .hidden { display:none; }
+    svg { vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>柒零陆工作汇总报告</h1>
+    <p>日期：2025年9月19日 周五 00:01:15</p>
+  </header>
+
+  <nav>
+    <button onclick="showSection('summary')" title="情况说明">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7-4h4v18h-4V3z"/></svg>
+    </button>
+    <button onclick="showSection('detail')" title="情况总结">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12V2zM8 4h2v16H8V4zm6 0h2v16h-2V4z"/></svg>
+    </button>
+  </nav>
+
+  <main>
+    <section id="summary">
+      <h2>📊 情况说明</h2>
+      <table>
+        <tr><th>主要成果</th><td>已接入四个摄像头至市里系统；完成门磁传感器安装评估与采购清单制定。</td></tr>
+        <tr><th>存在问题</th><td>新华为摄像头未备案导致无法接入；挡鼠板门磁及部分温湿度、高低温传感器缺失或损坏；样品间无法被摄像头覆盖。</td></tr>
+        <tr><th>改进措施</th><td>更换或备案华为摄像头；安装并接入门磁、温湿度及高低温传感器；调整样品间布局或追加摄像头以满足覆盖需求；由系统承包商完成核心设备安装与调试。</td></tr>
+        <tr><th>费用情况</th><td>摄像头布线+安装 1800元；门磁 80×2=160元；温湿度传感器 170元；高低温传感器安装费 180×3=540元；POE智能交换机 180元。设备费用与损坏替换视现场情况定。</td></tr>
+      </table>
+      <p class="toggle" onclick="toggleDetails()">点击展开详细说明</p>
+      <div id="details" class="hidden">
+        <p>华为摄像头需通过市里备案流程后才能接入系统；若不更换，样品间内容无法实时监控。挡鼠板门磁未安装导致系统对入口状态检测缺失；温湿度传感器数量不足，无法满足所有监控区域。高低温传感器虽已找到，但需确认无损坏后方可安装。系统承包商将负责所有核心设备的安装和调试，以确保符合市里标准。</p>
+      </div>
+    </section>
+
+    <section id="detail" style="display:none;">
+      <h2>📘 情况总结</h2>
+      <div class="card"><h3>项目进展</h3><p>已完成四摄像头接入；制定后续设备采购与安装方案。</p></div>
+      <div class="card"><h3>技术难点</h3><p>华为摄像头备案流程复杂；设备损坏判定需现场检查；样品间布局调整与摄像头覆盖兼顾。</p></div>
+      <div class="card"><h3>改进方向</h3><p>加快备案审批；完善传感器安装与接入；优化样品间布局以满足监控覆盖；制定详细维护计划。</p></div>
+    </section>
+  </main>
+
+  <footer>
+    柒零陆技术团队出品
+  </footer>
+
+  <script>
+    function showSection(id){
+      document.getElementById('summary').style.display = (id==='summary')?'block':'none';
+      document.getElementById('detail').style.display = (id==='detail')?'block':'none';
+    }
+    function toggleDetails(){
+      var d = document.getElementById('details');
+      d.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>

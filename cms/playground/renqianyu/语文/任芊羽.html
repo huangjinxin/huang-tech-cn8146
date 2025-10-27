@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>《静夜思》——李白</title>
+
+<!-- 1️⃣ 引入本地字体（方正魏碑） -->
+<style>
+@font-face {
+    font-family: "FZWeiBei";
+    src: url("./方正魏碑_GBK.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 2️⃣ 页面基础样式 */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #0a0a2a, #001133); /* 夜空渐变 */
+    overflow: hidden;
+    font-family: "FZWeiBei", "SimSun", serif;
+    color: #f0f0f0;
+}
+
+/* 3️⃣ 中心容器，使用 Flex 让内容居中 */
+.container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;   /* 垂直居中 */
+    align-items: center;       /* 水平居中 */
+    text-align: center;
+    padding: 20px;
+}
+
+/* 4️⃣ 诗句排版（模仿教材风格） */
+.poem {
+    line-height: 2.2;
+    font-size: 2.2rem;
+    background: rgba(0,0,0,0.4);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+/* 5️⃣ 标题样式 */
+.title {
+    margin-bottom: 0.6em;
+    font-size: 2.6rem;
+    font-weight: bold;
+}
+
+/* 6️⃣ 作者样式 */
+.author {
+    margin-top: 0.6em;
+    font-size: 1.6rem;
+    font-style: italic;
+}
+
+/* 7️⃣ 月光小动画（CSS） */
+.moon {
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    width: 240px;
+    height: 240px;
+    margin-left: -120px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0));
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: drift 20s linear infinite;
+}
+
+/* 月亮漂移动画 */
+@keyframes drift {
+    0%   { transform: translateY(0) rotate(0deg); }
+    50%  { transform: translateY(40vh) rotate(180deg); }
+    100% { transform: translateY(0) rotate(360deg); }
+}
+
+/* 8️⃣ 小星星点缀（JS 动态生成） */
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+</style>
+</head>
+
+<body>
+    <!-- 月亮装饰 -->
+    <div class="moon"></div>
+
+    <!-- 主体诗文 -->
+    <div class="container">
+        <div class="poem">
+            <div class="title">《静夜思》</div>
+            <div class="content">
+                床前明月光，疑是地上霜。<br>
+                举头望明月，低头思故乡。
+            </div>
+            <div class="author">—— 李白</div>
+        </div>
+    </div>
+
+<script>
+// 9️⃣ 用 JS 随机生成星星（提升夜空氛围）
+function createStars(num) {
+    const body = document.body;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    for (let i = 0; i < num; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 2 + 1; // 1~3px
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = Math.random() * w + 'px';
+        star.style.top = Math.random() * h + 'px';
+        star.style.opacity = Math.random();
+        body.appendChild(star);
+    }
+}
+
+// 初始创建 120 颗星星
+createStars(120);
+</script>
+</body>
+</html>

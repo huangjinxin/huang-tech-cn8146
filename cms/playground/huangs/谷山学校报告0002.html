@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>中华路小学AI社团 · 每周课程总结</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; background:#f8f9fa; margin:0; padding:0;}
+    header { background:#004aad; color:white; padding:20px; text-align:center;}
+    nav { background:#eee; padding:10px; text-align:center;}
+    nav button { margin:0 10px; padding:8px 12px; border:none; border-radius:6px; background:#004aad; cursor:pointer;}
+    nav button svg { width:22px; height:22px; fill:white; }
+    main { max-width:900px; margin:20px auto; padding:20px; background:white; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+    section { margin-bottom:30px;}
+    h2 { color:#004aad; border-left:5px solid #004aad; padding-left:10px;}
+    .card { padding:15px; margin:10px 0; background:#f1f6ff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+    table { width:100%; border-collapse:collapse; margin:10px 0;}
+    th, td { border:1px solid #ccc; padding:10px; text-align:left;}
+    th { background:#e9f0ff; color:#004aad;}
+    footer { background:#004aad; color:white; text-align:center; padding:15px; margin-top:30px;}
+    .toggle { cursor:pointer; color:#004aad; text-decoration:underline; }
+    .hidden { display:none; }
+    svg { vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>中华路小学 AI 社团 · 每周课程总结</h1>
+    <p>整理汇总日期：2025/9/26周五 12:32:31 ｜ 第1堂课</p>
+    <p><strong>AI助力，快乐学习。培养孩子对知识的兴趣，让学习比游戏更充满乐趣。</strong></p>
+  </header>
+
+  <nav>
+    <button onclick="showSection('course')" title="课程情况">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12V2zM8 4h2v16H8V4zm6 0h2v16h-2V4z"/></svg>
+    </button>
+    <button onclick="showSection('report')" title="情况汇报">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7-4h4v18h-4V3z"/></svg>
+    </button>
+  </nav>
+
+  <main>
+    <section id="course">
+      <h2>📘 课程情况</h2>
+      <div class="card"><h3>课程主题</h3><p>探索希沃系统中的Edge浏览器隐藏功能 —— 在无网络环境下自主游戏学习</p></div>
+      <div class="card"><h3>课堂活动</h3><p>1. 预习与热身：教师讲解希沃系统基本操作及常见问题</p><p>2. 实践探索：学生在无网络环境中开启edge://surf/命令，发现隐藏小游戏</p><p>3. 互助教学：学生间相互演示如何使用hidden features，自主组织“小小课堂”</p><p>4. 教学微调：即兴播放科普视频，弥补流程间隙时间</p><p>5. 反思分享：记录发现、提出改进建议并展示学习成果</p></div>
+      <div class="card"><h3>学生表现</h3><p>• 孩子精力旺盛，主动性强，自发形成学习小组<br>• 三年级学生在英语刚学ABC阶段，已能熟练记住并输入edge://surf/等命令<br>• 聪明好学，积极分享——发现新功能后主动教同伴<br>• 对新技术有极强的探索欲，能够自主发现系统隐藏功能并尝试组合使用<br>• 情绪饱满、参与度高，即使在等待中也不闲着，形成“沉浸式学习氛围”</p></div>
+    </section>
+
+    <section id="report" style="display:none;">
+      <h2>📊 情况汇报</h2>
+      <table>
+        <tr><th>主要情况</th><td>机房刚交付，希沃定制系统运行中出现故障。教师机仅可管理3台学生机，影响教学流程；学生在无网络情况下利用edge://surf/命令自主玩游戏，展现出惊人的探索能力。多名学生自发组队教学、分享技巧，并以应变方式补充课程内容。</td></tr>
+        <tr><th>存在问题</th><td>• 教室灯光系统无法使用<br>• 希沃系统非标准化，管理复杂，技术人员需查阅文档与客服沟通<br>• 教师机无法有效发现和控制全部学生机（仅识别3台）<br>• 学生过度自由使用边缘功能，但缺乏统一引导<br>• 缺乏平台管理机制——学生随意玩游戏却无记录与成果归档<br>• 学生对新技术的掌控力远超教师预期，但缺乏持续性指导与反馈机制</td></tr>
+        <tr><th>改进措施</th><td>• 与希沃团队深入沟通，解决网络连接及学生机注册问题<br>• 推行统一管理策略：使用组策略（GPO）和注册表配置，禁用不必要的功能</td></tr>
+        <tr><th>下次计划</th><td>• 在所有学生机中部署注册表策略：HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge新建DWORD（32位）值AllowSurfGame，并设置为0，禁用edge://surf/游戏<br>• 引入AI教学模板：引导学生使用AI工具自主制作小游戏并分享至教学机<br>• 建立“作品档案袋”系统：将学生原创项目、游戏代码和学习日志集中保存在教学服务器上<br>• 实施分组任务制，让每组学生负责一个技术主题，进行跨课时展示与反馈</td></tr>
+      </table>
+      <p class="toggle" onclick="toggleDetails()">点击展开详细说明</p>
+      <div id="details" class="hidden">
+        <p>本节课在初建机房中展开，尽管灯光未启用、希沃系统存在适应性问题，但充满活力的课堂生态令人惊喜。教师机因网络不稳定仅识别3台学生机，导致授课节奏被打乱，后期改为分批体验模式。随着学生们对系统的熟悉，他们竟自发创建了“无网游戏区”，发现并实践edge://surf/命令——一个几乎不为人知的浏览器功能。孩子们在没有安装任何程序、无网络连接的前提下，自主挑战文字跳跃游戏、像素冒险动作关卡等。部分学生甚至在课程间隙主动教其他同学使用命令，构建“同伴互导”学习社区。而教师则在短暂教学中断中播放科普视频作为过渡，形成临时课程结构。值得注意的是，这些刚接触英语ABC的三年级学生，不仅能准确输入命令行，还能用中文口令指导他人。这一现象既展现了孩子们超乎预料的数字素养，也反映出当前教学策略中“重控制轻自主”的矛盾。为应对这一趋势，计划从下周起推进一系列技术管控与教学改革措施。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>主办单位：萍湖少儿创客空间 & 中华路小学</p>
+    <p>整理汇总时间：2025/9/26周五 12:32:31</p>
+  </footer>
+
+  <script>
+    function showSection(id){
+      document.getElementById('course').style.display = (id==='course')?'block':'none';
+      document.getElementById('report').style.display = (id==='report')?'block':'none';
+    }
+    function toggleDetails(){
+      var d = document.getElementById('details');
+      d.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>黄迁巡儿童尿床记录表</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body { background: #f7f9fc; font-family: "Microsoft YaHei", sans-serif; }
+.card { box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 12px; margin-bottom: 20px; }
+.btn-primary { background: #4e73df; border: none; }
+</style>
+</head>
+<body class="p-3">
+<div class="container">
+  <h3 class="text-center mb-3">🌙 黄迁巡儿童尿床记录表</h3>
+
+  <div class="card p-3">
+    <form id="recordForm">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">日期</label>
+          <input type="date" class="form-control" id="date" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">城市</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="city" placeholder="如：襄阳" required>
+            <button class="btn btn-outline-secondary" type="button" id="getWeatherBtn">获取天气</button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">天气</label>
+          <input type="text" class="form-control" id="weather">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">最高温</label>
+          <input type="text" class="form-control" id="tempMax">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">最低温</label>
+          <input type="text" class="form-control" id="tempMin">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">当前温</label>
+          <input type="text" class="form-control" id="tempNow">
+        </div>
+
+        <!-- ✅ 新增 睡觉地点单选项 -->
+        <div class="col-12">
+          <label class="form-label d-block">睡觉地点</label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sleepPlace" id="place1" value="莫家河">
+            <label class="form-check-label" for="place1">莫家河</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sleepPlace" id="place2" value="城内小学">
+            <label class="form-check-label" for="place2">城内小学</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sleepPlace" id="place3" value="创客空间">
+            <label class="form-check-label" for="place3">创客空间</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sleepPlace" id="place4" value="果果家">
+            <label class="form-check-label" for="place4">果果家</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sleepPlace" id="place5" value="吴阿姨家">
+            <label class="form-check-label" for="place5">吴阿姨家</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sleepPlace" id="place6" value="其它">
+            <label class="form-check-label" for="place6">其它</label>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">是否尿床</label>
+          <select class="form-select" id="bedwetting">
+            <option value="否">否</option>
+            <option value="是">是</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">睡前上厕所</label>
+          <select class="form-select" id="toilet">
+            <option value="是">是</option>
+            <option value="否">否</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">睡前喝水</label>
+          <select class="form-select" id="drink">
+            <option value="否">否</option>
+            <option value="是">是</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">睡觉时间</label>
+          <input type="time" class="form-control" id="sleepTime">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">起床时间</label>
+          <input type="time" class="form-control" id="wakeTime" value="07:00">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">备注</label>
+          <input type="text" class="form-control" id="remark">
+        </div>
+      </div>
+      <div class="mt-3 text-end">
+        <button type="submit" class="btn btn-primary">保存记录</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card p-3">
+    <h5>📋 历史记录</h5>
+    <input type="text" id="searchInput" class="form-control mb-2" placeholder="搜索城市或日期...">
+    <div class="table-responsive">
+      <table class="table table-striped" id="recordTable">
+        <thead>
+          <tr>
+            <th>日期</th><th>城市</th><th>地点</th><th>天气</th><th>尿床</th><th>睡觉</th><th>起床</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== 天气接口（使用 wttr.in）======
+document.getElementById('getWeatherBtn').addEventListener('click', async () => {
+  const city = document.getElementById('city').value.trim();
+  if (!city) return alert("请填写城市名称");
+  try {
+    const res = await fetch(`weather.php?city=${encodeURIComponent(city)}`);
+    if (!res.ok) throw new Error("网络错误");
+    const data = await res.json();
+    document.getElementById('weather').value = data.weather || "未知";
+    document.getElementById('tempNow').value = data.temp || "";
+    document.getElementById('tempMax').value = data.temp || "";
+    document.getElementById('tempMin').value = data.temp || "";
+  } catch (e) {
+    alert("天气获取失败: " + e.message);
+  }
+});
+
+// ====== 保存与编辑逻辑 ======
+let editingId = null;
+
+document.getElementById('recordForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const place = document.querySelector('input[name="sleepPlace"]:checked');
+  const record = {
+    id: editingId || Date.now(),
+    date: date.value,
+    city: city.value,
+    sleepPlace: place ? place.value : "",
+    weather: weather.value,
+    tempMax: tempMax.value,
+    tempMin: tempMin.value,
+    tempNow: tempNow.value,
+    bedwetting: bedwetting.value,
+    toilet: toilet.value,
+    drink: drink.value,
+    sleepTime: sleepTime.value,
+    wakeTime: wakeTime.value,
+    remark: remark.value
+  };
+
+  const res = await fetch('save.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({action: editingId ? "edit" : "add", record})
+  });
+  const data = await res.json();
+  if (data.success) {
+    loadRecords();
+    document.getElementById('recordForm').reset();
+    document.getElementById('wakeTime').value = "07:00";
+    editingId = null;
+  } else {
+    alert("保存失败");
+  }
+});
+
+async function loadRecords() {
+  const res = await fetch('save.php?action=list');
+  const data = await res.json();
+  renderTable(data);
+}
+
+function renderTable(list) {
+  const tbody = document.querySelector('#recordTable tbody');
+  tbody.innerHTML = '';
+  const search = document.getElementById('searchInput').value.trim();
+  list.filter(r => !search || r.city.includes(search) || r.date.includes(search)).forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.date}</td><td>${r.city}</td><td>${r.sleepPlace || ""}</td>
+      <td>${r.weather}</td><td>${r.bedwetting}</td>
+      <td>${r.sleepTime}</td><td>${r.wakeTime}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" onclick='editRecord(${r.id})'>编辑</button>
+        <button class="btn btn-sm btn-outline-danger" onclick='deleteRecord(${r.id})'>删除</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', loadRecords);
+
+async function editRecord(id) {
+  const res = await fetch('save.php?action=list');
+  const data = await res.json();
+  const rec = data.find(r => r.id == id);
+  if (!rec) return;
+
+  for (let k in rec) {
+    if (document.getElementById(k)) document.getElementById(k).value = rec[k];
+  }
+
+  // 选中对应的睡觉地点
+  if (rec.sleepPlace) {
+    const radio = document.querySelector(`input[name="sleepPlace"][value="${rec.sleepPlace}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  editingId = id;
+}
+
+async function deleteRecord(id) {
+  if (!confirm("确定删除该记录？")) return;
+  const res = await fetch('save.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({action: "delete", id})
+  });
+  const data = await res.json();
+  if (data.success) loadRecords();
+}
+
+loadRecords();
+</script>
+</body>
+</html>

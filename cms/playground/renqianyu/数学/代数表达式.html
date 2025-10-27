@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>代数表达式 · 交互学习小站</title>
+    <style>
+        :root {
+            --primary:#4A90E2;
+            --accent:#FF9800;
+            --bg:#F5F7FA;
+            --card:#FFFFFF;
+            --text:#333333;
+            --success:#4CAF50;
+            --error:#F44336;
+        }
+        body{
+            margin:0;
+            font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+        .container{
+            max-width:960px;
+            margin:0 auto;
+            padding:20px;
+        }
+        h1{
+            text-align:center;
+            color:var(--primary);
+            margin-bottom:30px;
+        }
+        .card{
+            background:var(--card);
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(0,0,0,.08);
+            margin-bottom:20px;
+            overflow:hidden;
+            transition:transform .2s;
+        }
+        .card:hover{
+            transform:translateY(-3px);
+        }
+        .card-header{
+            background:var(--primary);
+            color:#fff;
+            padding:12px 16px;
+            cursor:pointer;
+            user-select:none;
+        }
+        .card-body{
+            padding:16px;
+            display:none;
+        }
+        .card-body.show{
+            display:block;
+        }
+        .example{
+            background:#FAFAFA;
+            border-left:4px solid var(--accent);
+            margin:12px 0;
+            padding:8px 12px;
+            font-family:"Courier New",monospace;
+        }
+        .btn{
+            background:var(--primary);
+            color:#fff;
+            border:none;
+            border-radius:4px;
+            padding:8px 12px;
+            cursor:pointer;
+            transition:background .2s;
+        }
+        .btn:hover{
+            background:#357ABD;
+        }
+        .quiz-option{
+            display:block;
+            margin:6px 0;
+        }
+        .feedback{
+            margin-top:8px;
+            font-weight:bold;
+        }
+        .feedback.success{
+            color:var(--success);
+        }
+        .feedback.error{
+            color:var(--error);
+        }
+        .confetti{
+            position:fixed;
+            top:0;left:0;
+            width:100%;
+            height:100%;
+            pointer-events:none;
+            overflow:hidden;
+        }
+        .confetti span{
+            position:absolute;
+            width:6px;height:6px;
+            background:#ff0;
+            animation:fall 3s linear infinite;
+        }
+        @keyframes fall{
+            0%{transform:translateY(-10px) rotate(0deg);}
+            100%{transform:translateY(100vh) rotate(360deg);}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>代数表达式 互动学习卡片</h1>
+
+        <!-- 1. 概念卡片 -->
+        <div class="card">
+            <div class="card-header">📚 什么是代数表达式？</div>
+            <div class="card-body">
+                <p>代数表达式是由数、字母（称为**未知数或变量**）以及运算符（+、−、×、÷、^）组成的式子。</p>
+                <p>例子：</p>
+                <div class="example">3x² + 5xy - 7</div>
+                <p>其中：</p>
+                <ul>
+                    <li><b>系数</b>：数字 3、5、-7。</li>
+                    <li><b>变量</b>：x、y。</li>
+                    <li><b>指数</b>：x² 表示 x 的二次方。</li>
+                </ul>
+                <p>代数表达式可以进行<strong>化简、合并同类项、因式分解</strong>等运算。</p>
+            </div>
+        </div>
+
+        <!-- 2. 代数表达式化简练习 -->
+        <div class="card">
+            <div class="card-header">🧩 随机化简练习</div>
+            <div class="card-body">
+                <p>系统会随机生成一个需要合并同类项的表达式，输入答案后立即得到反馈。</p>
+                <div id="exercise" class="example"></div>
+                <input type="text" id="answer" placeholder="在此输入化简后的结果" style="width:60%;padding:6px;">
+                <button class="btn" id="checkBtn">检查答案</button>
+                <div id="feedback" class="feedback"></div>
+                <button class="btn" id="nextBtn" style="margin-top:8px;">下一题</button>
+            </div>
+        </div>
+
+        <!-- 3. 小测验 -->
+        <div class="card">
+            <div class="card-header">❓ 小测验：选择正确的化简结果</div>
+            <div class="card-body">
+                <p id="quiz-question"></p>
+                <div id="quiz-options"></div>
+                <button class="btn" id="submitQuiz">提交答案</button>
+                <div id="quiz-feedback" class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 彩蛋：答对后出现的彩纸 -->
+    <div class="confetti" id="confetti"></div>
+
+    <script>
+        // ---------- 卡片展开/收起 ----------
+        document.querySelectorAll('.card-header').forEach(header=>{
+            header.addEventListener('click',()=> {
+                const body = header.nextElementSibling;
+                body.classList.toggle('show');
+            });
+        });
+
+        // ---------- 随机练习 ----------
+        const exerciseEl = document.getElementById('exercise');
+        const answerEl   = document.getElementById('answer');
+        const feedbackEl = document.getElementById('feedback');
+        const checkBtn   = document.getElementById('checkBtn');
+        const nextBtn    = document.getElementById('nextBtn');
+
+        // 生成随机代数式（仅合并同类项）
+        function genExpression(){
+            const vars = ['x','y','z'];
+            const terms = [];
+            const coeffRange = [-5,5];
+            const termCount = Math.floor(Math.random()*4)+3; // 3~6 项
+
+            for(let i=0;i<termCount;i++){
+                const coeff = Math.floor(Math.random()* (coeffRange[1]-coeffRange[0]+1)) + coeffRange[0];
+                if(coeff===0){ i--; continue; }
+                const v = vars[Math.floor(Math.random()*vars.length)];
+                const power = Math.floor(Math.random()*3); // 0~2 次方
+                const term = (coeff>0 && terms.length>0? '+' : '') + coeff + (power>0? v+'^'+power : v);
+                terms.push(term);
+            }
+            return terms.join('');
+        }
+
+        // 计算化简结果（合并同类项，指数相同视为同类）
+        function simplify(expr){
+            // 简单实现：把每项分离，统计系数
+            const termMap = {};
+            // 把 - 变成 + -，方便 split
+            const safe = expr.replace(/-/g,'+-');
+            const items = safe.split('+').filter(t=>t.trim()!=='');
+
+            items.forEach(item=>{
+                const match = item.match(/^(-?\d+)([a-z])(?:\^(\d+))?$/);
+                if(!match) return;
+                const coeff = Number(match[1]);
+                const v = match[2];
+                const p = match[3]? Number(match[3]) : 1;
+                const key = v+'^'+p;
+                termMap[key] = (termMap[key]||0)+coeff;
+            });
+
+            // 生成化简后的字符串
+            const parts = [];
+            for(const k in termMap){
+                const c = termMap[k];
+                if(c===0) continue;
+                const [v,p] = k.split('^');
+                const pow = Number(p);
+                const varPart = pow===1? v : v+'^'+pow;
+                parts.push((c>0 && parts.length>0? '+' : '')+c+varPart);
+            }
+            return parts.join('')||'0';
+        }
+
+        let currentExpr, currentAns;
+        function newExercise(){
+            currentExpr = genExpression();
+            currentAns  = simplify(currentExpr);
+            exerciseEl.textContent = currentExpr;
+            answerEl.value = '';
+            feedbackEl.textContent = '';
+        }
+        checkBtn.onclick = ()=>{
+            const user = answerEl.value.replace(/\s+/g,'');
+            if(user===currentAns){
+                feedbackEl.textContent='✅ 正确！';
+                feedbackEl.className='feedback success';
+                triggerConfetti();
+            }else{
+                feedbackEl.textContent='❌ 错误，正确答案为: '+currentAns;
+                feedbackEl.className='feedback error';
+            }
+        };
+        nextBtn.onclick = newExercise;
+        newExercise();
+
+        // ---------- 小测验 ----------
+        const quizQuestionEl = document.getElementById('quiz-question');
+        const quizOptionsEl  = document.getElementById('quiz-options');
+        const submitQuizBtn  = document.getElementById('submitQuiz');
+        const quizFeedbackEl = document.getElementById('quiz-feedback');
+
+        const quizData = [
+            {
+                q:'化简 2x + 3x - 5',
+                options:['5x - 5','-5+5x','5x+5','-5x+5'],
+                a:0
+            },
+            {
+                q:'化简 -4y + 7y + y',
+                options:['4y','-4y','-2y','-3y'],
+                a:0
+            },
+            {
+                q:'化简 3a^2 - a^2 + 2a',
+                options:['2a^2 + 2a','3a^2 + 2a','2a^2 - 2a','2a^2'],
+                a:0
+            },
+            {
+                q:'化简 6m - 2m - 3m',
+                options:['1m','3m','-1m','m'],
+                a:1
+            }
+        ];
+
+        function loadQuiz(){
+            const item = quizData[Math.floor(Math.random()*quizData.length)];
+            quizQuestionEl.textContent = item.q;
+            quizOptionsEl.innerHTML = '';
+            item.options.forEach((opt,i)=>{
+                const id = 'opt'+i;
+                const html = `<label class="quiz-option"><input type="radio" name="quiz" id="${id}" value="${i}"> ${opt}</label>`;
+                quizOptionsEl.innerHTML += html;
+            });
+            submitQuizBtn.dataset.answer = item.a;
+            quizFeedbackEl.textContent='';
+        }
+
+        submitQuizBtn.onclick = ()=>{
+            const radios = document.getElementsByName('quiz');
+            let selected = -1;
+            radios.forEach(r=>{ if(r.checked) selected = Number(r.value); });
+            if(selected===-1){
+                quizFeedbackEl.textContent='请选择一个答案！';
+                quizFeedbackEl.className='feedback error';
+                return;
+            }
+            const correct = Number(submitQuizBtn.dataset.answer);
+            if(selected===correct){
+                quizFeedbackEl.textContent='🌟 正确，恭喜！';
+                quizFeedbackEl.className='feedback success';
+                triggerConfetti();
+            }else{
+                quizFeedbackEl.textContent='❎ 错误，再试一次！';
+                quizFeedbackEl.className='feedback error';
+            }
+            // 3 秒后自动换题
+            setTimeout(loadQuiz,3000);
+        };
+        loadQuiz();
+
+        // ---------- 彩纸动画 ----------
+        function triggerConfetti(){
+            const container = document.getElementById('confetti');
+            const colors = ['#FFEB3B','#FF9800','#E91E63','#4CAF50','#2196F3'];
+            for(let i=0;i<80;i++){
+                const span = document.createElement('span');
+                span.style.background = colors[Math.floor(Math.random()*colors.length)];
+                span.style.left = Math.random()*100 + 'vw';
+                span.style.animationDelay = Math.random()*3 + 's';
+                container.appendChild(span);
+                // 2 秒后清除
+                setTimeout(()=>span.remove(),4000);
+            }
+        }
+    </script>
+</body>
+</html>

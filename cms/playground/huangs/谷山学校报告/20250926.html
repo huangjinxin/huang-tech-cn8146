@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>谷山学校AI社团 · 每周课程总结</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; background:#fafafa; margin:0; padding:0;}
+    header { background:#8e24aa; color:white; padding:20px; text-align:center;}
+    nav { background:#f3e5f5; padding:10px; text-align:center;}
+    nav button { margin:0 10px; padding:8px 12px; border:none; border-radius:6px; background:#8e24aa; cursor:pointer;}
+    nav button svg { width:22px; height:22px; fill:white; }
+    main { max-width:900px; margin:20px auto; padding:20px; background:white; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+    section { margin-bottom:30px;}
+    h2 { color:#311b92; border-left:5px solid #8e24aa; padding-left:10px;}
+    .card { padding:15px; margin:10px 0; background:#f3e5f5; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+    table { width:100%; border-collapse:collapse; margin:10px 0;}
+    th, td { border:1px solid #ccc; padding:10px; text-align:left;}
+    th { background:#e1bee7; color:#311b92;}
+    footer { background:#8e24aa; color:white; text-align:center; padding:15px; margin-top:30px;}
+    .toggle { cursor:pointer; color:#8e24aa; text-decoration:underline; }
+    .hidden { display:none; }
+    svg { vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>谷山学校 AI 社团 · 每周课程总结</h1>
+    <p>日期：2025/9/26周五 12:34:27 ｜ 第3堂课</p>
+    <p><strong>AI助力，快乐学习。培养孩子对知识的兴趣，让学习比游戏更充满乐趣。</strong></p>
+  </header>
+
+  <nav>
+    <button onclick="showSection('course')" title="课程情况">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12V2zM8 4h2v16H8V4zm6 0h2v16h-2V4z"/></svg>
+    </button>
+    <button onclick="showSection('report')" title="情况汇报">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7-4h4v18h-4V3z"/></svg>
+    </button>
+  </nav>
+
+  <main>
+    <section id="course">
+      <h2>📘 课程情况</h2>
+      <div class="card"><h3>课程主题</h3><p>探索希沃系统下的AI与游戏融合：从边缘浏览器隐藏功能到学生自主学习实践</p></div>
+      <div class="card"><h3>课堂活动</h3><p>1. 教师机与学生机网络连接调试与优化<br>2. 学生自主探索edge://surf/隐藏游戏功能（无网络状态下可玩）<br>3. 分组设计并展示“我希望的AI小游戏”概念图<br>4. 教师导入边缘系统指令：AllowSurfGame注册表配置教学</p></div>
+      <div class="card"><h3>学生表现</h3><p>• 三年级小学生自发发现edge://surf/功能，成功在无网环境下运行多款小游戏<br>• 多名学生主动分享所学，实现“学生教学生”模式<br>• 学生表现出极强的探索欲和自学能力，部分孩子甚至发现并演示了多个系统隐藏设置<br>• 部分学生能独立完成创建、分享和保存AI游戏体验作品</p></div>
+    </section>
+
+    <section id="report" style="display:none;">
+      <h2>📊 情况汇报</h2>
+      <table>
+        <tr><th>主要情况</th><td>机房刚交付，希沃系统虽先进但存在稳定性问题。教师机仅识别3台学生机，网络管理不畅；上午测试不充分导致下午正式上课前仍未解决。学生们在等待中自发探索edge浏览器的edge://surf/隐藏命令，利用无网络环境玩起小游戏，极大发挥了自主性。教师临时插入视频教学，顺利完成课程内容；学生表现超出预期，展现出惊人的学习能力和创造力。</td></tr>
+        <tr><th>存在问题</th><td>• 希沃系统非标准化，管理依赖特定文档与客服支持<br>• 教师机无法有效发现所有学生机，管理效率低<br>• 学生在系统内自由探索时出现“自主超载”现象：学生玩得开心但教师难以统一引导<br>• 无网络状态时游戏多、易混乱，缺乏统一体验与记录机制<br>• 系统默认开启edge://surf/隐藏游戏，但未被教师充分认知与利用</td></tr>
+        <tr><th>改进措施</th><td>• 与希沃团队建立定期沟通机制，加快故障响应速度<br>• 在所有学生机中部署GPO策略组与注册表配置：通过HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge 创建 AllowSurfGame DWORD 值并设置为 0，禁止学生随意开启隐藏游戏<br>• 制作简洁易懂的“边缘系统使用指南”图文手册，分发给学生与老师<br>• 建立“AI社团作品存档库”，由教师定期收集并上传学生创作的AI游戏、代码与课件<br>• 设定每节课前15分钟为“系统预热+自主探索”环节，引导学生习惯性启动与管理机制</td></tr>
+        <tr><th>下次计划</th><td>1. 下周课前完成希沃系统网络优化，实现教师机全连接所有学生机<br>2. 实施统一注册表管理方案：禁用edge://surf/游戏功能，强化教学流程<br>3. 开展“AI小设计师”挑战赛：每位学生需独立完成一个可运行的AI小游戏，并进行展示<br>4. 推广“学生带教”模式：高年级带动低年级，促进社团内部知识流通<br>5. 建立电子作品集系统（教学机自动同步），保存所有课堂成果，便于回溯与展示</td></tr>
+      </table>
+      <p class="toggle" onclick="toggleDetails()">点击展开详细说明</p>
+      <div id="details" class="hidden">
+        <p>本节课是在全新机房中开展的首次AI社团课，虽然硬件交接完成度较高，但由于希沃定制系统的依赖性与非统一管理，出现了一系列意料之外但又极具价值的“意外收获”。教师团队在上午即发现教师机仅能连接3台学生机，经过反复排查、电话客服沟通和文档查阅后仍未解决核心问题。这迫使我们不得不将正式课程从“控制型教学”转为“弹性式探索学习”。学生们在等待过程中，自发现edge://surf/这一隐藏入口，并立即开始体验无网络小游戏。他们通过键盘快捷键、拖拽图标构建游戏界面，甚至自发组织“两两轮流”玩游戏。部分学生还尝试调整画面模式、加载音效，展现出极高的理解力与参与感。我们原计划的AI教学流程被打乱，却被这种自由探索所“补足”甚至超越。学生不仅学会了使用AI工具，更成为了内容的创造者与分享者。这些宝贵的体验提醒我们：技术可以服务教学，但更值得期待的是——“学生会使用技术来定义教学”。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    主办单位：萍湖少儿创客空间 & 谷山学校
+  </footer>
+
+  <script>
+    function showSection(id){
+      document.getElementById('course').style.display = (id==='course')?'block':'none';
+      document.getElementById('report').style.display = (id==='report')?'block':'none';
+    }
+    function toggleDetails(){
+      var d = document.getElementById('details');
+      d.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>

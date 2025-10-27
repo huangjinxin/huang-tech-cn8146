@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单版切水果（划动版）</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+
+        .fruit {
+            position: absolute;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.5s;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .cut {
+            pointer-events: none;
+            animation: fadeOut 0.5s forwards;
+        }
+
+        .slice {
+            position: absolute;
+            pointer-events: none;
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(30px) rotate(20deg);
+            }
+        }
+
+        #score-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        #combo-display {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            font-size: 20px;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .combo-animation {
+            animation: scaleCombo 0.5s;
+        }
+
+        @keyframes scaleCombo {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            display: none;
+            z-index: 100;
+        }
+
+        #final-score {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        #restart-btn {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        #restart-btn:hover {
+            background-color: #E64A19;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="score-display">分数: 0</div>
+        <div id="combo-display">连击: 0</div>
+        <div id="game-over">
+            <h1>游戏结束!</h1>
+            <div id="final-score">最终分数: 0</div>
+            <button id="restart-btn">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const comboDisplay = document.getElementById('combo-display');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScore = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+
+        let score = 0;
+        let combo = 0;
+        let lastCutTime = 0;
+        let gameActive = true;
+        let fruits = [];
+        let slices = [];
+
+        const fruitImages = [
+            '🍎', '🍊', '🍋', '🍉', '🍇', '🍓', '🍒', '🍑', '🍍', '🥝'
+        ];
+
+        const fruitColors = [
+            '#FF5252', '#FF9800', '#FFEB3B', '#4CAF50', '#9C27B0',
+            '#E91E63', '#2196F3', '#FF5722', '#CDDC39', '#8BC34A'
+        ];
+
+        const settings = {
+            spawnInterval: 1000,
+            fruitSpeed: 1.5,
+            fruitSize: 50,
+            gameDuration: 30000
+        };
+
+        function initGame() {
+            score = 0;
+            combo = 0;
+            lastCutTime = 0;
+            gameActive = true;
+            updateScore();
+            hideCombo();
+
+            fruits.forEach(fruit => fruit.element.remove());
+            slices.forEach(slice => slice.remove());
+            fruits = [];
+            slices = [];
+
+            gameOverScreen.style.display = 'none';
+
+            gameLoop();
+            setTimeout(endGame, settings.gameDuration);
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            // 随机生成水果
+            if (Math.random() < 0.6) {
+                spawnFruit();
+            }
+
+            // 移动所有水果
+            moveFruits();
+
+            // 清理水果
+            cleanupFruits();
+
+            // 继续循环
+            requestAnimationFrame(gameLoop);
+        }
+
+        function spawnFruit() {
+            const fruitType = Math.floor(Math.random() * fruitImages.length);
+            const fruitSize = settings.fruitSize + Math.random() * 30;
+
+            const fruitElement = document.createElement('div');
+            fruitElement.className = 'fruit';
+            fruitElement.innerHTML = fruitImages[fruitType];
+            fruitElement.style.fontSize = `${fruitSize}px`;
+            fruitElement.style.color = fruitColors[fruitType];
+            fruitElement.style.left = `${Math.random() * (window.innerWidth - fruitSize)}px`;
+            fruitElement.style.top = `${window.innerHeight}px`;
+
+            gameContainer.appendChild(fruitElement);
+
+            const fruit = {
+                element: fruitElement,
+                speed: (1 + Math.random()) * settings.fruitSpeed,
+                points: Math.floor(fruitSize / 20) + 1,
+                y: window.innerHeight,
+                width: fruitSize,
+                height: fruitSize,
+                isCut: false
+            };
+
+            fruits.push(fruit);
+        }
+
+        function moveFruits() {
+            fruits.forEach(fruit => {
+                if (!fruit.isCut) {
+                    fruit.y -= fruit.speed;
+                    fruit.element.style.top = `${fruit.y}px`;
+
+                    // 轻微左右摆动
+                    const swing = Math.sin(Date.now() / 300 + fruit.y / 50) * 10;
+                    fruit.element.style.left = `${parseInt(fruit.element.style.left) + swing}px`;
+                }
+            });
+        }
+
+        function cleanupFruits() {
+            const fruitsToRemove = fruits.filter(fruit => fruit.y < -fruit.height || fruit.isCut);
+            fruits = fruits.filter(fruit => fruit.y >= -fruit.height && !fruit.isCut);
+            fruitsToRemove.forEach(fruit => {
+                fruit.element.remove();
+            });
+
+            slices.forEach(slice => {
+                slice.style.opacity = parseFloat(slice.style.opacity || 1) - 0.05;
+                if (parseFloat(slice.style.opacity || 1) <= 0) {
+                    slice.remove();
+                }
+            });
+
+            slices = slices.filter(slice => parseFloat(slice.style.opacity || 1) > 0);
+        }
+
+        function cutFruit(fruit, x, y) {
+            if (fruit.isCut) return;
+
+            fruit.isCut = true;
+            fruit.element.classList.add('cut');
+
+            // 计分
+            const currentTime = Date.now();
+            if (currentTime - lastCutTime < 1000) {
+                combo++;
+                updateCombo();
+            } else {
+                combo = 0;
+                hideCombo();
+            }
+            lastCutTime = currentTime;
+
+            const comboMultiplier = Math.min(5, 1 + combo * 0.1);
+            const points = Math.floor(fruit.points * comboMultiplier);
+            score += points;
+            updateScore();
+
+            createSlice(fruit, x, y, points);
+        }
+
+        function createSlice(fruit, x, y, points) {
+            const sliceElement1 = document.createElement('div');
+            const sliceElement2 = document.createElement('div');
+
+            sliceElement1.className = 'slice';
+            sliceElement2.className = 'slice';
+
+            sliceElement1.innerHTML = fruit.element.innerHTML;
+            sliceElement2.innerHTML = fruit.element.innerHTML;
+
+            sliceElement1.style.fontSize = fruit.element.style.fontSize;
+            sliceElement2.style.fontSize = fruit.element.style.fontSize;
+
+            sliceElement1.style.color = fruit.element.style.color;
+            sliceElement2.style.color = fruit.element.style.color;
+
+            sliceElement1.style.left = `${x}px`;
+            sliceElement1.style.top = `${y}px`;
+            sliceElement1.style.transform = 'rotate(-15deg) translateX(-20px)';
+
+            sliceElement2.style.left = `${x}px`;
+            sliceElement2.style.top = `${y}px`;
+            sliceElement2.style.transform = 'rotate(15deg) translateX(20px)';
+
+            gameContainer.appendChild(sliceElement1);
+            gameContainer.appendChild(sliceElement2);
+
+            slices.push(sliceElement1, sliceElement2);
+
+            // 得分显示
+            const pointsElement = document.createElement('div');
+            pointsElement.className = 'slice';
+            pointsElement.textContent = `+${points}`;
+            pointsElement.style.color = fruit.element.style.color;
+            pointsElement.style.fontSize = '24px';
+            pointsElement.style.left = `${x}px`;
+            pointsElement.style.top = `${y}px`;
+            pointsElement.style.fontWeight = 'bold';
+
+            gameContainer.appendChild(pointsElement);
+            slices.push(pointsElement);
+        }
+
+        function updateScore() {
+            scoreDisplay.textContent = `分数: ${score}`;
+        }
+
+        function updateCombo() {
+            if (combo > 0) {
+                comboDisplay.textContent = `连击: ${combo}`;
+                comboDisplay.style.display = 'block';
+                comboDisplay.classList.add('combo-animation');
+
+                setTimeout(() => {
+                    comboDisplay.classList.remove('combo-animation');
+                }, 500);
+            }
+        }
+
+        function hideCombo() {
+            comboDisplay.style.display = 'none';
+        }
+
+        function endGame() {
+            gameActive = false;
+            finalScore.textContent = `最终分数: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // 鼠标划动逻辑
+        let isDragging = false;
+        let startMouseX, startMouseY;
+
+        gameContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startMouseX = e.clientX;
+            startMouseY = e.clientY;
+
+            // 找出点击的目标水果
+            const rect = gameContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            fruits.forEach(fruit => {
+                if (!fruit.isCut) {
+                    const fruitRect = fruit.element.getBoundingClientRect();
+                    if (x >= fruitRect.left && x <= fruitRect.right && y >= fruitRect.top && y <= fruitRect.bottom) {
+                        cutFruit(fruit, x, y);
+                    }
+                }
+            });
+        });
+
+        gameContainer.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = gameContainer.getBoundingClientRect();
+                const currentX = e.clientX;
+                const currentY = e.clientY;
+
+                // 判断是否在水果区域
+                fruits.forEach(fruit => {
+                    if (!fruit.isCut) {
+                        const fruitRect = fruit.element.getBoundingClientRect();
+
+                        if (
+                            currentX >= fruitRect.left &&
+                            currentX <= fruitRect.right &&
+                            currentY >= fruitRect.top &&
+                            currentY <= fruitRect.bottom
+                        ) {
+                            cutFruit(fruit, currentX, currentY);
+                        }
+                    }
+                });
+            }
+        });
+
+        gameContainer.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        gameContainer.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // 还保留原有的点击事件
+        gameContainer.addEventListener('click', (e) => {
+            if (!gameActive) return;
+
+            const rect = gameContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            fruits.forEach(fruit => {
+                if (!fruit.isCut) {
+                    const fruitRect = fruit.element.getBoundingClientRect();
+                    if (
+                        x >= fruitRect.left - rect.left &&
+                        x <= fruitRect.right - rect.left &&
+                        y >= fruitRect.top - rect.top &&
+                        y <= fruitRect.bottom - rect.bottom
+                    ) {
+                        cutFruit(fruit, x, y);
+                    }
+                }
+            });
+        });
+
+        // 移动设备触摸事件
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (!gameActive) return;
+
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = gameContainer.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            // 检查是否点击了水果
+            fruits.forEach(fruit => {
+                if (!fruit.isCut) {
+                    const fruitRect = fruit.element.getBoundingClientRect();
+                    if (
+                        x >= fruitRect.left - rect.left &&
+                        x <= fruitRect.right - rect.left &&
+                        y >= fruitRect.top - rect.top &&
+                        y <= fruitRect.bottom - rect.top
+                    ) {
+                        cutFruit(fruit, x, y);
+                    }
+                }
+            });
+        });
+
+        restartBtn.addEventListener('click', initGame);
+
+        // 开始游戏
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>儿童尿床记录表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      font-family: "Microsoft YaHei", sans-serif;
+      padding: 20px;
+    }
+    .card {
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .form-check-input:checked {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(13,110,253,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center mb-4 fw-bold text-primary">儿童尿床记录表</h2>
+    <div class="card p-4 mb-4">
+      <form id="recordForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">日期</label>
+            <input type="date" id="date" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">所在城市</label>
+            <input type="text" id="city" class="form-control" placeholder="自动定位中...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">天气情况</label>
+            <input type="text" id="weather" class="form-control" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">气温</label>
+            <input type="text" id="temperature" class="form-control" readonly placeholder="最高 / 最低 / 当前 ℃">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">是否尿床</label><br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="bedwet" value="是" required>
+              <label class="form-check-label">是</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="bedwet" value="否">
+              <label class="form-check-label">否</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">睡觉时间 / 起床时间</label>
+            <div class="d-flex gap-2">
+              <input type="time" id="sleepTime" class="form-control">
+              <input type="time" id="wakeTime" class="form-control">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">睡前行为</label><br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="toilet" value="上厕所">
+              <label class="form-check-label">上厕所</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="drink" value="喝水">
+              <label class="form-check-label">喝水</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">是否自己洗衣 / 被子</label><br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="cloth" value="洗衣服">
+              <label class="form-check-label">洗衣服</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="quilt" value="洗被子">
+              <label class="form-check-label">洗被子</label>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4 w-100">保存记录</button>
+      </form>
+    </div>
+
+    <div class="card p-4">
+      <h4 class="text-center mb-3">历史记录</h4>
+      <input type="text" id="search" class="form-control mb-3" placeholder="🔍 输入关键词搜索...">
+      <table class="table table-bordered table-hover align-middle text-center">
+        <thead class="table-primary">
+          <tr>
+            <th>日期</th>
+            <th>天气</th>
+            <th>尿床</th>
+            <th>睡眠</th>
+            <th>睡前行为</th>
+            <th>自理</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const dataFile = "data.json";
+    let records = [];
+
+    document.getElementById("date").valueAsDate = new Date();
+
+    // ===== 自动定位 + 天气 =====
+    async function getWeather() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const { latitude, longitude } = pos.coords;
+
+        // 获取天气
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // 当前天气
+        const weatherCode = data.current_weather.weathercode;
+        const codeMap = {
+          0: "晴",
+          1: "多云",
+          2: "阴",
+          3: "小雨",
+          45: "雾",
+          48: "雾",
+          51: "毛毛雨",
+          61: "小雨",
+          63: "中雨",
+          65: "大雨",
+          71: "小雪",
+          73: "中雪",
+          75: "大雪"
+        };
+        const weather = codeMap[weatherCode] || "不明";
+        const tmax = data.daily.temperature_2m_max[0];
+        const tmin = data.daily.temperature_2m_min[0];
+        const tcur = data.current_weather.temperature;
+
+        document.getElementById("weather").value = weather;
+        document.getElementById("temperature").value = `${tmax}℃ / ${tmin}℃ （当前${tcur}℃）`;
+
+        // 获取城市名称（简易）
+        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`)
+          .then(r => r.json())
+          .then(addr => {
+            document.getElementById("city").value = addr.city || addr.locality || addr.principalSubdivision || "未知城市";
+          });
+      });
+    }
+    getWeather();
+
+    // ===== 加载、保存、渲染 =====
+    async function loadData() {
+      try {
+        const res = await fetch(dataFile + "?t=" + Date.now());
+        if (!res.ok) return;
+        records = await res.json();
+        renderTable(records);
+      } catch {
+        records = [];
+      }
+    }
+
+    async function saveData() {
+      const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "data.json";
+      a.click();
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById("historyTable");
+      tbody.innerHTML = "";
+      list.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td>${r.city}<br>${r.weather} ${r.temperature}</td>
+          <td>${r.bedwet}</td>
+          <td>${r.sleepTime}~${r.wakeTime}</td>
+          <td>${r.sleepActions}</td>
+          <td>${r.selfCare}</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-2" onclick="editRecord(${i})">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteRecord(${i})">删除</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ===== 提交表单 =====
+    document.getElementById("recordForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const newRecord = {
+        date: date.value,
+        city: city.value,
+        weather: weather.value,
+        temperature: temperature.value,
+        bedwet: document.querySelector("input[name='bedwet']:checked")?.value || "",
+        sleepTime: sleepTime.value,
+        wakeTime: wakeTime.value,
+        sleepActions: [toilet.checked ? "上厕所" : "", drink.checked ? "喝水" : ""].filter(Boolean).join("、"),
+        selfCare: [cloth.checked ? "洗衣服" : "", quilt.checked ? "洗被子" : ""].filter(Boolean).join("、")
+      };
+      records.push(newRecord);
+      renderTable(records);
+      saveData();
+      e.target.reset();
+      date.valueAsDate = new Date();
+    });
+
+    function deleteRecord(i) {
+      if (confirm("确认删除该记录？")) {
+        records.splice(i, 1);
+        renderTable(records);
+        saveData();
+      }
+    }
+
+    function editRecord(i) {
+      const r = records[i];
+      date.value = r.date;
+      city.value = r.city;
+      weather.value = r.weather;
+      temperature.value = r.temperature;
+      document.querySelectorAll("input[name='bedwet']").forEach(radio => radio.checked = radio.value === r.bedwet);
+      sleepTime.value = r.sleepTime;
+      wakeTime.value = r.wakeTime;
+      toilet.checked = r.sleepActions.includes("上厕所");
+      drink.checked = r.sleepActions.includes("喝水");
+      cloth.checked = r.selfCare.includes("洗衣服");
+      quilt.checked = r.selfCare.includes("洗被子");
+      records.splice(i, 1);
+      renderTable(records);
+    }
+
+    document.getElementById("search").addEventListener("input", e => {
+      const kw = e.target.value.toLowerCase();
+      renderTable(records.filter(r => JSON.stringify(r).toLowerCase().includes(kw)));
+    });
+
+    loadData();
+  </script>
+</body>
+</html>

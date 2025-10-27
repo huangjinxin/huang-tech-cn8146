@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>桐妹的奇妙一天</title>
+<style>
+    body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#f2f4f8;color:#333;margin:0;padding:0;}
+    header{background:#4a90e2;color:#fff;padding:1rem;text-align:center;}
+    h1{margin:0;font-size:2rem;}
+    .container{max-width:960px;margin:auto;padding:1rem;}
+    .timeline{display:flex;flex-direction:column;gap:1rem;margin-top:2rem;}
+    .card{background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);overflow:hidden;cursor:pointer;}
+    .card-header{background:#e6f2ff;padding:.8rem 1rem;display:flex;justify-content:space-between;align-items:center;}
+    .card-header h3{margin:0;font-size:1.1rem;color:#2c3e50;}
+    .card-content{display:none;padding:1rem;line-height:1.6;}
+    .card-content p{margin:0 0 .5rem;}
+    .card.open .card-content{display:block;}
+    .quiz{background:#fff;padding:1rem;margin-top:2rem;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);}
+    .quiz h2{margin-top:0;}
+    .options{list-style:none;padding:0;margin:0;}
+    .options li{margin:.5rem 0;}
+    .options label{cursor:pointer;}
+    .btn{display:inline-block;background:#4a90e2;color:#fff;padding:.5rem 1rem;border:none;border-radius:4px;margin-top:.5rem;cursor:pointer;}
+    .btn:hover{background:#357ab8;}
+    .msg{margin-top:.5rem;font-weight:bold;}
+    .kb-section{margin-top:2rem;}
+    .kb-section h2{margin-bottom:.5rem;}
+    .kb-item{margin-bottom:1rem;}
+    .kb-item button{margin-left:.5rem;}
+    .footer{background:#4a90e2;color:#fff;text-align:center;padding:.5rem;margin-top:3rem;}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🌞 桐妹的奇妙一天 🌞</h1>
+</header>
+
+<div class="container">
+
+    <!-- ------------------- 时间线 ------------------- -->
+    <section class="timeline">
+        <div class="card" data-id="1">
+            <div class="card-header"><h3>早晨：妈妈不在家</h3><span>▶</span></div>
+            <div class="card-content">
+                <p>醒来的时候发现妈妈不见了，哥哥已经起床。</p>
+                <p>给迁巡爸爸打了电话，爸爸说在来接我们的路上。</p>
+            </div>
+        </div>
+
+        <div class="card" data-id="2">
+            <div class="card-header"><h3>前往阳光花园</h3><span>▶</span></div>
+            <div class="card-content">
+                <p>收拾好东西，前往阳光花园学习数学。</p>
+                <p>随后一起去吃饭，迁巡也要跟我一起吃一碗。</p>
+                <p>拍摄了“请别人吃东西”的小视频并记账。</p>
+            </div>
+        </div>
+
+        <div class="card" data-id="3">
+            <div class="card-header"><h3>自考报名瞬间</h3><span>▶</span></div>
+            <div class="card-content">
+                <p>迁巡爸爸让我们上车去见一位叔叔，叔叔答应帮迁巡报名自考。</p>
+                <p>现场展示数学、拍摄视频、背古诗。</p>
+                <p>叔叔说“可以”，并现场完成报名。</p>
+            </div>
+        </div>
+
+        <div class="card" data-id="4">
+            <div class="card-header"><h3>选大学与专业</h3><span>▶</span></div>
+            <div class="card-content">
+                <p>迁巡爸爸发来一张图片，要求在明年四月选一个大学报考专科。</p>
+                <p>妈妈也出现了，大家边吃饭边挑选。</p>
+                <p>最终选了 <strong>湖北工业大学 – 动漫设计</strong>。</p>
+            </div>
+        </div>
+
+        <div class="card" data-id="5">
+            <div class="card-header"><h3>下午 & 晚上</h3><span>▶</span></div>
+            <div class="card-content">
+                <p>在阳光花园看电影，妈妈请我们吃饭后回房休息。</p>
+                <p>哥哥剪完视频后我们一起走回家，迁巡爸爸帮车充电。</p>
+                <p>我和哥哥上楼睡觉，结束了一天的奇妙旅程。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ------------------- 小测验 ------------------- -->
+    <section class="quiz">
+        <h2>🧩 小测验：记住了吗？</h2>
+        <p>请从下面选项中选出 **桐妹最终选的大学**：</p>
+        <ul class="options">
+            <li><label><input type="radio" name="univ" value="0"> 北京大学</label></li>
+            <li><label><input type="radio" name="univ" value="1"> 复旦大学</label></li>
+            <li><label><input type="radio" name="univ" value="2"> 湖北工业大学</label></li>
+            <li><label><input type="radio" name="univ" value="3"> 上海交通大学</label></li>
+        </ul>
+        <button class="btn" id="checkBtn">提交答案</button>
+        <div class="msg" id="quizMsg"></div>
+    </section>
+
+    <!-- ------------------- 知识库 ------------------- -->
+    <section class="kb-section">
+        <h2>📚 知识库速查</h2>
+
+        <div class="kb-item">
+            <strong>自考（自学考试）是什么？</strong>
+            <button class="btn" onclick="showKB('kaoshi')">查看答案</button>
+            <p id="kaoshi" style="display:none;margin-top:.5rem;">
+                自考是国家承认的高等教育学历形式，学生可以自行学习，<br>
+                通过国家组织的统一考试，取得相应学历证书。<br>
+                适合在职人员、在校生以及想提升学历的朋友。
+            </p>
+        </div>
+
+        <div class="kb-item">
+            <strong>动漫设计专业都学些什么？</strong>
+            <button class="btn" onclick="showKB('anime')">查看答案</button>
+            <p id="anime" style="display:none;margin-top:.5rem;">
+                动漫设计包括：<br>
+                1. 绘画基础与色彩理论<br>
+                2. 角色设定与造型<br>
+                3. 动画原理与分镜设计<br>
+                4. 三维建模与材质渲染<br>
+                5. 交互媒体与游戏美术<br>
+                课程通常结合软件实践（Photoshop、Maya、Unity 等）。
+            </p>
+        </div>
+
+        <div class="kb-item">
+            <strong>湖北工业大学概况</strong>
+            <button class="btn" onclick="showKB('hubei')">查看答案</button>
+            <p id="hubei" style="display:none;margin-top:.5rem;">
+                湖北工业大学位于武汉市，工科、理科、艺术类专业齐备。<br>
+                动漫设计专业隶属于艺术与设计学院，<br>
+                侧重于数字媒体、视觉传达以及交互技术。<br>
+                学校环境优美，拥有多个实训基地和创新实验室。
+            </p>
+        </div>
+    </section>
+
+</div>
+
+<footer class="footer">
+    © 2025 桐妹的奇妙一天 ✨
+</footer>
+
+<script>
+    // ----------- 时间线卡片展开/收起 ----------
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', function (e) {
+            // 防止点击内部的按钮触发收起
+            if (e.target.tagName.toLowerCase() === 'button') return;
+            this.classList.toggle('open');
+        });
+    });
+
+    // ----------- 小测验 ----------
+    document.getElementById('checkBtn').addEventListener('click', () => {
+        const radios = document.getElementsByName('univ');
+        let chosen = -1;
+        radios.forEach(r => { if (r.checked) chosen = parseInt(r.value); });
+        const msg = document.getElementById('quizMsg');
+
+        if (chosen === -1) {
+            msg.style.color = 'red';
+            msg.textContent = '请先选择一个选项！';
+            return;
+        }
+        if (chosen === 2) {
+            msg.style.color = 'green';
+            msg.textContent = '恭喜答对啦 🎉 你记得很清楚！';
+        } else {
+            msg.style.color = 'orange';
+            msg.textContent = '答错啦 😅 正确答案是 “湖北工业大学”。';
+        }
+    });
+
+    // ----------- 知识库显示 ----------
+    function showKB(id){
+        const el = document.getElementById(id);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+</body>
+</html>

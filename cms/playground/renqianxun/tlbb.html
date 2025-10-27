@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天龙八部闯荡江湖</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: url('https://img.freepik.com/free-photo/chinese-temple-mountain-landscape_1417-1453.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+        
+        h1 {
+            color: #f8d64e;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px #000;
+        }
+        
+        .character-select {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+        
+        .character {
+            width: 150px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .character:hover {
+            transform: scale(1.1);
+        }
+        
+        .character img {
+            width: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+        
+        .character.selected img {
+            border-color: #f8d64e;
+            box-shadow: 0 0 10px #f8d64e;
+        }
+        
+        .character p {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        button {
+            background-color: #8b0000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #a52a2a;
+        }
+        
+        .game-area {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .battle-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .player, .enemy {
+            width: 200px;
+        }
+        
+        .health-bar {
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            width: 100%;
+            transition: width 0.5s;
+        }
+        
+        .enemy .health-fill {
+            background-color: #f44336;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .log {
+            height: 100px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            padding: 10px;
+            margin: 20px 0;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+        
+        .skill-info {
+            margin: 10px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>天龙八部武侠世界</h1>
+        
+        <div id="start-screen">
+            <p>选择你的武侠角色，开始你的闯荡江湖了！</p>
+            
+            <div class="character-select">
+                <div class="character" data-class="murong">
+                    <img src="https://via.placeholder.com/150?text=慕容" alt="慕容复">
+                    <p>慕容复</p>
+                    <p>技能: 以彼之道还施彼身</p>
+                </div>
+                <div class="character" data-class="duanyu">
+                    <img src="https://via.placeholder.com/150?text=段誉" alt="段誉">
+                    <p>段誉</p>
+                    <p>技能: 六脉神剑</p>
+                </div>
+                <div class="character" data-class="xuzhu">
+                    <img src="https://via.placeholder.com/150?text=虚竹" alt="虚竹">
+                    <p>虚竹</p>
+                    <p>技能: 天山六阳掌</p>
+                </div>
+                <div class="character" data-class="qiaofeng">
+                    <img src="https://via.placeholder.com/150?text=乔峰" alt="乔峰">
+                    <p>乔峰</p>
+                    <p>技能: 降龙十八掌</p>
+                </div>
+            </div>
+            
+            <button id="start-game">开始江湖之旅</button>
+        </div>
+        
+        <div id="game-screen" class="game-area">
+            <h2 id="stage-title">第一关: 青城派</h2>
+            
+            <div class="battle-area">
+                <div class="player">
+                    <h3 id="player-name">侠客</h3>
+                    <img id="player-img" src="" width="150">
+                    <div class="health-bar">
+                        <div id="player-health" class="health-fill"></div>
+                    </div>
+                    <p>生命: <span id="player-health-text">100/100</span></p>
+                </div>
+                
+                <div>VS</div>
+                
+                <div class="enemy">
+                    <h3 id="enemy-name">敌人</h3>
+                    <img id="enemy-img" src="" width="150">
+                    <div class="health-bar">
+                        <div id="enemy-health" class="health-fill"></div>
+                    </div>
+                    <p>生命: <span id="enemy-health-text">100/100</span></p>
+                </div>
+            </div>
+            
+            <div class="skill-info" id="skill-info">
+                请选择你的行动
+            </div>
+            
+            <div class="action-buttons" id="actions">
+                <button id="attack">普通攻击</button>
+                <button id="skill1">特殊技能</button>
+                <button id="heal">运功疗伤</button>
+            </div>
+            
+            <div class="log" id="battle-log"></div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const characters = {
+            murong: {
+                name: "慕容复",
+                img: "https://via.placeholder.com/150?text=慕容",
+                health: 120,
+                maxHealth: 120,
+                attack: 15,
+                skill: {
+                    name: "以彼之道还施彼身",
+                    description: "反弹敌人50%的伤害",
+                    damage: 0,
+                    effect: (game) => {
+                        const log = `慕容复施展'以彼之道还施彼身'，反弹了${game.lastEnemyDamage}点伤害！`;
+                        game.enemy.health -= game.lastEnemyDamage * 0.5;
+                        return log;
+                    }
+                }
+            },
+            duanyu: {
+                name: "段誉",
+                img: "https://via.placeholder.com/150?text=段誉",
+                health: 90,
+                maxHealth: 90,
+                attack: 18,
+                skill: {
+                    name: "六脉神剑",
+                    description: "快速连击造成3次伤害",
+                    damage: 10,
+                    effect: (game) => {
+                        const totalDamage = 3 * (game.player.attack + game.player.skill.damage);
+                        game.enemy.health -= totalDamage;
+                        return `段誉施展'六脉神剑'，快速刺出三剑，造成${totalDamage}点伤害！`;
+                    }
+                }
+            },
+            xuzhu: {
+                name: "虚竹",
+                img: "https://via.placeholder.com/150?text=虚竹",
+                health: 150,
+                maxHealth: 150,
+                attack: 12,
+                skill: {
+                    name: "天山六阳掌",
+                    description: "强力掌法附带眩晕效果",
+                    damage: 25,
+                    effect: (game) => {
+                        game.enemy.health -= (game.player.attack + game.player.skill.damage);
+                        game.enemySkipTurn = true;
+                        return `虚竹使出'天山六阳掌'，造成${game.player.attack + game.player.skill.damage}点伤害，敌人下一回合无法行动！`;
+                    }
+                }
+            },
+            qiaofeng: {
+                name: "乔峰",
+                img: "https://via.placeholder.com/150?text=乔峰",
+                health: 180,
+                maxHealth: 180,
+                attack: 20,
+                skill: {
+                    name: "降龙十八掌",
+                    description: "造成大量伤害",
+                    damage: 40,
+                    effect: (game) => {
+                        game.enemy.health -= (game.player.attack + game.player.skill.damage);
+                        return `乔峰怒喝一声，使出'降龙十八掌'，造成${game.player.attack + game.player.skill.damage}点伤害！`;
+                    }
+                }
+            }
+        };
+
+        const enemies = [
+            {
+                name: "青城派弟子",
+                img: "https://via.placeholder.com/150?text=青城派",
+                health: 60,
+                maxHealth: 60,
+                attack: 8
+            },
+            {
+                name: "星宿派弟子",
+                img: "https://via.placeholder.com/150?text=星宿派",
+                health: 80,
+                maxHealth: 80,
+                attack: 12
+            },
+            {
+                name: "鸠摩智",
+                img: "https://via.placeholder.com/150?text=鸠摩智",
+                health: 150,
+                maxHealth: 150,
+                attack: 18
+            },
+            {
+                name: "丁春秋",
+                img: "https://via.placeholder.com/150?text=丁春秋",
+                health: 200,
+                maxHealth: 200,
+                attack: 25
+            },
+            {
+                name: "慕容博",
+                img: "https://via.placeholder.com/150?text=慕容博",
+                health: 250,
+                maxHealth: 250,
+                attack: 30
+            }
+        ];
+
+        // 游戏状态
+        const game = {
+            player: null,
+            enemy: null,
+            stage: 0,
+            lastEnemyDamage: 0,
+            enemySkipTurn: false
+        };
+
+        // DOM元素
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const startButton = document.getElementById('start-game');
+        const characterElements = document.querySelectorAll('.character');
+        
+        const playerName = document.getElementById('player-name');
+        const playerImg = document.getElementById('player-img');
+        const playerHealth = document.getElementById('player-health');
+        const playerHealthText = document.getElementById('player-health-text');
+        
+        const enemyName = document.getElementById('enemy-name');
+        const enemyImg = document.getElementById('enemy-img');
+        const enemyHealth = document.getElementById('enemy-health');
+        const enemyHealthText = document.getElementById('enemy-health-text');
+        
+        const stageTitle = document.getElementById('stage-title');
+        const skillInfo = document.getElementById('skill-info');
+        const battleLog = document.getElementById('battle-log');
+        
+        const attackButton = document.getElementById('attack');
+        const skillButton = document.getElementById('skill1');
+        const healButton = document.getElementById('heal');
+
+        // 选择角色
+        let selectedCharacter = null;
+        characterElements.forEach(char => {
+            char.addEventListener('click', () => {
+                characterElements.forEach(c => c.classList.remove('selected'));
+                char.classList.add('selected');
+                selectedCharacter = char.getAttribute('data-class');
+                skillInfo.textContent = characters[selectedCharacter].skill.description;
+            });
+        });
+
+        // 开始游戏
+        startButton.addEventListener('click', () => {
+            if (!selectedCharacter) {
+                alert('请选择一个角色！');
+                return;
+            }
+            
+            game.player = {...characters[selectedCharacter]};
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            startBattle();
+        });
+
+        // 开始战斗
+        function startBattle() {
+            game.enemy = {...enemies[game.stage]};
+            game.enemySkipTurn = false;
+            
+            updatePlayerUI();
+            updateEnemyUI();
+            
+            stageTitle.textContent = `第${game.stage + 1}关: ${game.enemy.name}`;
+            
+            // 清空战斗日志
+            battleLog.innerHTML = '';
+            addToLog(`你遇到了${game.enemy.name}！`);
+        }
+
+        // 更新玩家UI
+        function updatePlayerUI() {
+            playerName.textContent = game.player.name;
+            playerImg.src = game.player.img;
+            const healthPercent = (game.player.health / game.player.maxHealth) * 100;
+            playerHealth.style.width = `${healthPercent}%`;
+            playerHealthText.textContent = `${game.player.health}/${game.player.maxHealth}`;
+        }
+
+        // 更新敌人UI
+        function updateEnemyUI() {
+            enemyName.textContent = game.enemy.name;
+            enemyImg.src = game.enemy.img;
+            const healthPercent = (game.enemy.health / game.enemy.maxHealth) * 100;
+            enemyHealth.style.width = `${healthPercent}%`;
+            enemyHealthText.textContent = `${game.enemy.health}/${game.enemy.maxHealth}`;
+        }
+
+        // 添加到战斗日志
+        function addToLog(message) {
+            const entry = document.createElement('div');
+            entry.textContent = message;
+            battleLog.appendChild(entry);
+            battleLog.scrollTop = battleLog.scrollHeight;
+        }
+
+        // 玩家攻击
+        attackButton.addEventListener('click', () => {
+            if (game.player.health <= 0 || game.enemy.health <= 0) return;
+            
+            const damage = game.player.attack;
+            game.enemy.health -= damage;
+            addToLog(`${game.player.name}对${game.enemy.name}造成${damage}点伤害！`);
+            
+            updateEnemyUI();
+            
+            if (game.enemy.health <= 0) {
+                enemyDefeated();
+            } else {
+                enemyTurn();
+            }
+        });
+
+        // 玩家使用技能
+        skillButton.addEventListener('click', () => {
+            if (game.player.health <= 0 || game.enemy.health <= 0) return;
+            
+            const log = game.player.skill.effect(game);
+            addToLog(log);
+            
+            updatePlayerUI();
+            updateEnemyUI();
+            
+            if (game.enemy.health <= 0) {
+                enemyDefeated();
+            } else {
+                enemyTurn();
+            }
+        });
+
+        // 玩家治疗
+        healButton.addEventListener('click', () => {
+            if (game.player.health <= 0 || game.enemy.health <= 0) return;
+            
+            const healAmount = Math.floor(game.player.maxHealth * 0.3);
+            game.player.health = Math.min(game.player.maxHealth, game.player.health + healAmount);
+            addToLog(`${game.player.name}运功疗伤，恢复了${healAmount}点生命值！`);
+            
+            updatePlayerUI();
+            enemyTurn();
+        });
+
+        // 敌人行动
+        function enemyTurn() {
+            if (game.enemySkipTurn) {
+                addToLog(`${game.enemy.name}因为眩晕无法行动！`);
+                game.enemySkipTurn = false;
+                return;
+            }
+            
+            setTimeout(() => {
+                const damage = game.enemy.attack;
+                game.player.health -= damage;
+                game.lastEnemyDamage = damage;
+                addToLog(`${game.enemy.name}对你造成${damage}点伤害！`);
+                
+                updatePlayerUI();
+                
+                if (game.player.health <= 0) {
+                    gameOver();
+                }
+            }, 1000);
+        }
+
+        // 敌人被击败
+        function enemyDefeated() {
+            addToLog(`你击败了${game.enemy.name}！`);
+            
+            game.stage++;
+            
+            if (game.stage >= enemies.length) {
+                // 游戏胜利
+                setTimeout(() => {
+                    addToLog('恭喜你，一统江湖！');
+                    
+                    // 禁用所有按钮
+                    attackButton.disabled = true;
+                    skillButton.disabled = true;
+                    healButton.disabled = true;
+                    
+                    // 显示重新开始按钮
+                    const restartButton = document.createElement('button');
+                    restartButton.textContent = '重新开始';
+                    restartButton.addEventListener('click', () => {
+                        location.reload();
+                    });
+                    document.querySelector('.action-buttons').appendChild(restartButton);
+                }, 1000);
+            } else {
+                // 下一关
+                setTimeout(startBattle, 1500);
+            }
+        }
+
+        // 游戏结束
+        function gameOver() {
+            addToLog('你被击败了...游戏结束！');
+            
+            // 禁用所有按钮
+            attackButton.disabled = true;
+            skillButton.disabled = true;
+            healButton.disabled = true;
+            
+            // 显示重新开始按钮
+            const restartButton = document.createElement('button');
+            restartButton.textContent = '重新开始';
+            restartButton.addEventListener('click', () => {
+                location.reload();
+            });
+            document.querySelector('.action-buttons').appendChild(restartButton);
+        }
+    </script>
+</body>
+</html>

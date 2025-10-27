@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>恐龙吃东西 - 触摸版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 10px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #e6f7ff;
+            border: 3px solid #7fb3d5;
+            border-radius: 10px;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #dino {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80"><path d="M30,40 Q50,10 70,40 L80,50 L70,60 L60,50 L50,70 L30,60 L20,50 Z" fill="green"/><circle cx="35" cy="30" r="5" fill="black"/></svg>');
+            background-repeat: no-repeat;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .food {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="red"/></svg>');
+            background-repeat: no-repeat;
+            z-index: 5;
+        }
+        #score {
+            font-size: 24px;
+            margin: 10px;
+            color: #2c3e50;
+        }
+        #controls {
+            margin: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 20px;
+            margin: 8px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 120px;
+        }
+        button:active {
+            background-color: #2980b9;
+            transform: scale(0.95);
+        }
+        #touch-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .touch-btn {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            user-select: none;
+        }
+        .touch-row {
+            display: flex;
+        }
+        @media (min-width: 768px) {
+            #touch-controls {
+                display: none;
+            }
+        }
+        #dino.eating {
+            transform: scale(1.2);
+        }
+        #dino.eating::after {
+            content: "🥩";
+            position: absolute;
+            right: -15px;
+            top: 5px;
+            font-size: 20px;
+            animation: chew 0.3s 3;
+        }
+        @keyframes chew {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>恐龙吃东西 - 触摸版</h1>
+    <div id="score">得分: 0</div>
+    <div id="game-container">
+        <div id="dino"></div>
+    </div>
+    <div id="controls">
+        <button id="start-btn">开始游戏</button>
+        <button id="restart-btn">重新开始</button>
+    </div>
+    
+    <div id="touch-controls">
+        <div class="touch-row">
+            <div class="touch-btn" id="up-btn">↑</div>
+        </div>
+        <div class="touch-row">
+            <div class="touch-btn" id="left-btn">←</div>
+            <div class="touch-btn" id="down-btn">↓</div>
+            <div class="touch-btn" id="right-btn">→</div>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const dino = document.getElementById('dino');
+        const scoreDisplay = document.getElementById('score');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // 触摸控制按钮
+        const upBtn = document.getElementById('up-btn');
+        const downBtn = document.getElementById('down-btn');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        
+        let score = 0;
+        let gameActive = false;
+        let foodInterval;
+        let moveInterval;
+        let foodElement = null;
+        let touchX = 0;
+        let touchY = 0;
+        let isTouching = false;
+        
+        // 游戏容器尺寸
+        const containerWidth = gameContainer.clientWidth;
+        const containerHeight = gameContainer.clientHeight;
+        const dinoWidth = 80;
+        const dinoHeight = 60;
+        
+        // 初始化恐龙位置
+        function initDino() {
+            dino.style.left = `${containerWidth / 2 - dinoWidth / 2}px`;
+            dino.style.top = `${containerHeight / 2 - dinoHeight / 2}px`;
+        }
+        
+        // 创建食物
+        function createFood() {
+            if (foodElement) {
+                foodElement.remove();
+            }
+            
+            foodElement = document.createElement('div');
+            foodElement.className = 'food';
+            
+            // 随机位置（确保不会太靠近边缘）
+            const maxX = containerWidth - 50;
+            const maxY = containerHeight - 50;
+            const foodX = Math.max(20, Math.floor(Math.random() * maxX));
+            const foodY = Math.max(20, Math.floor(Math.random() * maxY));
+            
+            foodElement.style.left = `${foodX}px`;
+            foodElement.style.top = `${foodY}px`;
+            
+            gameContainer.appendChild(foodElement);
+            return foodElement;
+        }
+        
+        // 检测碰撞
+        function checkCollision() {
+            if (!foodElement) return false;
+            
+            const dinoRect = dino.getBoundingClientRect();
+            const foodRect = foodElement.getBoundingClientRect();
+            
+            // 简化的碰撞检测
+            const collision = !(
+                dinoRect.right < foodRect.left ||
+                dinoRect.left > foodRect.right ||
+                dinoRect.bottom < foodRect.top ||
+                dinoRect.top > foodRect.bottom
+            );
+            
+            return collision;
+        }
+        
+        // 移动恐龙
+        function moveDino(dx = 0, dy = 0) {
+            let currentX = parseInt(dino.style.left) || 0;
+            let currentY = parseInt(dino.style.top) || 0;
+            
+            // 限制移动范围
+            const newX = Math.max(0, Math.min(containerWidth - dinoWidth, currentX + dx));
+            const newY = Math.max(0, Math.min(containerHeight - dinoHeight, currentY + dy));
+            
+            dino.style.left = `${newX}px`;
+            dino.style.top = `${newY}px`;
+            
+            // 检测碰撞
+            if (checkCollision()) {
+                eatFood();
+            }
+        }
+        
+        // 吃食物
+        function eatFood() {
+            dino.classList.add('eating');
+            
+            score += 10;
+            scoreDisplay.textContent = `得分: ${score}`;
+            
+            if (foodElement) {
+                foodElement.remove();
+                foodElement = null;
+            }
+            
+            // 吃东西动画
+            setTimeout(() => {
+                dino.classList.remove('eating');
+                createFood();
+            }, 900);
+        }
+        
+        // 自动移动
+        function autoMoveDino() {
+            if (!gameActive) return;
+            
+            const directions = [
+                { dx: 0, dy: -30 }, // 上
+                { dx: 0, dy: 30 },  // 下
+                { dx: -30, dy: 0 }, // 左
+                { dx: 30, dy: 0 }   // 右
+            ];
+            
+            const direction = directions[Math.floor(Math.random() * directions.length)];
+            moveDino(direction.dx, direction.dy);
+        }
+        
+        // 开始游戏
+        function startGame() {
+            if (gameActive) return;
+            
+            gameActive = true;
+            score = 0;
+            scoreDisplay.textContent = `得分: ${score}`;
+            initDino();
+            createFood();
+            
+            // 每隔1秒自动移动恐龙
+            moveInterval = setInterval(autoMoveDino, 1000);
+            
+            // 每4-8秒随机时间重新创建食物
+            foodInterval = setInterval(() => {
+                if (!foodElement) createFood();
+            }, 3000 + Math.random() * 2000);
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            clearInterval(moveInterval);
+            clearInterval(foodInterval);
+            if (foodElement) {
+                foodElement.remove();
+                foodElement = null;
+            }
+            gameActive = false;
+            startGame();
+        }
+        
+        // 事件监听
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            
+            const moveDistance = 15;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                    moveDino(0, -moveDistance);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    moveDino(0, moveDistance);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    moveDino(-moveDistance, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    moveDino(moveDistance, 0);
+                    break;
+            }
+        });
+        
+        // 触摸控制按钮
+        upBtn.addEventListener('touchstart', () => moveDino(0, -15));
+        downBtn.addEventListener('touchstart', () => moveDino(0, 15));
+        leftBtn.addEventListener('touchstart', () => moveDino(-15, 0));
+        rightBtn.addEventListener('touchstart', () => moveDino(15, 0));
+        
+        // 防止触摸按钮时的默认行为
+        [upBtn, downBtn, leftBtn, rightBtn].forEach(btn => {
+            btn.addEventListener('touchend', (e) => e.preventDefault());
+            btn.addEventListener('touchcancel', (e) => e.preventDefault());
+        });
+        
+        // 拖动控制
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (!gameActive) return;
+            
+            isTouching = true;
+            const touch = e.touches[0];
+            const rect = gameContainer.getBoundingClientRect();
+            touchX = touch.clientX - rect.left;
+            touchY = touch.clientY - rect.top;
+            e.preventDefault();
+        });
+        
+        gameContainer.addEventListener('touchmove', (e) => {
+            if (!gameActive || !isTouching) return;
+            
+            const touch = e.touches[0];
+            const rect = gameContainer.getBoundingClientRect();
+            const newX = touch.clientX - rect.left;
+            const newY = touch.clientY - rect.top;
+            
+            // 计算移动距离
+            const dx = newX - touchX;
+            const dy = newY - touchY;
+            
+            // 限制移动速度
+            const maxSpeed = 30;
+            const distance = Math.min(maxSpeed, Math.sqrt(dx*dx + dy*dy));
+            const angle = Math.atan2(dy, dx);
+            
+            const moveX = distance * Math.cos(angle);
+            const moveY = distance * Math.sin(angle);
+            
+            moveDino(moveX, moveY);
+            
+            touchX = newX;
+            touchY = newY;
+            e.preventDefault();
+        });
+        
+        gameContainer.addEventListener('touchend', () => {
+            isTouching = false;
+        });
+    </script>
+</body>
+</html>

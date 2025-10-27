@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探索火山的奥秘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #D32F2F;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subtitle {
+            color: #555;
+            font-size: 1.2rem;
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section h2 {
+            color: #D32F2F;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            border-bottom: 2px solid #FFEB3B;
+            padding-bottom: 10px;
+        }
+        
+        .volcano-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        
+        .volcano-illustration {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px;
+        }
+        
+        .info-card {
+            background: #FFF8E1;
+            border-left: 5px solid #FFC107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+            transition: background 0.3s ease;
+        }
+        
+        .info-card:hover {
+            background: #FFECB3;
+        }
+        
+        .quiz-container {
+            background: #E8F5E9;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2E7D32;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .quiz-option {
+            background: white;
+            border: 2px solid #81C784;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .quiz-option:hover {
+            background: #C8E6C9;
+            transform: scale(1.05);
+        }
+        
+        .quiz-option.correct {
+            background: #A5D6A7;
+            border-color: #4CAF50;
+        }
+        
+        .quiz-option.incorrect {
+            background: #EF9A9A;
+            border-color: #F44336;
+        }
+        
+        .quiz-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+        
+        .quiz-button:hover {
+            background: #388E3C;
+        }
+        
+        .volcano-types {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .type-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            width: 250px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .type-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .type-name {
+            font-size: 1.3rem;
+            color: #D32F2F;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .animation-container {
+            position: relative;
+            height: 200px;
+            margin: 20px 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        
+        .flying-ash {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #757575;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .lava-flow {
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background: linear-gradient(to right, #FF5722, #FF9800);
+            border-radius: 10px;
+            opacity: 0;
+        }
+        
+        @keyframes erupt {
+            0% {
+                bottom: 0;
+                opacity: 1;
+            }
+            100% {
+                bottom: 180px;
+                opacity: 0;
+            }
+        }
+        
+        @keyframes flow {
+            0% {
+                left: 120px;
+                opacity: 1;
+            }
+            100% {
+                left: 250px;
+                opacity: 0.5;
+            }
+        }
+        
+        .facts-list {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+        
+        .facts-list li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .facts-list li:before {
+            content: "🌋";
+            position: absolute;
+            left: 0;
+        }
+        
+        .eruption-button {
+            display: block;
+            margin: 20px auto;
+            background: #FF5722;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .eruption-button:hover {
+            background: #E64A19;
+            transform: scale(1.05);
+        }
+        
+        .eruption-button:active {
+            transform: scale(0.98);
+        }
+        
+        .volcano-parts {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .part-item {
+            background: #F5F5F5;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            width: 200px;
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+        
+        .part-item:hover {
+            background: #E0E0E0;
+        }
+        
+        .part-name {
+            font-weight: bold;
+            color: #455A64;
+            margin-bottom: 5px;
+        }
+        
+        .part-desc {
+            font-size: 0.9rem;
+            color: #607D8B;
+        }
+        
+        @media (max-width: 768px) {
+            .volcano-container {
+                flex-direction: column;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .section h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>探索火山的奥秘</h1>
+        <p class="subtitle">一起了解地球内部的神奇力量！</p>
+    </header>
+    
+    <main>
+        <section class="section">
+            <h2>什么是火山？</h2>
+            <div class="volcano-container">
+                <div class="volcano-illustration">
+                    <svg width="300" height="300" viewBox="0 0 300 300">
+                        <!-- 山脉背景 -->
+                        <path d="M0,250 Q50,180 100,200 T200,180 T300,250 L300,300 L0,300 Z" fill="#8BC34A" />
+                        <!-- 火山主体 -->
+                        <path d="M120,300 L150,80 L180,300 Z" fill="#795548" />
+                        <!-- 火山口 -->
+                        <ellipse cx="150" cy="80" rx="30" ry="15" fill="#424242" />
+                        <!-- 岩浆 -->
+                        <ellipse cx="150" cy="85" rx="25" ry="10" fill="#FF5722">
+                            <animate attributeName="ry" values="10;12;10" dur="2s" repeatCount="indefinite" />
+                            <animate attributeName="rx" values="25;27;25" dur="2s" repeatCount="indefinite" />
+                        </ellipse>
+                        <!-- 烟雾 -->
+                        <g opacity="0.7">
+                            <path d="M140,70 Q135,50 140,30" stroke="#757575" stroke-width="3" fill="none">
+                                <animate attributeName="d" values="M140,70 Q135,50 140,30;M140,70 Q145,50 140,30;M140,70 Q135,50 140,30" dur="3s" repeatCount="indefinite" />
+                            </path>
+                            <path d="M150,70 Q155,50 150,30" stroke="#757575" stroke-width="3" fill="none">
+                                <animate attributeName="d" values="M150,70 Q155,50 150,30;M150,70 Q145,50 150,30;M150,70 Q155,50 150,30" dur="3s" repeatCount="indefinite" />
+                            </path>
+                            <path d="M160,70 Q165,50 160,30" stroke="#757575" stroke-width="3" fill="none">
+                                <animate attributeName="d" values="M160,70 Q165,50 160,30;M160,70 Q155,50 160,30;M160,70 Q165,50 160,30" dur="3s" repeatCount="indefinite" />
+                            </path>
+                        </g>
+                    </svg>
+                </div>
+                
+                <div>
+                    <div class="info-card">
+                        <h3>火山的定义</h3>
+                        <p>火山是地球表面能够喷发出熔岩、火山灰和气体的开口。这些物质来自地下的岩浆。</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>火山的形成</h3>
+                        <p当地球内部的岩石熔化时，形成岩浆。岩浆比周围的岩石轻，所以它会上升，最终通过地壳的薄弱部位喷发出来，形成火山。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>火山内部结构</h2>
+            <div class="volcano-parts">
+                <div class="part-item">
+                    <div class="part-name">岩浆室</div>
+                    <div class="part-desc">地下储存岩浆的地方</div>
+                </div>
+                <div class="part-item">
+                    <div class="part-name">通道</div>
+                    <div class="part-desc">岩浆从岩浆室到地表的通道</div>
+                </div>
+                <div class="part-item">
+                    <div class="part-name">火山口</div>
+                    <div class="part-desc">火山顶部的开口</div>
+                </div>
+                <div class="part-item">
+                    <div class="part-name">侧翼</div>
+                    <div class="part-desc">火山的山坡部分</div>
+                </div>
+            </div>
+            
+            <div class="animation-container" id="eruption-animation">
+                <!-- 火山喷发动画将在这里添加 -->
+            </div>
+            
+            <button class="eruption-button" onclick="triggerEruption()">模拟火山喷发！</button>
+        </section>
+        
+        <section class="section">
+            <h2>火山的类型</h2>
+            <div class="volcano-types">
+                <div class="type-card">
+                    <h3 class="type-name">休眠火山</h3>
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <path d="M40,100 L50,40 L60,100 Z" fill="#795548" />
+                        <ellipse cx="50" cy="40" rx="10" ry="5" fill="#424242" />
+                    </svg>
+                    <p>很久没有喷发过，但未来可能再次喷发的火山。</p>
+                </div>
+                
+                <div class="type-card">
+                    <h3 class="type-name">活火山</h3>
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <path d="M40,100 L50,40 L60,100 Z" fill="#795548" />
+                        <ellipse cx="50" cy="40" rx="10" ry="5" fill="#FF5722">
+                            <animate attributeName="ry" values="5;7;5" dur="1s" repeatCount="indefinite" />
+                        </ellipse>
+                        <path d="M48,35 Q46,25 48,15" stroke="#757575" stroke-width="1.5" fill="none">
+                            <animate attributeName="d" values="M48,35 Q46,25 48,15;M48,35 Q50,25 48,15;M48,35 Q46,25 48,15" dur="2s" repeatCount="indefinite" />
+                        </path>
+                        <path d="M50,35 Q52,25 50,15" stroke="#757575" stroke-width="1.5" fill="none">
+                            <animate attributeName="d" values="M50,35 Q52,25 50,15;M50,35 Q48,25 50,15;M50,35 Q52,25 50,15" dur="2s" repeatCount="indefinite" />
+                        </path>
+                        <path d="M52,35 Q54,25 52,15" stroke="#757575" stroke-width="1.5" fill="none">
+                            <animate attributeName="d" values="M52,35 Q54,25 52,15;M52,35 Q50,25 52,15;M52,35 Q54,25 52,15" dur="2s" repeatCount="indefinite" />
+                        </path>
+                    </svg>
+                    <p>正在活跃或有规律地喷发的火山。</p>
+                </div>
+                
+                <div class="type-card">
+                    <h3 class="type-name">死火山</h3>
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <path d="M40,100 L50,40 L60,100 Z" fill="#795548" />
+                        <ellipse cx="50" cy="40" rx="10" ry="5" fill="#424242" />
+                        <text x="50" y="65" text-anchor="middle" fill="#757575" font-size="20">✓</text>
+                    </svg>
+                    <p>已经不再喷发，预计也不会再喷发的火山。</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>有趣的火山知识</h2>
+            <ul class="facts-list">
+                <li>地球上大约有1500座活火山</li>
+                <li>夏威夷的冒纳罗亚火山是地球上最大的火山</li>
+                <li>火山喷发可以改变全球气候</li>
+                <li>火山灰可以帮助土壤变得肥沃</li>
+                <li>有些火山可以在海底形成</li>
+                <li>火山喷发时释放的能量相当于数百颗原子弹</li>
+            </ul>
+        </section>
+        
+        <section class="section">
+            <h2>火山知识小测验</h2>
+            <div class="quiz-container">
+                <div class="quiz-question">1. 下列哪种物质从火山中喷发出来？</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">岩浆</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">烟雾</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">雨水</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">火山灰</div>
+                </div>
+                <div class="quiz-question">2. 哪种类型的火山很久没有喷发过？</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">休眠火山</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">活火山</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">死火山</div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">海火山</div>
+                </div>
+                <button class="quiz-button" onclick="resetQuiz()">重新测验</button>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        // 火山喷发动画
+        function triggerEruption() {
+            const container = document.getElementById('eruption-animation');
+            container.innerHTML = '';
+            
+            // 创建岩浆粒子
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'flying-ash';
+                    particle.style.left = `${130 + Math.random() * 40}px`;
+                    particle.style.bottom = '0px';
+                    particle.style.background = `rgb(${200 + Math.random() * 55}, ${50 + Math.random() * 50}, 0)`;
+                    particle.style.animation = 'erupt 2s ease-out forwards';
+                    container.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 2000);
+                }, i * 100);
+            }
+            
+            // 创建岩浆流
+            setTimeout(() => {
+                const lava = document.createElement('div');
+                lava.className = 'lava-flow';
+                lava.style.bottom = '50px';
+                lava.style.animation = 'flow 3s ease-in forwards';
+                container.appendChild(lava);
+                
+                setTimeout(() => {
+                    lava.remove();
+                }, 3000);
+            }, 500);
+        }
+        
+        // 测验功能
+        let correctCount = 0;
+        let totalQuestions = 2;
+        
+        function checkAnswer(element, isCorrect) {
+            // 禁用所有选项
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                correctCount++;
+            } else {
+                element.classList.add('incorrect');
+                // 显示正确答案
+                options.forEach(option => {
+                    if (option.onclick.toString().includes('true')) {
+                        option.classList.add('correct');
+                    }
+                });
+            }
+        }
+        
+        function resetQuiz() {
+            correctCount = 0;
+            const quizContainers = document.querySelectorAll('.quiz-container');
+            quizContainers.forEach(container => {
+                const options = container.querySelectorAll('.quiz-option');
+                options.forEach(option => {
+                    option.style.pointerEvents = 'auto';
+                    option.classList.remove('correct', 'incorrect');
+                });
+            });
+        }
+        
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', () => {
+            // 为所有section添加淡入效果
+            const sections = document.querySelectorAll('.section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

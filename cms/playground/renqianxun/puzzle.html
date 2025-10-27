@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Puzzle – Guess the Word</title>
+<style>
+    /* ---------- 版面 & 背景 ---------- */
+    body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        padding: 2rem 1rem;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        margin: 0.5rem 0 1rem;
+        color: #2c3e50;
+    }
+
+    /* ---------- 单词显示 ---------- */
+    #word-display {
+        display: flex;
+        gap: 0.8rem;
+        margin: 1.5rem 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .letter {
+        width: 50px;
+        height: 70px;
+        line-height: 70px;
+        font-size: 2rem;
+        font-weight: bold;
+        text-align: center;
+        border: 3px solid #e63946;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #e63946;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+
+    .letter.shown {
+        background: #ffe5e5;
+        color: #2c3e50;
+    }
+
+    .letter.placeholder {
+        background: #fff0f0;
+        color: #bbb;
+    }
+
+    /* ---------- 按钮 ---------- */
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    button {
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+        color: #fff;
+    }
+
+    button:hover { opacity: 0.9; }
+    button:active { transform: scale(0.97); }
+
+    .btn-prev   { background: #f1c40f; color: #2c3e50; }
+    .btn-next   { background: #4285f4; }
+    .btn-lang   { background: #27ae60; }
+    .btn-read   { background: #9b59b6; }
+
+    /* ---------- 说明文字 ---------- */
+    #description {
+        max-width: 700px;
+        text-align: center;
+        line-height: 1.6;
+        font-size: 1.1rem;
+        background: rgba(255,255,255,0.8);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+    }
+
+    footer {
+        margin-top: auto;
+        padding: 1rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+</style>
+</head>
+<body>
+
+<h1 id="title">Guess the Word</h1>
+
+<div id="word-display"><!-- 动态生成字母块 --></div>
+
+<div class="btn-group">
+    <button class="btn-prev"  onclick="prevLetter()">上一页</button>
+    <button class="btn-next"  onclick="nextLetter()">下一页</button>
+    <button class="btn-lang"  onclick="toggleLang()">中文</button>
+    <button class="btn-read"  onclick="readWord()">朗读</button>
+</div>
+
+<div id="description"></div>
+
+<footer>© 2025  Word Explorer</footer>
+
+<script>
+/* ---------- 配置 ----------
+   word      : 要猜的英文单词
+   translate : 中文对应词
+   descEn    : 英文解释
+   descZh    : 中文解释
+-------------------------------------------------- */
+const config = {
+    word: "puzzle",
+    translate: "谜题",
+    descEn: "A puzzle is a game, problem, or toy that tests a person's ingenuity or knowledge.",
+    descZh: "谜题是一种游戏、问题或玩具，用来考验人的智力或知识。"
+};
+
+/* ---------- 状态 ----------
+   currentIndex : 已经显示的字母数量（0~len）
+   isChinese    : 是否处在中文界面
+-------------------------------------------------- */
+let currentIndex = 0;
+let isChinese = false;
+
+/* ---------- DOM ----------
+-------------------------------------------------- */
+const display = document.getElementById('word-display');
+const title   = document.getElementById('title');
+const desc    = document.getElementById('description');
+
+/* ---------- 初始化 ----------
+   渲染占位、更新文字
+-------------------------------------------------- */
+function init(){
+    renderLetters();
+    updateTexts();
+}
+init();
+
+/* ---------- 渲染字母 ----------
+   已显示的字母显示真实字符，未显示的显示下划线
+-------------------------------------------------- */
+function renderLetters(){
+    display.innerHTML = "";
+    const letters = config.word.split('');
+    for(let i=0;i<letters.length;i++){
+        const div = document.createElement('div');
+        div.className = 'letter';
+        if(i < currentIndex){
+            div.textContent = letters[i];
+            div.classList.add('shown');
+        }else{
+            div.textContent = "_";
+            div.classList.add('placeholder');
+        }
+        display.appendChild(div);
+    }
+}
+
+/* ---------- 按钮功能 ----------
+   下一步 / 上一步
+-------------------------------------------------- */
+function nextLetter(){
+    if(currentIndex < config.word.length){
+        currentIndex++;
+        renderLetters();
+    }
+}
+function prevLetter(){
+    if(currentIndex > 0){
+        currentIndex--;
+        renderLetters();
+    }
+}
+
+/* ---------- 语言切换 ----------
+   切换 UI 文本为中文或英文
+-------------------------------------------------- */
+function toggleLang(){
+    isChinese = !isChinese;
+    updateTexts();
+}
+
+/* ---------- 更新 UI 文本 ----------
+   根据 isChinese 切换文字
+-------------------------------------------------- */
+function updateTexts(){
+    const ui = {
+        en:{title:"Guess the Word", prev:"Prev", next:"Next", lang:"中文", read:"Read"},
+        zh:{title:"猜单词",   prev:"上一步", next:"下一步", lang:"English", read:"朗读"}
+    };
+    const txt = isChinese ? ui.zh : ui.en;
+
+    title.textContent = txt.title;
+    // 按钮文字
+    document.querySelector('.btn-prev').textContent = txt.prev;
+    document.querySelector('.btn-next').textContent = txt.next;
+    document.querySelector('.btn-lang').textContent = txt.lang;
+    document.querySelector('.btn-read').textContent = txt.read;
+
+    // 说明文字
+    desc.textContent = isChinese ? config.descZh : config.descEn;
+}
+
+/* ---------- 朗读 ----------
+   根据当前语言朗读英文或中文
+-------------------------------------------------- */
+function readWord(){
+    if (!('speechSynthesis' in window)) {
+        alert(isChinese ? "抱歉，您的浏览器不支持朗读功能。" : "Sorry, your browser doesn't support speech synthesis.");
+        return;
+    }
+    const utter = new SpeechSynthesisUtterance(isChinese ? config.translate : config.word);
+    utter.rate = 0.9;
+    utter.lang = isChinese ? "zh-CN" : "en-US";
+    window.speechSynthesis.cancel(); // 防止重叠
+    window.speechSynthesis.speak(utter);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>创意厨师 - 自由烹饪游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        header {
+            background: #4a6572;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .gold-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ffc107;
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .restaurant-name {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .restaurant-name-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .restaurant-name-input:focus {
+            outline: none;
+            border-color: #4a6572;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #4a6572;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .ingredient-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .ingredient-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .ingredient-item:hover:not(.locked) {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .ingredient-item.selected {
+            border-color: #4a6572;
+            background: #e9ecef;
+        }
+        
+        .ingredient-item.paid {
+            background: #fff3e0;
+        }
+        
+        .ingredient-item.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+        
+        .ingredient-item.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 18px;
+        }
+        
+        .ingredient-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 5px;
+        }
+        
+        .ingredient-name {
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .ingredient-price {
+            font-size: 12px;
+            color: #ff9800;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .buy-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .buy-btn:hover:not(:disabled) {
+            background: #f57c00;
+            transform: scale(1.05);
+        }
+        
+        .buy-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .cooking-area {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .pot {
+            width: 200px;
+            height: 150px;
+            background: #6d4c41;
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2);
+        }
+        
+        .pot::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: -20px;
+            right: -20px;
+            height: 30px;
+            background: #5d4037;
+            border-radius: 50%;
+        }
+        
+        .pot-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.1) 100%);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 10px;
+        }
+        
+        .ingredient-in-pot {
+            width: 30px;
+            height: 30px;
+            margin: 2px;
+            animation: bob 2s infinite ease-in-out;
+        }
+        
+        @keyframes bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .cooking-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-clear:hover {
+            background: #d32f2f;
+            transform: scale(1.05);
+        }
+        
+        .btn-cook {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-cook:hover:not(:disabled) {
+            background: #388e3c;
+            transform: scale(1.05);
+        }
+        
+        .btn-cook:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .recipe-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .recipe-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .recipe-input:focus {
+            outline: none;
+            border-color: #4a6572;
+        }
+        
+        .rating-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .star {
+            font-size: 30px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .saved-recipes {
+            margin-top: 30px;
+        }
+        
+        .recipe-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .recipe-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .recipe-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #4a6572;
+        }
+        
+        .recipe-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+        }
+        
+        .recipe-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #4a6572;
+            margin-bottom: 5px;
+        }
+        
+        .recipe-rating {
+            color: #ffc107;
+            font-size: 14px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 90%;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .recipe-details h3 {
+            color: #4a6572;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .recipe-ingredients {
+            margin-bottom: 20px;
+        }
+        
+        .ingredient-tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            margin: 3px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.error {
+            background: #f44336;
+        }
+        
+        .customer-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .customer-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .customer {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .customer-message {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            position: relative;
+            max-width: 80%;
+        }
+        
+        .customer-message::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #f8f9fa transparent transparent;
+        }
+        
+        .customer-rating {
+            display: flex;
+            gap: 5px;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .customer-rating .star {
+            cursor: default;
+        }
+        
+        .customer-comment {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .customer-earnings {
+            background: #e8f5e9;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .earnings-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .bonus-earnings {
+            background: #fff3e0;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .bonus-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e65100;
+        }
+        
+        .serving-area {
+            width: 100%;
+            padding: 15px;
+            background: #f1f8e9;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .dish-plate {
+            width: 100px;
+            height: 30px;
+            background: #eceff1;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dish-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-serve {
+            background: #ff9800;
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-serve:hover:not(:disabled) {
+            background: #f57c00;
+        }
+        
+        .btn-serve:disabled {
+            background: #cccccc;
+        }
+        
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a6572;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .competition-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .competition-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .competition-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .competition-theme {
+            font-size: 16px;
+            color: #424242;
+            margin-bottom: 10px;
+        }
+        
+        .competition-rules {
+            font-size: 14px;
+            color: #616161;
+        }
+        
+        .competition-progress {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .competition-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .competition-timer {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+        
+        .competition-results {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .result-info {
+            text-align: left;
+        }
+        
+        .result-name {
+            font-weight: bold;
+            color: #424242;
+        }
+        
+        .result-score {
+            font-size: 14px;
+            color: #757575;
+        }
+        
+        .result-points {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+        
+        .btn-competition {
+            background: #2196f3;
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .btn-competition:hover:not(:disabled) {
+            background: #1976d2;
+        }
+        
+        .btn-competition:disabled {
+            background: #cccccc;
+        }
+        
+        .certificate-wall {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .certificate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .certificate-count {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .certificate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .certificate-item {
+            background: #fff8e1;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .certificate-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .certificate-item::before {
+            content: '🏆';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 30px;
+            opacity: 0.3;
+        }
+        
+        .certificate-preview {
+            height: 100px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .certificate-restaurant {
+            font-size: 12px;
+            font-weight: bold;
+            color: #d84315;
+            margin-bottom: 5px;
+        }
+        
+        .certificate-theme {
+            font-size: 10px;
+            color: #f57c00;
+            margin-bottom: 5px;
+        }
+        
+        .certificate-date {
+            font-size: 9px;
+            color: #795548;
+        }
+        
+        .empty-wall {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .ingredients-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            
+            .pot {
+                width: 150px;
+                height: 120px;
+            }
+            
+            .ingredient-in-pot {
+                width: 25px;
+                height: 25px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .gold-display {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 15px;
+            }
+            
+            header {
+                padding: 10px;
+            }
+            
+            .gold-display {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+            }
+            
+            .competition-results {
+                padding: 0 10px;
+            }
+            
+            .result-card {
+                padding: 10px;
+            }
+            
+            .certificate-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🍳 创意厨师</h1>
+        <p class="subtitle">自由创作美味，赢得顾客好评！</p>
+        <div class="gold-display">
+            <span>💰</span>
+            <span id="goldAmount">100</span>
+        </div>
+    </header>
+    
+    <main>
+        <div class="restaurant-name">
+            <h2 class="section-title" style="margin-bottom: 10px;">🏪 我的饭店</h2>
+            <input type="text" class="restaurant-name-input" id="restaurantNameInput" placeholder="请输入您的饭店名称..." value="美味小厨">
+        </div>
+        
+        <section class="ingredient-section">
+            <h2 class="section-title">🥘 选择食材</h2>
+            <div class="ingredients-grid" id="ingredientsGrid">
+                <!-- 食材将通过JavaScript动态添加 -->
+            </div>
+        </section>
+        
+        <section class="cooking-area">
+            <h2 class="section-title">👨‍🍳 烹饪中</h2>
+            <div class="pot" id="cookingPot">
+                <div class="pot-content" id="potContent"></div>
+            </div>
+            <div class="cooking-actions">
+                <button class="btn btn-clear" id="clearBtn">清空锅子</button>
+                <button class="btn btn-cook" id="cookBtn" disabled>完成烹饪</button>
+            </div>
+        </section>
+        
+        <section class="customer-section">
+            <h2 class="section-title">👥 顾客服务</h2>
+            <div class="serving-area" id="servingArea">
+                <p style="margin-bottom: 15px; color: #666;">烹饪完成后，为顾客提供您的美食！</p>
+            </div>
+            
+            <div class="customer-area" id="customerArea" style="display: none;">
+                <div class="customer">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="45" r="30" fill="#ffccbc" />
+                        <circle cx="40" cy="40" r="3" fill="#333" />
+                        <circle cx="60" cy="40" r="3" fill="#333" />
+                        <path d="M 40 55 Q 50 65 60 55" stroke="#333" stroke-width="2" fill="none" />
+                        <ellipse cx="50" cy="80" rx="25" ry="35" fill="#4fc3f7" />
+                    </svg>
+                </div>
+                
+                <div class="customer-message" id="customerMessage">
+                    <!-- 顾客消息将显示在这里 -->
+                </div>
+                
+                <div class="customer-rating" id="customerRating">
+                    <!-- 顾客评分将显示在这里 -->
+                </div>
+                
+                <div class="customer-comment" id="customerComment">
+                    <!-- 顾客评论将显示在这里 -->
+                </div>
+                
+                <div class="customer-earnings">
+                    <div>获得金币</div>
+                    <div class="earnings-value" id="earningsValue">0</div>
+                </div>
+                
+                <div class="bonus-earnings" id="bonusEarnings" style="display: none;">
+                    <div>好评奖励</div>
+                    <div class="bonus-value" id="bonusValue">+10</div>
+                </div>
+                
+                <button class="btn btn-cook" id="nextCustomerBtn" style="width: 100%; margin-top: 15px;">下一位顾客</button>
+            </div>
+            
+            <div class="stats">
+                <h3 class="section-title">📊 餐厅统计</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalEarnings">0</div>
+                        <div class="stat-label">总收入</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgRating">0.0</div>
+                        <div class="stat-label">平均评分</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="customersServed">0</div>
+                        <div class="stat-label">服务顾客</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="competition-section">
+            <h2 class="section-title">🏆 烹饪大赛</h2>
+            <div class="competition-info" id="competitionInfo">
+                <div class="competition-title">参加烹饪大赛，赢取荣誉和奖励！</div>
+                <div class="competition-theme" id="competitionTheme">等待比赛开始...</div>
+                <div class="competition-rules" id="competitionRules">比赛规则将在开始时显示</div>
+            </div>
+            
+            <div class="competition-progress" id="competitionProgress" style="display: none;">
+                <div class="competition-progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="competition-timer" id="competitionTimer" style="display: none;">
+                比赛时间：60秒
+            </div>
+            
+            <div class="competition-results" id="competitionResults">
+                <h3 style="margin-bottom: 15px; color: #4a6572;">比赛结果</h3>
+                <div id="resultsContainer"></div>
+                
+                <div class="certificate" id="certificate" style="display: none;">
+                    <div class="certificate-title">获奖证书</div>
+                    <div class="certificate-content">
+                        恭喜您在烹饪大赛中获得优异成绩！<br>
+                        您的厨艺得到了评委们的一致好评！
+                    </div>
+                    <div class="certificate-restaurant" id="certificateRestaurant"></div>
+                    <div class="certificate-date" id="certificateDate"></div>
+                    <div class="certificate-signature">—— 美食评审团</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-competition" id="startCompetitionBtn">开始比赛</button>
+        </section>
+        
+        <section class="certificate-wall">
+            <div class="certificate-header">
+                <h2 class="section-title" style="margin-bottom: 0;">🏅 奖状展示墙</h2>
+                <div class="certificate-count" id="certificateCount">0个奖状</div>
+            </div>
+            <div class="certificate-grid" id="certificateGrid">
+                <div class="empty-wall">还没有获得任何奖状，快去参加比赛吧！</div>
+            </div>
+        </section>
+        
+        <section class="recipe-section">
+            <h2 class="section-title">💾 保存您的创作</h2>
+            <input type="text" class="recipe-input" id="recipeName" placeholder="为您的美味菜肴命名...">
+            
+            <div class="rating-container">
+                <span>评分:</span>
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+                <span id="ratingValue">0/5</span>
+            </div>
+            
+            <button class="btn btn-cook" id="saveBtn" disabled>保存食谱</button>
+            
+            <div class="saved-recipes" id="savedRecipes">
+                <h3 class="section-title">📖 我的食谱</h3>
+                <div class="recipe-list" id="recipeList">
+                    <!-- 保存的食谱将显示在这里 -->
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div class="modal" id="recipeModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div class="recipe-details" id="recipeDetails">
+                <!-- 食谱详情将显示在这里 -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="certificateModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" id="closeCertificateModal">&times;</span>
+            <div class="certificate" id="certificateModalContent" style="display: block; padding: 40px;">
+                <div class="certificate-title">获奖证书</div>
+                <div class="certificate-content">
+                    恭喜您在烹饪大赛中获得优异成绩！<br>
+                    您的厨艺得到了评委们的一致好评！
+                </div>
+                <div class="certificate-restaurant" id="certificateModalRestaurant"></div>
+                <div class="certificate-date" id="certificateModalDate"></div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <div style="display: inline-block; border: 2px solid #666; border-radius: 5px; padding: 10px; font-family: cursive; font-style: italic; font-size: 14px;">
+                        美食评审团 荣誉出品
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // 食材数据（添加价格属性）
+        const ingredients = [
+            { id: 'tomato', name: '番茄', color: '#ff5252', icon: '🍅', price: 0 },
+            { id: 'carrot', name: '胡萝卜', color: '#ff9800', icon: '🥕', price: 0 },
+            { id: 'onion', name: '洋葱', color: '#ffeb3b', icon: '🧅', price: 0 },
+            { id: 'pepper', name: '青椒', color: '#4caf50', icon: '🫑', price: 0 },
+            { id: 'mushroom', name: '蘑菇', color: '#795548', icon: '🍄', price: 0 },
+            { id: 'pork', name: '猪肉', color: '#f44336', icon: '🥩', price: 10 },
+            { id: 'beef', name: '牛肉', color: '#d32f2f', icon: '🥩', price: 15 },
+            { id: 'chicken', name: '鸡肉', color: '#ffeb3b', icon: '🍗', price: 8 },
+            { id: 'fish', name: '鱼', color: '#2196f3', icon: '🐟', price: 12 },
+            { id: 'egg', name: '鸡蛋', color: '#fff', icon: '🥚', price: 5 },
+            { id: 'rice', name: '米饭', color: '#f5f5dc', icon: '🍚', price: 0 },
+            { id: 'noodle', name: '面条', color: '#f5f5dc', icon: '🍜', price: 0 },
+            { id: 'potato', name: '土豆', color: '#d7ccc8', icon: '🥔', price: 0 },
+            { id: 'corn', name: '玉米', color: '#ffeb3b', icon: '🌽', price: 0 },
+            { id: 'cheese', name: '奶酪', color: '#fff59d', icon: '🧀', price: 10 },
+            { id: 'garlic', name: '大蒜', color: '#ffffff', icon: '🧄', price: 0 },
+            { id: 'shrimp', name: '虾', color: '#f8bbd9', icon: '🦐', price: 20 },
+            { id: 'lobster', name: '龙虾', color: '#ff8a65', icon: '🦞', price: 30 },
+            { id: 'caviar', name: '鱼子酱', color: '#7986cb', icon: '🥫', price: 50 },
+            { id: 'truffle', name: '松露', color: '#6d4c41', icon: '🍄', price: 40 }
+        ];
+        
+        // 比赛主题和规则
+        const competitionThemes = [
+            {
+                name: "海鲜盛宴",
+                rules: "必须至少使用3种海鲜食材",
+                requiredIngredients: ['fish', 'shrimp', 'lobster'],
+                scoreMultiplier: 1.5
+            },
+            {
+                name: "素食美学",
+                rules: "只能使用蔬菜类食材",
+                requiredIngredients: ['tomato', 'carrot', 'onion', 'pepper', 'mushroom'],
+                scoreMultiplier: 1.3
+            },
+            {
+                name: "肉类狂欢",
+                rules: "必须至少使用2种肉类",
+                requiredIngredients: ['pork', 'beef', 'chicken'],
+                scoreMultiplier: 1.4
+            },
+            {
+                name: "创意混搭",
+                rules: "使用至少5种不同类型的食材",
+                requiredIngredients: [],
+                minIngredients: 5,
+                scoreMultiplier: 1.6
+            },
+            {
+                name: "经济实惠",
+                rules: "总食材价值不能超过50金币",
+                maxCost: 50,
+                scoreMultiplier: 1.2
+            }
+        ];
+        
+        // AI厨师名字和头像
+        const aiChefs = [
+            { name: "王师傅", avatar: "👨‍🍳" },
+            { name: "李大厨", avatar: "🧑‍🍳" },
+            { name: "张美食", avatar: "👩‍🍳" }
+        ];
+        
+        // 顾客类型和偏好
+        const customerTypes = [
+            {
+                name: '美食家',
+                icon: '👨‍🍳',
+                preferences: ['rice', 'noodle', 'pork', 'beef', 'fish', 'shrimp', 'lobster', 'caviar'],
+                message: '我是美食家，期待您的杰作！',
+                highExpectation: true,
+                bonusThreshold: 4
+            },
+            {
+                name: '素食者',
+                icon: '🧑‍🌾',
+                preferences: ['tomato', 'carrot', 'onion', 'pepper', 'mushroom', 'potato', 'corn'],
+                message: '我只吃蔬菜，请为我准备素食料理。',
+                highExpectation: false,
+                bonusThreshold: 3
+            },
+            {
+                name: '儿童',
+                icon: '👶',
+                preferences: ['egg', 'cheese', 'chicken', 'potato', 'corn'],
+                message: '我要吃好吃的！不要辣的哦~',
+                highExpectation: false,
+                bonusThreshold: 3
+            },
+            {
+                name: '健康达人',
+                icon: '🏃‍♂️',
+                preferences: ['fish', 'chicken', 'vegetable'],
+                message: '我注重健康，请清淡一些。',
+                highExpectation: true,
+                bonusThreshold: 4
+            },
+            {
+                name: '普通顾客',
+                icon: '👨‍💼',
+                preferences: [],
+                message: '随便来点好吃的就好！',
+                highExpectation: false,
+                bonusThreshold: 3
+            }
+        ];
+        
+        // 游戏状态
+        let selectedIngredients = [];
+        let currentRating = 0;
+        let savedRecipes = JSON.parse(localStorage.getItem('savedRecipes')) || [];
+        let currentDish = null;
+        let restaurantStats = JSON.parse(localStorage.getItem('restaurantStats')) || {
+            totalEarnings: 0,
+            totalRating: 0,
+            customersServed: 0
+        };
+        let ownedIngredients = JSON.parse(localStorage.getItem('ownedIngredients')) || [];
+        let gold = parseInt(localStorage.getItem('gold')) || 100;
+        let restaurantName = localStorage.getItem('restaurantName') || '美味小厨';
+        let competitionInProgress = false;
+        let competitionTimer = null;
+        let certificates = JSON.parse(localStorage.getItem('certificates')) || [];
+        
+        // DOM元素
+        const ingredientsGrid = document.getElementById('ingredientsGrid');
+        const cookingPot = document.getElementById('cookingPot');
+        const potContent = document.getElementById('potContent');
+        const clearBtn = document.getElementById('clearBtn');
+        const cookBtn = document.getElementById('cookBtn');
+        const recipeNameInput = document.getElementById('recipeName');
+        const ratingStars = document.querySelectorAll('.star');
+        const ratingValue = document.getElementById('ratingValue');
+        const saveBtn = document.getElementById('saveBtn');
+        const recipeList = document.getElementById('recipeList');
+        const recipeModal = document.getElementById('recipeModal');
+        const closeModal = document.getElementById('closeModal');
+        const recipeDetails = document.getElementById('recipeDetails');
+        const notification = document.getElementById('notification');
+        const servingArea = document.getElementById('servingArea');
+        const customerArea = document.getElementById('customerArea');
+        const customerMessage = document.getElementById('customerMessage');
+        const customerRating = document.getElementById('customerRating');
+        const customerComment = document.getElementById('customerComment');
+        const earningsValue = document.getElementById('earningsValue');
+        const bonusEarnings = document.getElementById('bonusEarnings');
+        const bonusValue = document.getElementById('bonusValue');
+        const nextCustomerBtn = document.getElementById('nextCustomerBtn');
+        const goldAmount = document.getElementById('goldAmount');
+        const restaurantNameInput = document.getElementById('restaurantNameInput');
+        
+        // 比赛相关元素
+        const competitionInfo = document.getElementById('competitionInfo');
+        const competitionTheme = document.getElementById('competitionTheme');
+        const competitionRules = document.getElementById('competitionRules');
+        const competitionProgress = document.getElementById('competitionProgress');
+        const progressBar = document.getElementById('progressBar');
+        const competitionTimerDisplay = document.getElementById('competitionTimer');
+        const competitionResults = document.getElementById('competitionResults');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const certificate = document.getElementById('certificate');
+        const certificateRestaurant = document.getElementById('certificateRestaurant');
+        const certificateDate = document.getElementById('certificateDate');
+        const startCompetitionBtn = document.getElementById('startCompetitionBtn');
+        
+        // 奖状墙相关元素
+        const certificateWall = document.getElementById('certificateWall');
+        const certificateGrid = document.getElementById('certificateGrid');
+        const certificateCount = document.getElementById('certificateCount');
+        const certificateModal = document.getElementById('certificateModal');
+        const closeModalCertificateModal = document.getElementById('closeCertificateModal');
+        const certificateModalContent = document.getElementById('certificateModalContent');
+        const certificateModalRestaurant = document.getElementById('certificateModalRestaurant');
+        const certificateModalDate = document.getElementById('certificateModalDate');
+        
+        // 统计元素
+        const totalEarnings = document.getElementById('totalEarnings');
+        const avgRating = document.getElementById('avgRating');
+        const customersServed = document.getElementById('customersServed');
+        
+        // 初始化游戏
+        function init() {
+            restaurantNameInput.value = restaurantName;
+            renderIngredients();
+            loadSavedRecipes();
+            loadCertificateWall();
+            updateStats();
+            updateGoldDisplay();
+            setupEventListeners();
+        }
+        
+        // 保存饭店名称
+        function saveRestaurantName() {
+            restaurantName = restaurantNameInput.value.trim() || '美味小厨';
+            localStorage.setItem('restaurantName', restaurantName);
+            showNotification(`饭店名称已更新为：${restaurantName}`);
+        }
+        
+        // 渲染食材选择器
+        function renderIngredients() {
+            ingredientsGrid.innerHTML = '';
+            ingredients.forEach(ingredient => {
+                const ingredientEl = document.createElement('div');
+                ingredientEl.className = 'ingredient-item';
+                
+                // 检查是否拥有该食材
+                const isOwned = ownedIngredients.includes(ingredient.id);
+                const isSelected = selectedIngredients.some(ing => ing.id === ingredient.id);
+                
+                if (!isOwned && ingredient.price > 0) {
+                    ingredientEl.classList.add('locked');
+                } else {
+                    ingredientEl.addEventListener('click', () => toggleIngredient(ingredient.id));
+                }
+                
+                if (isSelected) {
+                    ingredientEl.classList.add('selected');
+                }
+                
+                if (ingredient.price > 0) {
+                    ingredientEl.classList.add('paid');
+                }
+                
+                ingredientEl.dataset.id = ingredient.id;
+                
+                const icon = document.createElement('div');
+                icon.className = 'ingredient-icon';
+                icon.innerHTML = `
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="${ingredient.color}" />
+                        <text x="50" y="60" text-anchor="middle" font-size="30">${ingredient.icon}</text>
+                    </svg>
+                `;
+                
+                const name = document.createElement('div');
+                name.className = 'ingredient-name';
+                name.textContent = ingredient.name;
+                
+                ingredientEl.appendChild(icon);
+                ingredientEl.appendChild(name);
+                
+                // 如果食材需要购买
+                if (ingredient.price > 0) {
+                    const priceEl = document.createElement('div');
+                    priceEl.className = 'ingredient-price';
+                    priceEl.textContent = `💰${ingredient.price}`;
+                    ingredientEl.appendChild(priceEl);
+                    
+                    const buyBtn = document.createElement('button');
+                    buyBtn.className = 'buy-btn';
+                    buyBtn.textContent = isOwned ? '已拥有' : '购买';
+                    buyBtn.disabled = isOwned;
+                    
+                    if (!isOwned) {
+                        buyBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            buyIngredient(ingredient);
+                        });
+                    }
+                    
+                    ingredientEl.appendChild(buyBtn);
+                }
+                
+                ingredientsGrid.appendChild(ingredientEl);
+            });
+        }
+        
+        // 购买食材
+        function buyIngredient(ingredient) {
+            if (gold >= ingredient.price) {
+                gold -= ingredient.price;
+                ownedIngredients.push(ingredient.id);
+                
+                // 保存到本地存储
+                localStorage.setItem('gold', gold);
+                localStorage.setItem('ownedIngredients', JSON.stringify(ownedIngredients));
+                
+                // 更新显示
+                updateGoldDisplay();
+                renderIngredients();
+                showNotification(`成功购买 ${ingredient.name}！`);
+            } else {
+                showNotification('金币不足！', true);
+            }
+        }
+        
+        // 更新金币显示
+        function updateGoldDisplay() {
+            goldAmount.textContent = gold;
+        }
+        
+        // 切换食材选择状态
+        function toggleIngredient(id) {
+            const ingredient = ingredients.find(ing => ing.id === id);
+            
+            // 检查是否拥有该食材
+            if (!ownedIngredients.includes(id) && ingredient.price > 0) {
+                showNotification('请先购买此食材！', true);
+                return;
+            }
+            
+            const index = selectedIngredients.findIndex(ing => ing.id === id);
+            
+            if (index === -1) {
+                // 添加食材
+                selectedIngredients.push(ingredient);
+                addIngredientToPot(ingredient);
+            } else {
+                // 移除食材
+                selectedIngredients.splice(index, 1);
+                renderPotContent();
+            }
+            
+            updateIngredientUI();
+            updateCookButton();
+        }
+        
+        // 将食材添加到锅中
+        function addIngredientToPot(ingredient) {
+            const potIngredient = document.createElement('div');
+            potIngredient.className = 'ingredient-in-pot';
+            potIngredient.dataset.id = ingredient.id;
+            potIngredient.innerHTML = `
+                <svg viewBox="0 0 30 30">
+                    <circle cx="15" cy="15" r="12" fill="${ingredient.color}" />
+                    <text x="15" y="20" text-anchor="middle" font-size="16">${ingredient.icon}</text>
+                </svg>
+            `;
+            
+            potContent.appendChild(potIngredient);
+        }
+        
+        // 重新渲染锅中的内容
+        function renderPotContent() {
+            potContent.innerHTML = '';
+            selectedIngredients.forEach(ingredient => {
+                addIngredientToPot(ingredient);
+            });
+        }
+        
+        // 更新食材UI状态
+        function updateIngredientUI() {
+            document.querySelectorAll('.ingredient-item').forEach(item => {
+                const id = item.dataset.id;
+                const isOwned = ownedIngredients.includes(id);
+                
+                if (selectedIngredients.some(ing => ing.id === id) && isOwned) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
+        // 更新烹饪按钮状态
+        function updateCookButton() {
+            // 检查是否有未购买的食材
+            const hasUnownedIngredient = selectedIngredients.some(ing => 
+                !ownedIngredients.includes(ing.id) && ingredients.find(i => i.id === ing.id).price > 0
+            );
+            
+            cookBtn.disabled = selectedIngredients.length === 0 || hasUnownedIngredient;
+            
+            if (hasUnownedIngredient) {
+                cookBtn.textContent = '请先购买食材';
+            } else {
+                cookBtn.textContent = '完成烹饪';
+            }
+        }
+        
+        // 清空锅子
+        function clearPot() {
+            selectedIngredients = [];
+            renderPotContent();
+            updateIngredientUI();
+            updateCookButton();
+        }
+        
+        // 烹饪动画
+        function startCooking() {
+            if (selectedIngredients.length === 0) return;
+            
+            cookBtn.disabled = true;
+            cookBtn.textContent = '烹饪中...';
+            
+            const pot = document.getElementById('cookingPot');
+            pot.style.animation = 'shake 1s ease-in-out';
+            
+            setTimeout(() => {
+                pot.style.animation = '';
+                cookBtn.textContent = '完成烹饪';
+                showNotification('烹饪完成！现在可以给顾客了');
+                prepareServingArea();
+            }, 1000);
+        }
+        
+        // 设置动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .fade-in {
+                animation: fadeIn 0.5s ease forwards;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 准备上菜区域
+        function prepareServingArea() {
+            currentDish = [...selectedIngredients];
+            
+            servingArea.innerHTML = `
+                <p style="margin-bottom: 15px; color: #666;">请将这道菜端给顾客！</p>
+                <div class="dish-plate">
+                    <div class="dish-content" id="dishContent">
+                        <!-- 菜肴内容将显示在这里 -->
+                    </div>
+                </div>
+                <button class="btn btn-serve" id="serveBtn">上菜</button>
+            `;
+            
+            const dishContent = document.getElementById('dishContent');
+            const serveBtn = document.getElementById('serveBtn');
+            
+            // 渲染菜肴内容
+            selectedIngredients.forEach(ingredient => {
+                const dishIngredient = document.createElement('div');
+                dishIngredient.innerHTML = `
+                    <svg viewBox="0 0 20 20" style="width: 20px; height: 20px;">
+                        <circle cx="10" cy="10" r="9" fill="${ingredient.color}" />
+                        <text x="10" y="14" text-anchor="middle" font-size="10">${ingredient.icon}</text>
+                    </svg>
+                `;
+                dishContent.appendChild(dishIngredient);
+            });
+            
+            serveBtn.addEventListener('click', serveToCustomer);
+        }
+        
+        // 为顾客上菜
+        function serveToCustomer() {
+            const customer = customerTypes[Math.floor(Math.random() * customerTypes.length)];
+            let score = 0;
+            let earnings = 0;
+            let comment = '';
+            let bonus = 0;
+            
+            // 计算得分
+            if (selectedIngredients.length === 0) {
+                score = 1;
+                comment = '这是什么？空的盘子吗？';
+            } else if (customer.highExpectation && selectedIngredients.length < 3) {
+                score = 2;
+                comment = '这太简单了，我还期待更好的料理。';
+            } else {
+                // 检查是否符合顾客偏好
+                const matchedIngredients = selectedIngredients.filter(ing => 
+                    customer.preferences.includes(ing.id)
+                ).length;
+                
+                if (customer.preferences.length > 0) {
+                    const matchRatio = matchedIngredients / customer.preferences.length;
+                    score = Math.ceil(1 + matchRatio * 4);
+                    
+                    if (score >= 4) {
+                        comment = '太美味了！你很懂我喜欢的口味！';
+                    } else if (score === 3) {
+                        comment = '还不错，但还不够好。';
+                    } else {
+                        comment = '这不是我想要的风格。';
+                    }
+                } else {
+                    // 普通顾客，根据食材多样性评分
+                    const uniqueIngredients = new Set(selectedIngredients.map(ing => ing.id)).size;
+                    score = Math.min(5, Math.ceil(uniqueIngredients / 2));
+                    
+                    if (score >= 4) {
+                        comment = '哇！这道菜真棒！';
+                    } else if (score === 3) {
+                        comment = '味道还可以。';
+                    } else {
+                        comment = '好像少了点什么...';
+                    }
+                }
+            }
+            
+            // 计算收益
+            earnings = score * 10;
+            
+            // 检查是否获得奖励
+            if (score >= customer.bonusThreshold) {
+                bonus = 10;
+            }
+            
+            // 更新餐厅统计
+            restaurantStats.totalEarnings += earnings + bonus;
+            restaurantStats.totalRating += score;
+            restaurantStats.customersServed += 1;
+            
+            // 更新金币
+            gold += earnings + bonus;
+            
+            // 保存数据
+            localStorage.setItem('restaurantStats', JSON.stringify(restaurantStats));
+            localStorage.setItem('gold', gold);
+            
+            // 显示顾客反应
+            customerArea.style.display = 'block';
+            customerMessage.textContent = customer.message;
+            
+            // 显示评分
+            customerRating.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('span');
+                star.className = 'star';
+                star.textContent = i <= score ? '★' : '☆';
+                star.style.color = i <= score ? '#ffc107' : '#ddd';
+                customerRating.appendChild(star);
+            }
+            
+            customerComment.textContent = comment;
+            earningsValue.textContent = earnings;
+            
+            // 显示奖励
+            if (bonus > 0) {
+                bonusEarnings.style.display = 'block';
+                bonusValue.textContent = `+${bonus}`;
+            } else {
+                bonusEarnings.style.display = 'none';
+            }
+            
+            // 添加淡入动画
+            customerArea.classList.add('fade-in');
+            
+            // 滚动到顾客区域
+            customerArea.scrollIntoView({ behavior: 'smooth' });
+            
+            // 更新统计显示
+            updateStats();
+            updateGoldDisplay();
+            
+            // 隐藏上菜区域
+            servingArea.style.display = 'none';
+        }
+        
+        // 更新统计显示
+        function updateStats() {
+            totalEarnings.textContent = restaurantStats.totalEarnings;
+            
+            const avgScore = restaurantStats.customersServed > 0
+                ? (restaurantStats.totalRating / restaurantStats.customersServed).toFixed(1)
+                : 0;
+            avgRating.textContent = avgScore;
+            
+            customersServed.textContent = restaurantStats.customersServed;
+        }
+        
+        // 下一位顾客
+        function nextCustomer() {
+            customerArea.style.display = 'none';
+            customerArea.classList.remove('fade-in');
+            
+            servingArea.style.display = 'block';
+            servingArea.innerHTML = `
+                <p style="margin-bottom: 15px; color: #666;">烹饪完成后，为顾客提供您的美食！</p>
+                <div style="text-align: center;">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <circle cx="50" cy="45" r="30" fill="#ffccbc" />
+                        <circle cx="40" cy="40" r="3" fill="#333" />
+                        <circle cx="60" cy="40" r="3" fill="#333" />
+                        <path d="M 40 55 Q 50 65 60 55" stroke="#333" stroke-width="2" fill="none" />
+                        <ellipse cx="50" cy="80" rx="25" ry="35" fill="#4fc3f7" style="opacity: 0" id="customerWait" />
+                    </svg>
+                </div>
+                <p style="margin-top: 15px; color: #666;">顾客正在等待...</p>
+            `;
+            
+            // 模拟顾客等待
+            setTimeout(() => {
+                const customerWait = document.getElementById('customerWait');
+                if (customerWait) {
+                    customerWait.style.transition = 'opacity 1s';
+                    customerWait.style.opacity = '1';
+                }
+            }, 500);
+        }
+        
+        // 更新保存按钮状态
+        function updateSaveButton() {
+            saveBtn.disabled = selectedIngredients.length === 0 || !recipeNameInput.value.trim() || currentRating === 0;
+        }
+        
+        // 设置评分
+        function setRating(rating) {
+            currentRating = rating;
+            ratingStars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            ratingValue.textContent = `${rating}/5`;
+            updateSaveButton();
+        }
+        
+        // 保存食谱
+        function saveRecipe() {
+            const recipeName = recipeNameInput.value.trim();
+            
+            if (!recipeName || !selectedIngredients.length || currentRating === 0) {
+                return;
+            }
+            
+            const recipe = {
+                id: Date.now(),
+                name: recipeName,
+                ingredients: [...selectedIngredients],
+                rating: currentRating,
+                date: new Date().toLocaleDateString('zh-CN')
+            };
+            
+            savedRecipes.push(recipe);
+            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            
+            // 重置表单
+            clearPot();
+            recipeNameInput.value = '';
+            setRating(0);
+            
+            // 更新显示
+            loadSavedRecipes();
+            showNotification('食谱保存成功！');
+            updateSaveButton();
+        }
+        
+        // 加载已保存的食谱
+        function loadSavedRecipes() {
+            recipeList.innerHTML = '';
+            
+            if (savedRecipes.length === 0) {
+                recipeList.innerHTML = '<p style="text-align: center; color: #999;">还没有保存的食谱</p>';
+                return;
+            }
+            
+            savedRecipes.forEach(recipe => {
+                const recipeEl = document.createElement('div');
+                recipeEl.className = 'recipe-item';
+                recipeEl.dataset.id = recipe.id;
+                
+                // 生成食谱SVG
+                let ingredientsSVG = '';
+                recipe.ingredients.slice(0, 4).forEach((ingredient, index) => {
+                    ingredientsSVG += `
+                        <circle cx="${15 + index * 15}" cy="30" r="8" fill="${ingredient.color}" />
+                        <text x="${15 + index * 15}" y="35" text-anchor="middle" font-size="8">${ingredient.icon}</text>
+                    `;
+                });
+                
+                recipeEl.innerHTML = `
+                    <div class="recipe-icon">
+                        <svg viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="28" fill="white" stroke="#e0e0e0" stroke-width="2" />
+                            ${ingredientsSVG}
+                        </svg>
+                    </div>
+                    <div class="recipe-name">${recipe.name}</div>
+                    <div class="recipe-rating">${'★'.repeat(recipe.rating)}${'☆'.repeat(5 - recipe.rating)}</div>
+                `;
+                
+                recipeEl.addEventListener('click', () => showRecipeDetails(recipe));
+                recipeList.appendChild(recipeEl);
+            });
+        }
+        
+        // 显示食谱详情
+        function showRecipeDetails(recipe) {
+            recipeDetails.innerHTML = `
+                <h3>${recipe.name}</h3>
+                <div class="recipe-rating">评分: ${'★'.repeat(recipe.rating)}${'☆'.repeat(5 - recipe.rating)} (${recipe.rating}/5)</div>
+                <div class="recipe-ingredients">
+                    <p><strong>食材:</strong></p>
+                    ${recipe.ingredients.map(ing => {
+                        const ingredient = ingredients.find(i => i.id === ing.id);
+                        const priceText = ingredient.price > 0 ? ` (💰${ingredient.price})` : '';
+                        return `<span class="ingredient-tag">${ing.icon} ${ing.name}${priceText}</span>`;
+                    }).join('')}
+                </div>
+                <div style="margin-top: 20px;">
+                    <p><strong>创建日期:</strong> ${recipe.date}</p>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-cook" onclick="loadRecipe(${recipe.id})">重新制作</button>
+                </div>
+            `;
+            
+            recipeModal.style.display = 'flex';
+        }
+        
+        // 加载食谱到烹饪区
+        function loadRecipe(recipeId) {
+            const recipe = savedRecipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+            
+            clearPot();
+            selectedIngredients = [...recipe.ingredients];
+            
+            // 检查是否有未购买的食材
+            recipe.ingredients.forEach(ingredient => {
+                const ingredientData = ingredients.find(i => i.id === ingredient.id);
+                if (ingredientData.price > 0 && !ownedIngredients.includes(ingredient.id)) {
+                    showNotification(`请先购买 ${ingredient.name}！`, true);
+                }
+            });
+            
+            renderPotContent();
+            updateIngredientUI();
+            
+            recipeModal.style.display = 'none';
+            
+            // 滚动到烹饪区
+            document.querySelector('.cooking-area').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.style.background = isError ? '#f44336' : '#4caf50';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 开始烹饪比赛
+        function startCompetition() {
+            if (competitionInProgress) return;
+            
+            competitionInProgress = true;
+            startCompetitionBtn.disabled = true;
+            startCompetitionBtn.textContent = '比赛进行中...';
+            
+            // 随机选择比赛主题
+            const theme = competitionThemes[Math.floor(Math.random() * competitionThemes.length)];
+            competitionTheme.textContent = theme.name;
+            competitionRules.textContent = theme.rules;
+            
+            // 显示比赛信息
+            competitionInfo.style.display = 'block';
+            competitionProgress.style.display = 'block';
+            competitionTimerDisplay.style.display = 'block';
+            competitionResults.style.display = 'none';
+            
+            // 重置进度条
+            progressBar.style.width = '0%';
+            
+            // 开始倒计时
+            let timeLeft = 40;
+            competitionTimerDisplay.textContent = `比赛时间：${timeLeft}秒`;
+            
+            competitionTimer = setInterval(() => {
+                timeLeft--;
+                competitionTimerDisplay.textContent = `比赛时间：${timeLeft}秒`;
+                
+                // 更新进度条
+                const progress = ((60 - timeLeft) / 60) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                if (timeLeft <= 0) {
+                    endCompetition(theme);
+                }
+            }, 1000);
+            
+            // 滚动到比赛区域
+            document.querySelector('.competition-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 结束比赛
+        function endCompetition(theme) {
+            clearInterval(competitionTimer);
+            competitionInProgress = false;
+            
+            // 显示结果
+            showCompetitionResults(theme);
+        }
+        
+        // 显示比赛结果
+        function showCompetitionResults(theme) {
+            // 隐藏比赛信息
+            competitionInfo.style.display = 'none';
+            competitionProgress.style.display = 'none';
+            competitionTimerDisplay.style.display = 'none';
+            
+            // 计算玩家得分
+            let playerScore = calculateCompetitionScore(selectedIngredients, theme);
+            
+            // 生成AI厨师得分
+            const aiScores = aiChefs.map(chef => {
+                let aiScore = Math.floor(Math.random() * 20) + 60; // 60-80分之间的随机分数
+                if (theme.scoreMultiplier) {
+                    aiScore = Math.min(100, Math.floor(aiScore * theme.scoreMultiplier));
+                }
+                return {
+                    name: chef.name,
+                    avatar: chef.avatar,
+                    score: aiScore
+                };
+            });
+            
+            // 添加玩家得分
+            aiScores.push({
+                name: '你',
+                avatar: '👨‍🍳',
+                score: playerScore,
+                isPlayer: true
+            });
+            
+            // 排序得分
+            aiScores.sort((a, b) => b.score - a.score);
+            
+            // 显示结果
+            competitionResults.style.display = 'block';
+            resultsContainer.innerHTML = '';
+            
+            aiScores.forEach((result, index) => {
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                if (result.isPlayer) {
+                    resultCard.style.background = index === 0 ? '#e8f5e9' : '#fff3e0';
+                    resultCard.style.border = index === 0 ? '2px solid #4caf50' : '2px solid #ff9800';
+                }
+                
+                resultCard.innerHTML = `
+                    <div class="result-player">
+                        <div class="result-avatar" style="background: ${result.isPlayer ? (index === 0 ? '#c8e6c9' : '#ffe0b2') : '#f5f5f5'}">
+                            ${result.avatar}
+                        </div>
+                        <div class="result-info">
+                            <div class="result-name">${result.name} ${result.isPlayer && index === 0 ? '🏆' : ''}</div>
+                            <div class="result-score">${result.isPlayer ? '你的得分' : 'AI得分'}</div>
+                        </div>
+                    </div>
+                    <div class="result-points">${result.score}分</div>
+                `;
+                
+                resultsContainer.appendChild(resultCard);
+            });
+            
+            // 显示奖状（如果获胜）
+            if (playerScore === Math.max(...aiScores.map(r => r.score))) {
+                setTimeout(() => {
+                    showCertificate();
+                }, 1500);
+            } else {
+                // 显示失败信息
+                const noCertificate = document.createElement('div');
+                noCertificate.style.textAlign = 'center';
+                noCertificate.style.padding = '20px';
+                noCertificate.style.color = '#666';
+                noCertificate.innerHTML = `
+                    <p>很遗憾，这次没有获得第一名。</p>
+                    <p>再接再厉，下次一定可以获胜！</p>
+                `;
+                resultsContainer.appendChild(noCertificate);
+            }
+            
+            // 重置按钮
+            startCompetitionBtn.disabled = false;
+            startCompetitionBtn.textContent = '再次比赛';
+            
+            // 重置锅子
+            clearPot();
+        }
+        
+        // 计算比赛得分
+        function calculateCompetitionScore(ingredients, theme) {
+            let score = 0;
+            
+            // 基础分：食材数量和多样性
+            const uniqueIngredients = new Set(ingredients.map(ing => ing.id)).size;
+            score += uniqueIngredients * 10;
+            
+            // 检查特殊要求
+            if (theme.requiredIngredients.length > 0) {
+                const requiredCount = theme.requiredIngredients.filter(id => 
+                    ingredients.some(ing => ing.id === id)
+                ).length;
+                score += requiredCount * 15;
+            }
+            
+            if (theme.minIngredients && ingredients.length >= theme.minIngredients) {
+                score += 20;
+            }
+            
+            if (theme.maxCost) {
+                const totalCost = ingredients.reduce((sum, ing) => {
+                    const ingredient = ingredients.find(i => i.id === ing.id);
+                    return sum + (ingredient ? ingredient.price : 0);
+                }, 0);
+                
+                if (totalCost <= theme.maxCost) {
+                    score += 25;
+                } else {
+                    score -= (totalCost - theme.maxCost) / 2;
+                }
+            }
+            
+            // 应用倍数加成
+            if (theme.scoreMultiplier) {
+                score = Math.min(100, Math.floor(score * theme.scoreMultiplier));
+            }
+            
+            // 随机调整
+            score += Math.floor(Math.random() * 11) - 5; // -5到+5的随机调整
+            
+            return Math.max(0, Math.min(100, score)); // 确保分数在0-100之间
+        }
+        
+        // 显示奖状
+        function showCertificate() {
+            certificate.style.display = 'block';
+            certificateRestaurant.textContent = `"${restaurantName}"`;
+            certificateDate.textContent = new Date().toLocaleDateString('zh-CN');
+            
+            // 创建新奖状
+            const newCertificate = {
+                id: Date.now(),
+                restaurant: restaurantName,
+                date: new Date().toISOString(),
+                competitionTheme: competitionTheme.textContent,
+                timestamp: Date.now()
+            };
+            
+            // 保存奖状
+            certificates.push(newCertificate);
+            localStorage.setItem('certificates', JSON.stringify(certificates));
+            
+            // 更新奖状墙
+            loadCertificateWall();
+            
+            // 显示获奖通知
+            setTimeout(() => {
+                showNotification('🏆 恭喜获得奖状！');
+            }, 1000);
+        }
+        
+        // 加载奖状墙
+        function loadCertificateWall() {
+            certificateGrid.innerHTML = '';
+            
+            // 更新奖状数量
+            certificateCount.textContent = `${certificates.length}个奖状`;
+            
+            if (certificates.length === 0) {
+                certificateGrid.innerHTML = '<div class="empty-wall">还没有获得任何奖状，快去参加比赛吧！</div>';
+                return;
+            }
+            
+            // 显示奖状
+            certificates.slice().reverse().forEach(certificate => {
+                const certificateItem = document.createElement('div');
+                certificateItem.className = 'certificate-item';
+                
+                const date = new Date(certificate.date);
+                const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+                
+                certificateItem.innerHTML = `
+                    <div class="certificate-preview">
+                        <div class="certificate-restaurant">${certificate.restaurant}</div>
+                        <div class="certificate-theme">${certificate.competitionTheme}</div>
+                        <div class="certificate-date">${formattedDate}</div>
+                    </div>
+                `;
+                
+                certificateItem.addEventListener('click', () => {
+                    showCertificateModal(certificate);
+                });
+                
+                certificateGrid.appendChild(certificateItem);
+            });
+        }
+        
+        // 显示奖状详情
+        function showCertificateModal(certificate) {
+            const date = new Date(certificate.date);
+            const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+            
+            certificateModalRestaurant.textContent = `"${certificate.restaurant}"`;
+            certificateModalDate.textContent = `${formattedDate} · ${certificate.competitionTheme}`;
+            
+            certificateModal.style.display = 'flex';
+            
+            // 滚动到奖状中心
+            setTimeout(() => {
+                certificateModalContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            clearBtn.addEventListener('click', clearPot);
+            cookBtn.addEventListener('click', startCooking);
+            saveBtn.addEventListener('click', saveRecipe);
+            startCompetitionBtn.addEventListener('click', startCompetition);
+            
+            restaurantNameInput.addEventListener('blur', saveRestaurantName);
+            restaurantNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveRestaurantName();
+                }
+            });
+            
+            ratingStars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const rating = parseInt(star.dataset.rating);
+                    setRating(rating);
+                });
+            });
+            
+            recipeNameInput.addEventListener('input', updateSaveButton);
+            
+            nextCustomerBtn.addEventListener('click', nextCustomer);
+            
+            closeModal.addEventListener('click', () => {
+                recipeModal.style.display = 'none';
+            });
+            
+            recipeModal.addEventListener('click', (e) => {
+                if (e.target === recipeModal) {
+                    recipeModal.style.display = 'none';
+                }
+            });
+            
+            closeModalCertificateModal.addEventListener('click', () => {
+                certificateModal.style.display = 'none';
+            });
+            
+            certificateModal.addEventListener('click', (e) => {
+                if (e.target === certificateModal) {
+                    certificateModal.style.display = 'none';
+                }
+            });
+            
+            // 防止移动端双击缩放
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (event) => {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        }
+        
+        // 启动游戏
+        init();
+    </script>
+</body>
+</html>

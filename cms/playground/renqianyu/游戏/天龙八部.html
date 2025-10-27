@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>江湖对决 - 乔峰挑战五关</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "华文行楷", cursive;
+      background: url('https://images.pexels.com/photos/3395163/pexels-photo-3395163.jpeg') no-repeat center center/cover;
+      background-size: cover;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px #000000;
+    }
+
+    .current-level {
+      margin-bottom: 15px;
+      font-size: 1.8em;
+      color: #ac56ff;
+      text-shadow: 2px 2px #000000;
+      font-weight: bold;
+    }
+
+    .game-container {
+      width: 600px;
+      height: 400px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(5px);
+      padding: 20px;
+    }
+
+    .player, .enemy {
+      width: 250px;
+      height: 100px;
+      background-color: #00FF00;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00FF00;
+      position: absolute;
+      top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: black;
+      font-weight: bold;
+      font-size: 1.5em;
+      overflow: hidden;
+      text-shadow: 1px 1px #000000;
+    }
+
+    .player {
+      left: 0;
+      background-color: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+
+    .enemy {
+      right: 0;
+      background-color: #8A2BE2;
+      box-shadow: 0 0 15px #3a003a;
+    }
+
+    .status-display {
+      margin-top: 10px;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-shadow: 2px 2px #000000;
+      transition: color 0.5s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .status-display {
+      animation: pulse 0.4s infinite;
+    }
+
+    .button-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .attack-btn, .heal-btn {
+      padding: 12px 24px;
+      font-size: 1.2em;
+      background-color: #FFA500;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 8px #FF8C00;
+      transition: all 0.2s ease;
+      text-shadow: 1px 1px #000000;
+    }
+
+    .attack-btn:hover,
+    .heal-btn:hover {
+      background-color: #FF8C00;
+      transform: scale(1.1);
+    }
+
+    .enemy-stats {
+      margin-top: 10px;
+      font-size: 1.3em;
+      font-weight: bold;
+      text-shadow: 1px 1px #000000;
+      color: #0066ff;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-shadow: 1px 1px #000000;
+    }
+
+    .fade-out {
+      animation: fadeOut 0.8s ease-in;
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    @media (max-width: 600px) {
+      .button-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .attack-btn, .heal-btn {
+        width: 80%;
+        margin: 10px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>江湖对决 - 乔峰挑战五关</h1>
+  <div class="current-level" id="currentLevel">第 1 关</div>
+  <div class="game-container" id="gameContainer">
+    <div class="player" id="player">乔峰</div>
+    <div class="enemy" id="enemy">丁春秋：100</div>
+    <div class="status-display" id="statusDisplay">
+      乔峰：100/100
+    </div>
+    <div class="enemy-stats" id="enemyStats">敌人战斗值：10-11</div>
+    <div class="button-container">
+      <button class="attack-btn" id="attackBtn" onclick="attack('high')">降龙十八掌（↑）<br><small>攻击范围：20-25</small></button>
+      <button class="heal-btn" id="healBtn" onclick="heal()">运功回血（↓）<br><small>回血范围：20-25</small></button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    let playerHealth = 100;
+    let enemyHealth = 100; // 第1关默认100
+    let isPlayerTurn = true;
+    let isGameOver = false;
+    let level = 1;
+
+    const badNames = [
+      "丁春秋",
+      "慕容复",
+      "段延庆",
+      "天山童姥",
+      "南海鳄岛教主"
+    ];
+
+    const playerBox = document.getElementById('player');
+    const enemyBox = document.getElementById('enemy');
+    const result = document.getElementById('result');
+    const attackBtn = document.getElementById('attackBtn');
+    const healBtn = document.getElementById('healBtn');
+    const statusDisplay = document.getElementById('statusDisplay');
+    const currentLevel = document.getElementById('currentLevel');
+    const enemyStats = document.getElementById('enemyStats');
+
+    const keyMap = {
+      'ArrowUp': 'high',
+      'ArrowDown': 'heal'
+    };
+
+    function getAttackRange() {
+      const base = 20;
+      let increase = level >= 2 ? 1 : 0;
+      increase = level >= 3 ? 2 : increase;
+      increase = level >= 4 ? 3 : increase;
+      increase = level >= 5 ? 5 : increase;
+      return [base + increase, 25];
+    }
+
+    function updateAttackButton() {
+      const [min, max] = getAttackRange();
+      attackBtn.innerHTML = `降龙十八掌（↑）<br><small>攻击范围：${min}-${max}</small>`;
+      healBtn.innerHTML = `运功回血（↓）<br><small>回血范围：${min}-${max}</small>`;
+      statusDisplay.textContent = `乔峰：${playerHealth}/100`;
+      currentLevel.textContent = `第 ${level} 关`;
+      updateEnemyStats();
+      updateStatusColor();
+    }
+
+    function getEnemyAttackRange() {
+      return [10, 11]; // 敌人攻击力固定
+    }
+
+    function updateStatusColor() {
+      if (playerHealth >= 75) {
+        statusDisplay.style.color = "#5cfa5c"; // 绿色
+      } else if (playerHealth >= 50) {
+        statusDisplay.style.color = "#ffcc00"; // 橙色
+      } else {
+        statusDisplay.style.color = "#ef4646"; // 红色
+      }
+    }
+
+    function updateEnemyStats() {
+      const enemyName = badNames[level - 1];
+      enemyBox.textContent = `${enemyName}：${enemyHealth}`;
+      enemyStats.textContent = `敌人战斗值：10-11`;
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (!isPlayerTurn || isGameOver) return;
+      const action = keyMap[event.key];
+      if (action) {
+        if (action === 'high') {
+          attack('high');
+        } else if (action === 'heal') {
+          heal();
+        }
+      }
+    });
+
+    function attack(type) {
+      if (isGameOver) return;
+
+      const [min, max] = getAttackRange();
+      const damage = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      enemyHealth -= damage;
+      result.textContent = `乔峰发动了「降龙十八掌」，造成${damage}伤害`;
+      result.style.color = "green";
+
+      enemyBox.textContent = `${enemyBox.textContent.split("：")[0]}：${enemyHealth}`;
+      statusDisplay.textContent = `乔峰：${playerHealth}/100`;
+      updateStatusColor();
+
+      if (enemyHealth <= 0) {
+        result.textContent = `🎉 乔峰一掌劈出，${enemyBox.textContent.split("：")[0]}倒地！`;
+        if (level === 5) {
+          result.textContent += `乔峰胜利！江湖传言：乔峰横空出世，降龙十八掌震古烁今！`;
+          isGameOver = true;
+        } else {
+          result.textContent += `乔峰升至第${level + 1}关，迎战新敌人！`;
+        }
+        isGameOver = false;
+        level++;
+        if (level <= 5) {
+          enemyHealth = 100 + (level - 1) * 20; // 第1关为100，第2关为120，以此类推
+        }
+
+        updateEnemyStats();
+        updateAttackButton();
+        currentLevel.classList.add('flash');
+        setTimeout(() => {
+          currentLevel.classList.remove('flash');
+        }, 500);
+        setTimeout(() => {
+          result.textContent = "";
+          isPlayerTurn = true;
+        }, 800);
+        return;
+      }
+
+      setTimeout(() => {
+        isPlayerTurn = false;
+        enemyTurn();
+      }, 500);
+    }
+
+    function heal() {
+      if (isGameOver || !isPlayerTurn) return;
+
+      const [min, max] = getAttackRange();
+      const healAmount = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      if (playerHealth < 100) {
+        playerHealth += healAmount;
+        result.textContent = `乔峰运功回血，恢复${healAmount}点血量`;
+        result.style.color = "gold";
+      } else {
+        result.textContent = "乔峰血量已满，无法再回血。";
+        result.style.color = "orange";
+      }
+
+      playerBox.textContent = `乔峰：${playerHealth}`;
+      statusDisplay.textContent = `乔峰：${playerHealth}/100`;
+      updateStatusColor();
+
+      setTimeout(() => {
+        isPlayerTurn = false;
+        enemyTurn();
+      }, 500);
+    }
+
+    function enemyTurn() {
+      if (isGameOver) return;
+
+      const [min, max] = getEnemyAttackRange();
+      const enemyDamage = Math.floor(Math.random() * (max - min + 1)) + min;
+      playerHealth -= enemyDamage;
+      result.textContent = `敌人使用「天山折梅手」，造成${enemyDamage}伤害`;
+      result.style.color = "red";
+
+      playerBox.textContent = `乔峰：${playerHealth}`;
+      statusDisplay.textContent = `乔峰：${playerHealth}/100`;
+      updateStatusColor();
+
+      if (playerHealth <= 0) {
+        result.textContent = "乔峰被敌人击败！游戏结束。";
+        result.style.color = "darkred";
+        isGameOver = true;
+        isPlayerTurn = false;
+      } else {
+        setTimeout(() => {
+          isPlayerTurn = true;
+        }, 800);
+      }
+    }
+
+    function resetGame() {
+      playerHealth = 100;
+      enemyHealth = 100;
+      isPlayerTurn = true;
+      isGameOver = false;
+      level = 1;
+      updateUI();
+      updateAttackButton();
+      result.textContent = "";
+      statusDisplay.textContent = "乔峰：100/100";
+      updateStatusColor();
+      updateEnemyStats();
+    }
+
+    function updateUI() {
+      playerBox.textContent = `乔峰：${playerHealth}`;
+      enemyBox.textContent = `${enemyBox.textContent.split("：")[0]}：${enemyHealth}`;
+    }
+
+    // 初始化游戏
+    resetGame();
+  </script>
+</body>
+</html>

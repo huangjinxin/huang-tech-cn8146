@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月结-成绩自动计算器</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/mdui/2.0.3/mdui.min.css">
+<script src="https://cdn.staticfile.org/mdui/2.0.3/mdui.global.min.js"></script>
+<style>
+  body {
+    background: #f8fafc;
+    color: #1e293b;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    padding: 20px;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 24px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    color: #0f172a;
+    text-align: center;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .mdui-textfield { margin-bottom: 10px; }
+  .result-box {
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 16px;
+    font-size: 0.95rem;
+    white-space: pre-line;
+    line-height: 1.6;
+  }
+  button {
+    margin-top: 12px;
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>月结-综合成绩自动计算器</h1>
+
+    <div class="grid">
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">日记等级 (1-5)</label>
+        <input class="mdui-textfield-input" type="number" id="diary" min="1" max="5" value="1">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">数学从</label>
+        <input class="mdui-textfield-input" type="number" id="mathFrom" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">数学到</label>
+        <input class="mdui-textfield-input" type="number" id="mathTo" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">编程从</label>
+        <input class="mdui-textfield-input" type="number" id="codeFrom" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">编程到</label>
+        <input class="mdui-textfield-input" type="number" id="codeTo" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">通报次数</label>
+        <input class="mdui-textfield-input" type="number" id="tb" min="0" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">触碰次数</label>
+        <input class="mdui-textfield-input" type="number" id="tp" min="0" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">伤痕数量</label>
+        <input class="mdui-textfield-input" type="number" id="sc" min="0" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">医疗花费</label>
+        <input class="mdui-textfield-input" type="number" id="med" min="0" value="0">
+      </div>
+
+      <div class="mdui-textfield">
+        <label class="mdui-textfield-label">轻伤等级</label>
+        <input class="mdui-textfield-input" type="number" id="ls" min="0" value="0">
+      </div>
+    </div>
+
+    <div class="result-box" id="resultBox">
+      计算结果将在此显示…
+    </div>
+
+    <button id="copyBtn">复制成绩</button>
+  </div>
+
+<script>
+function calculate() {
+  const D = parseFloat(document.getElementById('diary').value) || 0;
+  const M = (parseFloat(document.getElementById('mathTo').value) || 0) - (parseFloat(document.getElementById('mathFrom').value) || 0);
+  const P = (parseFloat(document.getElementById('codeTo').value) || 0) - (parseFloat(document.getElementById('codeFrom').value) || 0);
+  const T = parseFloat(document.getElementById('tb').value) || 0;
+  const C = parseFloat(document.getElementById('tp').value) || 0;
+  const W = parseFloat(document.getElementById('sc').value) || 0;
+  const Med = parseFloat(document.getElementById('med').value) || 0;
+  const L = parseFloat(document.getElementById('ls').value) || 0;
+
+  // 轻伤逻辑修正
+  let L_eff = (L <= 0) ? 1 : L * 2;
+
+  // 计算
+  const core = D * M * (0.1 * P);
+  const penalty = (5*T + 2*C + 3*W + Med) * L_eff;
+  const result = core - penalty;
+
+  // 时间
+  const now = new Date();
+  const timestamp = now.toLocaleString('zh-CN', { hour12:false });
+
+  const process = 
+`计算过程:
+日记等级 D = ${D}
+数学进度差值 M = ${M.toFixed(2)}
+编程进度差值 P = ${P.toFixed(2)} → 0.1×P = ${(0.1*P).toFixed(2)}
+轻伤输入 L = ${L} → L_eff = ${L_eff}
+扣分项: (5×${T} + 2×${C} + 3×${W} + ${Med}) = ${(5*T + 2*C + 3*W + Med).toFixed(2)}
+最终公式: D×M×(0.1P) − (5T+2C+3W+Med)×L_eff
+结果: ¥${result.toFixed(2)}
+
+计算时间：${timestamp}`;
+
+  document.getElementById('resultBox').textContent = process;
+  return process;
+}
+
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', calculate));
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = calculate();
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const success = document.execCommand('copy');
+  document.body.removeChild(ta);
+  alert(success ? '✅ 已复制成绩与计算过程' : '❌ 复制失败，请手动复制');
+});
+
+calculate();
+</script>
+</body>
+</html>

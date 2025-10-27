@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>⚔️ 打飞机（SVG 版）</title>
+<style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:system-ui,sans-serif;}
+    #game{width:100vw;height:100vh;display:block;background:radial-gradient(circle at 50% 30%,#112,#001);}
+    .info{fill:#fff;font-size:20px;}
+    .pause{fill:#ff0;font-size:48px;text-anchor:middle;}
+    .game-over{fill:#f55;font-size:48px;text-anchor:middle;}
+</style>
+</head>
+<body>
+<svg id="game" viewBox="0 0 400 600"></svg>
+
+<script>
+(() => {
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const VIEW_W = 400, VIEW_H = 600;
+    const PLAYER_W = 40, PLAYER_H = 48;
+    const BULLET_R = 3;
+    const ENEMY_W = 36, ENEMY_H = 36;
+    const STAR_COUNT = 80;
+
+    const svg = document.getElementById('game');
+
+    // ---------- 背景星星 ----------
+    const starGroup = document.createElementNS(SVG_NS,'g');
+    for(let i=0;i<STAR_COUNT;i++){
+        const star = document.createElementNS(SVG_NS,'circle');
+        const x = Math.random()*VIEW_W;
+        const y = Math.random()*VIEW_H;
+        const r = Math.random()*1.2+0.3;
+        const opacity = Math.random()*0.5+0.3;
+        star.setAttribute('cx',x);
+        star.setAttribute('cy',y);
+        star.setAttribute('r',r);
+        star.setAttribute('fill','#fff');
+        star.setAttribute('fill-opacity',opacity);
+        starGroup.appendChild(star);
+    }
+    svg.appendChild(starGroup);
+
+    // ---------- 信息文字 ----------
+    const info = document.createElementNS(SVG_NS,'text');
+    info.setAttribute('x',10);
+    info.setAttribute('y',30);
+    info.setAttribute('class','info');
+    info.textContent = 'Score: 0';
+    svg.appendChild(info);
+
+    const pauseText = document.createElementNS(SVG_NS,'text');
+    pauseText.setAttribute('x',VIEW_W/2);
+    pauseText.setAttribute('y',VIEW_H/2);
+    pauseText.setAttribute('class','pause');
+    pauseText.textContent = 'PAUSED';
+    pauseText.style.display = 'none';
+    svg.appendChild(pauseText);
+
+    // ---------- 玩家 ----------
+    const player = document.createElementNS(SVG_NS,'polygon');
+    // 一个简化的机身（向上指的三角形 + 两侧翅膀）
+    const pPath = `
+        ${VIEW_W/2},${VIEW_H-70}
+        ${VIEW_W/2-PLAYER_W/2},${VIEW_H-30}
+        ${VIEW_W/2-PLAYER_W/4},${VIEW_H-30}
+        ${VIEW_W/2-PLAYER_W/4},${VIEW_H-10}
+        ${VIEW_W/2+PLAYER_W/4},${VIEW_H-10}
+        ${VIEW_W/2+PLAYER_W/4},${VIEW_H-30}
+        ${VIEW_W/2+PLAYER_W/2},${VIEW_H-30}
+    `;
+    player.setAttribute('points',pPath.replace(/\s+/g,' ').trim());
+    player.setAttribute('fill','url(#playerGrad)');
+    svg.appendChild(player);
+
+    // 渐变飞机
+    const defs = document.createElementNS(SVG_NS,'defs');
+    const grad = document.createElementNS(SVG_NS,'linearGradient');
+    grad.id='playerGrad';
+    grad.setAttribute('x1','0%');grad.setAttribute('y1','0%');
+    grad.setAttribute('x2','0%');grad.setAttribute('y2','100%');
+    const stopA=document.createElementNS(SVG_NS,'stop');
+    stopA.setAttribute('offset','0%');stopA.setAttribute('stop-color','#00f');
+    const stopB=document.createElementNS(SVG_NS,'stop');
+    stopB.setAttribute('offset','100%');stopB.setAttribute('stop-color','#09f');
+    grad.append(stopA,stopB);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // ---------- 子弹 ----------
+    const bullets = []; // {el,cx,cy,vy}
+    const bulletGroup = document.createElementNS(SVG_NS,'g');
+    svg.appendChild(bulletGroup);
+
+    // ---------- 敌机 ----------
+    const enemies = []; // {el,x,y,vy,life}
+    const enemyGroup = document.createElementNS(SVG_NS,'g');
+    svg.appendChild(enemyGroup);
+
+    // ---------- 粒子 ----------
+    const particles = []; // {el,cx,cy,vx,vy,life}
+    const particleGroup = document.createElementNS(SVG_NS,'g');
+    svg.appendChild(particleGroup);
+
+    // ---------- 游戏状态 ----------
+    let score = 0;
+    let paused = false;
+    let gameOver = false;
+    let playerX = VIEW_W/2; // 只控制水平中心
+    const PLAYER_SPEED = 6;
+    const BULLET_SPEED = 8;
+    const ENEMY_BASE_SPEED = 2;
+    let enemySpawnInterval = 1500; // ms
+    let lastEnemySpawn = 0;
+    let lastBulletTime = 0;
+    const BULLET_COOLDOWN = 200; // ms
+
+    // ---------- 键盘控制 ----------
+    const keys = {left:false,right:false,shoot:false};
+    document.addEventListener('keydown',e=>{
+        if(e.repeat) return;
+        switch(e.code){
+            case 'ArrowLeft':  keys.left=true; break;
+            case 'ArrowRight': keys.right=true; break;
+            case 'Space':      keys.shoot=true; break;
+            case 'KeyP':       togglePause(); break;
+            case 'KeyR':       if(gameOver) reset(); break;
+        }
+    });
+    document.addEventListener('keyup',e=>{
+        switch(e.code){
+            case 'ArrowLeft':  keys.left=false; break;
+            case 'ArrowRight': keys.right=false; break;
+            case 'Space':      keys.shoot=false; break;
+        }
+    });
+
+    // ---------- 辅助函数 ----------
+    function togglePause(){
+        if(gameOver) return;
+        paused = !paused;
+        pauseText.style.display = paused ? 'block' : 'none';
+    }
+    function reset(){
+        // 清空所有元素
+        bulletGroup.innerHTML=''; particlesGroup?null:particleGroup.innerHTML=''; enemyGroup.innerHTML='';
+        bullets.length=0; enemies.length=0; particles.length=0;
+        score=0; paused=false; gameOver=false;
+        info.textContent='Score: 0';
+        pauseText.style.display='none';
+        // 重置玩家位置
+        playerX=VIEW_W/2;
+        updatePlayerPos();
+        // 重新开始计时
+        lastEnemySpawn=performance.now();
+        enemySpawnInterval=1500;
+        requestAnimationFrame(loop);
+    }
+
+    function updatePlayerPos(){
+        const dx = playerX - VIEW_W/2;
+        const newPoints = pPath
+            .trim()
+            .split(/\s+/)
+            .map(pt=>pt.split(','))
+            .map(([x,y])=>[+x+dx,+y])
+            .map(([x,y])=>`${x},${y}`)
+            .join(' ');
+        player.setAttribute('points',newPoints);
+    }
+
+    function fireBullet(){
+        const now = performance.now();
+        if(now - lastBulletTime < BULLET_COOLDOWN) return;
+        lastBulletTime = now;
+        const bullet = document.createElementNS(SVG_NS,'circle');
+        const cx = playerX;
+        const cy = VIEW_H-80; // 发射点略高于飞机底部
+        bullet.setAttribute('cx',cx);
+        bullet.setAttribute('cy',cy);
+        bullet.setAttribute('r',BULLET_R);
+        bullet.setAttribute('fill','#ff0');
+        bulletGroup.appendChild(bullet);
+        bullets.push({el:bullet,cx,cy,vy:-BULLET_SPEED});
+    }
+
+    function spawnEnemy(){
+        const enemy = document.createElementNS(SVG_NS,'polygon');
+        // 简单的倒三角形
+        const w = ENEMY_W, h = ENEMY_H;
+        const x = Math.random()*(VIEW_W-w);
+        const y = -h;
+        const pts = `
+            ${x},${y+h}
+            ${x+w/2},${y}
+            ${x+w},${y+h}
+        `;
+        enemy.setAttribute('points',pts.replace(/\s+/g,' ').trim());
+        const col = `hsl(${Math.random()*360},70%,60%)`;
+        enemy.setAttribute('fill',col);
+        enemyGroup.appendChild(enemy);
+        const speed = ENEMY_BASE_SPEED + Math.random()*1.5 + (score/1000); // 随得分加速
+        enemies.push({el:enemy,x,y,vy:speed,life:2,fill:col});
+    }
+
+    function createExplosion(x,y,color){
+        const count = 12;
+        for(let i=0;i<count;i++){
+            const p = document.createElementNS(SVG_NS,'circle');
+            p.setAttribute('cx',x);
+            p.setAttribute('cy',y);
+            p.setAttribute('r',3);
+            p.setAttribute('fill',color);
+            particleGroup.appendChild(p);
+            const angle = Math.random()*Math.PI*2;
+            const speed = Math.random()*2+1;
+            particles.push({
+                el:p,
+                cx:x,
+                cy:y,
+                vx:Math.cos(angle)*speed,
+                vy:Math.sin(angle)*speed,
+                life:30
+            });
+        }
+    }
+
+    // ---------- 主循环 ----------
+    function loop(timestamp){
+        if(paused){ requestAnimationFrame(loop); return; }
+        if(gameOver){ return; }
+
+        // 1️⃣ 玩家移动
+        if(keys.left){ playerX -= PLAYER_SPEED; }
+        if(keys.right){ playerX += PLAYER_SPEED; }
+        if(playerX < PLAYER_W/2) playerX = PLAYER_W/2;
+        if(playerX > VIEW_W-PLAYER_W/2) playerX = VIEW_W-PLAYER_W/2;
+        updatePlayerPos();
+
+        // 2️⃣ 发射子弹
+        if(keys.shoot) fireBullet();
+
+        // 3️⃣ 子弹更新 & 移除
+        for(let i=bullets.length-1;i>=0;i--){
+            const b = bullets[i];
+            b.cy += b.vy;
+            if(b.cy < -10){
+                b.el.remove(); bullets.splice(i,1); continue;
+            }
+            b.el.setAttribute('cy',b.cy);
+        }
+
+        // 4️⃣ 敌机生成
+        if(timestamp - lastEnemySpawn > enemySpawnInterval){
+            spawnEnemy();
+            lastEnemySpawn = timestamp;
+            // 难度递增：每 2000 分降低生成间隔 100ms（最低 300ms）
+            enemySpawnInterval = Math.max(300, 1500 - Math.floor(score/2000)*100);
+        }
+
+        // 5️⃣ 敌机更新 & 检测碰撞
+        for(let i=enemies.length-1;i>=0;i--){
+            const e = enemies[i];
+            e.y += e.vy;
+            const pts = `
+                ${e.x},${e.y+ENEMY_H}
+                ${e.x+ENEMY_W/2},${e.y}
+                ${e.x+ENEMY_W},${e.y+ENEMY_H}
+            `;
+            e.el.setAttribute('points',pts.replace(/\s+/g,' ').trim());
+
+            // 超出屏幕则消失（不计分）
+            if(e.y > VIEW_H){
+                e.el.remove(); enemies.splice(i,1); continue;
+            }
+
+            // 与玩家碰撞检测（简单的矩形近似）
+            const playerRect = {
+                x: playerX - PLAYER_W/2,
+                y: VIEW_H-80,
+                w: PLAYER_W,
+                h: PLAYER_H
+            };
+            const enemyRect = {x:e.x, y:e.y, w:ENEMY_W, h:ENEMY_H};
+            if(rectIntersect(playerRect, enemyRect)){
+                // 游戏结束
+                gameOver = true;
+                const go = document.createElementNS(SVG_NS,'text');
+                go.setAttribute('x',VIEW_W/2);
+                go.setAttribute('y',VIEW_H/2);
+                go.setAttribute('class','game-over');
+                go.textContent='GAME OVER';
+                svg.appendChild(go);
+                break;
+            }
+
+            // 子弹碰撞检测
+            for(let j=bullets.length-1;j>=0;j--){
+                const b = bullets[j];
+                if(pointInRect(b.cx,b.cy,enemyRect)){
+                    // 减血或直接消灭
+                    e.life--;
+                    createExplosion(b.cx,b.cy,e.fill);
+                    b.el.remove(); bullets.splice(j,1);
+                    if(e.life<=0){
+                        e.el.remove(); enemies.splice(i,1);
+                        score += 100;
+                        info.textContent = `Score: ${score}`;
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 6️⃣ 粒子更新
+        for(let i=particles.length-1;i>=0;i--){
+            const p = particles[i];
+            p.life--;
+            if(p.life<=0){
+                p.el.remove(); particles.splice(i,1); continue;
+            }
+            p.cx += p.vx;
+            p.cy += p.vy;
+            p.el.setAttribute('cx',p.cx);
+            p.el.setAttribute('cy',p.cy);
+            p.el.setAttribute('fill-opacity', p.life/30);
+        }
+
+        // 7️⃣ 背景星星微动（视差）
+        starGroup.childNodes.forEach(star=>{
+            let y = parseFloat(star.getAttribute('cy'))+0.2;
+            if(y>VIEW_H) y=0;
+            star.setAttribute('cy',y);
+        });
+
+        requestAnimationFrame(loop);
+    }
+
+    // ---------- 碰撞工具 ----------
+    function rectIntersect(a,b){
+        return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+    }
+    function pointInRect(px,py,r){
+        return px>=r.x && px<=r.x+r.w && py>=r.y && py<=r.y+r.h;
+    }
+
+    // ---------- 启动 ----------
+    requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

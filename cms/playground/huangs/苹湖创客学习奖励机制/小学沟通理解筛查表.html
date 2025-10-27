@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>小学沟通理解筛查表（可填写）</title>
+  <style>
+    :root{--bg:#f7fafc;--card:#fff;--accent:#0f6fff;--muted:#6b7280}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial; background:var(--bg); margin:0; padding:18px}
+    .container{max-width:880px;margin:0 auto}
+    header{display:flex;gap:12px;align-items:center}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:4px 0 18px;color:var(--muted)}
+    .card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    label.block{display:block;margin:8px 0;font-weight:600}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .col{flex:1;min-width:220px}
+    .small{font-size:13px;color:var(--muted)}
+    textarea, input[type=text], select{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e9ef}
+    .q{margin:10px 0}
+    .choices{display:flex;gap:8px;flex-wrap:wrap}
+    .choice{background:#f1f5f9;padding:6px 10px;border-radius:8px}
+    .score{font-weight:700}
+    footer{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+    button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;border:0;cursor:pointer}
+    button.secondary{background:#e6eefc;color:var(--accent)}
+    .hint{font-size:13px;color:var(--muted)}
+    .result{padding:12px;border-radius:10px;background:#fff;margin-top:10px}
+    @media print{body{background:#fff} .card{box-shadow:none} button, .no-print{display:none}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>小学沟通理解筛查表（可填写）</h1>
+        <p class="lead">用于学校一线初筛：语言理解 / 社交沟通 / 注意力。填写后可打印或导出记录。</p>
+      </div>
+    </header>
+
+    <form id="screenForm">
+
+      <section class="card">
+        <label class="block">被评估儿童信息</label>
+        <div class="row">
+          <div class="col"><input type="text" id="childName" placeholder="姓名"></div>
+          <div class="col"><input type="text" id="age" placeholder="年龄（岁）"></div>
+          <div class="col"><input type="text" id="grade" placeholder="年级/班级"></div>
+        </div>
+        <div style="margin-top:8px" class="row">
+          <div class="col"><input type="text" id="teacher" placeholder="填表人（教师/咨询师）"></div>
+          <div class="col"><input type="text" id="date" placeholder="日期（YYYY-MM-DD）"></div>
+        </div>
+      </section>
+
+      <!-- 语言理解 -->
+      <section class="card">
+        <label class="block">一、语言理解（请对每项记录：0=无法 1=部分正确 2=正确）</label>
+        <div class="small">说明：可以读题并让孩子复述、指图或选择；根据表现记分。</div>
+
+        <div class="q">
+          <div class="label">1. 指图/比较理解："比昨天更冷的天气是哪张？"（出示三张天气图）</div>
+          <div class="choices"><label class="choice"> <input type="radio" name="q1" value="2"> 2 正确</label> <label class="choice"> <input type="radio" name="q1" value="1"> 1 部分</label> <label class="choice"> <input type="radio" name="q1" value="0"> 0 无法</label></div>
+        </div>
+
+        <div class="q">
+          <div class="label">2. 条件句理解："如果今天不下雨，我们就去操场。那如果下雨怎么办？"（能否回答）</div>
+          <div class="choices"><label class="choice"> <input type="radio" name="q2" value="2"> 2 正确</label> <label class="choice"> <input type="radio" name="q2" value="1"> 1 部分</label> <label class="choice"> <input type="radio" name="q2" value="0"> 0 无法</label></div>
+        </div>
+
+        <div class="q">
+          <div class="label">3. 逻辑顺序："妈妈比姐姐大，姐姐比弟弟大，谁最小？"</div>
+          <div class="choices"><label class="choice"> <input type="radio" name="q3" value="2"> 2 正确</label> <label class="choice"> <input type="radio" name="q3" value="1"> 1 部分</label> <label class="choice"> <input type="radio" name="q3" value="0"> 0 无法</label></div>
+        </div>
+
+        <div class="q">
+          <div class="label">4. 抽象词理解：请解释“未来/可能/也许”的意思</div>
+          <div><select id="q4"><option value="2">2：能举例并解释</option><option value="1">1：部分正确（知道类似意思）</option><option value="0">0：无法理解</option></select></div>
+        </div>
+
+        <div class="q">
+          <div class="label">5. 复句理解：让孩子用"虽然...但是..."造一句话（记录样本）</div>
+          <textarea id="q5_sample" rows="2" placeholder="记录孩子造句结果"></textarea>
+          <div style="margin-top:6px"><label class="choice"><input type="radio" name="q5" value="2"> 2：造句正确且含义完整</label> <label class="choice"><input type="radio" name="q5" value="1"> 1：部分正确</label> <label class="choice"><input type="radio" name="q5" value="0"> 0：无法</label></div>
+        </div>
+
+      </section>
+
+      <!-- 社交沟通 -->
+      <section class="card">
+        <label class="block">二、社交沟通观察（0=正常 1=轻微异常 2=明显异常）</label>
+        <div class="q"><div class="label">A1. 是否能延续别人的话题/适当回应？</div>
+          <div class="choices"><label class="choice"><input type="radio" name="a1" value="0">0</label><label class="choice"><input type="radio" name="a1" value="1">1</label><label class="choice"><input type="radio" name="a1" value="2">2</label></div></div>
+
+        <div class="q"><div class="label">A2. 是否可以理解玩笑或暗示（不总是字面理解）？</div>
+          <div class="choices"><label class="choice"><input type="radio" name="a2" value="0">0</label><label class="choice"><input type="radio" name="a2" value="1">1</label><label class="choice"><input type="radio" name="a2" value="2">2</label></div></div>
+
+        <div class="q"><div class="label">A3. 眼神/表情反应是否适当？</div>
+          <div class="choices"><label class="choice"><input type="radio" name="a3" value="0">0</label><label class="choice"><input type="radio" name="a3" value="1">1</label><label class="choice"><input type="a3" name="a3" value="2">2</label></div></div>
+
+        <div class="q"><div class="label">A4. 是否经常字面理解别人话（对比/隐喻等）？</div>
+          <div class="choices"><label class="choice"><input type="radio" name="a4" value="0">0</label><label class="choice"><input type="radio" name="a4" value="1">1</label><label class="choice"><input type="radio" name="a4" value="2">2</label></div></div>
+
+      </section>
+
+      <!-- 注意力 -->
+      <section class="card">
+        <label class="block">三、注意与执行功能（0=无 1=偶尔 2=经常 3=总是）</label>
+        <div class="q"><div class="label">B1. 上课注意力不集中</div>
+          <div class="choices"><label class="choice"><input type="radio" name="b1" value="0">0</label><label class="choice"><input type="radio" name="b1" value="1">1</label><label class="choice"><input type="radio" name="b1" value="2">2</label><label class="choice"><input type="radio" name="b1" value="3">3</label></div></div>
+
+        <div class="q"><div class="label">B2. 很难坚持完成任务</div>
+          <div class="choices"><label class="choice"><input type="radio" name="b2" value="0">0</label><label class="choice"><input type="radio" name="b2" value="1">1</label><label class="choice"><input type="radio" name="b2" value="2">2</label><label class="choice"><input type="radio" name="b2" value="3">3</label></div></div>
+
+        <div class="q"><div class="label">B3. 对指令反应慢或走神</div>
+          <div class="choices"><label class="choice"><input type="radio" name="b3" value="0">0</label><label class="choice"><input type="radio" name="b3" value="1">1</label><label class="choice"><input type="radio" name="b3" value="2">2</label><label class="choice"><input type="radio" name="b3" value="3">3</label></div></div>
+
+      </section>
+
+      <!-- 家长信息 -->
+      <section class="card">
+        <label class="block">四、家长/照顾者信息（访谈要点）</label>
+        <div class="q"><div class="label">早期语言发育（如：何时第1词、第2词短句）：</div><textarea id="parent1" rows="2"></textarea></div>
+        <div class="q"><div class="label">日常媒体使用（每天短视频/游戏时长）：</div><input id="parent2" type="text" placeholder="例如：每天3小时 短视频+游戏"></div>
+        <div class="q"><div class="label">主要照顾者（父母/祖父母等）：</div><input id="parent3" type="text"></div>
+        <div class="q"><div class="label">教师补充观察/备注：</div><textarea id="notes" rows="3"></textarea></div>
+      </section>
+
+      <section class="card">
+        <label class="block">操作与结果</label>
+        <div class="row">
+          <div class="col"><button type="button" id="calc">计算总分与建议</button></div>
+          <div class="col"><button type="button" class="secondary" id="saveLocal">保存到本地</button></div>
+          <div class="col"><button type="button" class="secondary" id="exportJson">导出 JSON</button></div>
+        </div>
+        <div id="result" class="result no-print" style="display:none"></div>
+      </section>
+
+      <footer class="no-print">
+        <div class="hint">填写完成后可点击“计算”并使用浏览器打印保存报告（打印样式已优化）。</div>
+        <div>
+          <button type="button" id="clear">清空表单</button>
+          <button type="button" id="loadLocal" class="secondary">读取本地记录</button>
+          <button type="button" id="print" class="secondary">打印(PDF)</button>
+        </div>
+      </footer>
+
+    </form>
+  </div>
+
+  <script>
+    function qs(name){const el=document.querySelector('[name="'+name+'"]:checked'); return el?Number(el.value):null}
+    function qv(id){const el=document.getElementById(id); return el?el.value.trim():''}
+
+    function calc(){
+      // 语言理解分（q1-q5）
+      const q1 = qs('q1') ?? 0; const q2 = qs('q2') ?? 0; const q3 = qs('q3') ?? 0; const q4 = Number(document.getElementById('q4').value); const q5 = qs('q5') ?? 0;
+      const lang = q1+q2+q3+q4+q5; // max 10
+
+      // 社交沟通分 a1-a4 (0-2 each)
+      const a1 = qs('a1') ?? 0; const a2 = qs('a2') ?? 0; const a3 = (function(){const el=document.querySelector('[name="a3"]:checked'); return el?Number(el.value):0})() ; const a4 = qs('a4') ?? 0;
+      const social = a1+a2+a3+a4; // max 8
+
+      // 注意力 b1-b3 (0-3 each)
+      const b1 = qs('b1') ?? 0; const b2 = qs('b2') ?? 0; const b3 = qs('b3') ?? 0;
+      const attention = b1+b2+b3; // max 9
+
+      // interpret
+      let suggestions = [];
+      if(lang <= 4){ suggestions.push('语言理解明显滞后：建议尽快转诊语言治疗师（SLP）或综合评估。') }
+      else if(lang <=7){ suggestions.push('语言理解存在中度困难：建议学校内密切跟踪，开展情境语言训练与同伴互动训练。') }
+      else{ suggestions.push('语言理解大致在可接受范围，请继续课堂观察和早期干预。') }
+
+      if(social >=5){ suggestions.push('社交沟通评分较高：可能存在社交沟通障碍或对隐喻/暗示理解困难，建议进一步评估（如CCC-2/临床评估）。') }
+      if(attention >=6){ suggestions.push('注意力得分较高：建议进行注意力/执行功能进一步筛查（如Conners/CPT）。') }
+
+      // combined
+      const total = lang + social + attention;
+
+      const out = document.getElementById('result'); out.style.display='block'; out.innerHTML = `
+        <div><strong>语言理解分 (0-10)：</strong> ${lang} </div>
+        <div><strong>社交沟通分 (0-8)：</strong> ${social} </div>
+        <div><strong>注意力分 (0-9)：</strong> ${attention} </div>
+        <div style="margin-top:8px"><strong>综合建议：</strong><ul>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      `;
+
+      // also show sample text for q5
+      const sample = qv('q5_sample'); if(sample) out.innerHTML += `<div style="margin-top:6px"><strong>孩子造句记录：</strong><div class="small">${sample.replace(/</g,'&lt;')}</div></div>`;
+
+      return {lang,social,attention,total,suggestions};
+    }
+
+    document.getElementById('calc').addEventListener('click', ()=>{
+      calc();
+    });
+
+    // save/load local
+    document.getElementById('saveLocal').addEventListener('click', ()=>{
+      const payload = gather(); localStorage.setItem('screen_latest', JSON.stringify(payload)); alert('已保存到本地浏览器存储。可点击"读取本地记录"查看。');
+    });
+    document.getElementById('loadLocal').addEventListener('click', ()=>{
+      const raw = localStorage.getItem('screen_latest'); if(!raw){alert('本地无记录'); return;} const data=JSON.parse(raw); populate(data);
+    });
+    document.getElementById('clear').addEventListener('click', ()=>{ if(confirm('清空当前表单？')) document.getElementById('screenForm').reset(); document.getElementById('result').style.display='none';});
+
+    function gather(){
+      const data = {meta:{name:qv('childName'),age:qv('age'),grade:qv('grade'),teacher:qv('teacher'),date:qv('date')},answers:{
+        q1:qs('q1'),q2:qs('q2'),q3:qs('q3'),q4:Number(document.getElementById('q4').value),q5:qs('q5'),q5_sample:qv('q5_sample'),
+        a1:qs('a1'),a2:qs('a2'),a3:(function(){const el=document.querySelector('[name="a3"]:checked'); return el?Number(el.value):null})(),a4:qs('a4'),
+        b1:qs('b1'),b2:qs('b2'),b3:qs('b3'),
+        parent1:qv('parent1'),parent2:qv('parent2'),parent3:qv('parent3'),notes:qv('notes')
+      }};
+      data.scores = calc();
+      return data;
+    }
+
+    function populate(data){
+      try{
+        document.getElementById('childName').value = data.meta.name || '';
+        document.getElementById('age').value = data.meta.age || '';
+        document.getElementById('grade').value = data.meta.grade || '';
+        document.getElementById('teacher').value = data.meta.teacher || '';
+        document.getElementById('date').value = data.meta.date || '';
+        // answers
+        if(data.answers){
+          if(data.answers.q1!=null) document.querySelector('[name="q1"][value="'+data.answers.q1+'"]')?.checked = true;
+          if(data.answers.q2!=null) document.querySelector('[name="q2"][value="'+data.answers.q2+'"]')?.checked = true;
+          if(data.answers.q3!=null) document.querySelector('[name="q3"][value="'+data.answers.q3+'"]')?.checked = true;
+          if(data.answers.q4!=null) document.getElementById('q4').value = data.answers.q4;
+          if(data.answers.q5!=null) document.querySelector('[name="q5"][value="'+data.answers.q5+'"]')?.checked = true;
+          if(data.answers.q5_sample!=null) document.getElementById('q5_sample').value = data.answers.q5_sample;
+          if(data.answers.a1!=null) document.querySelector('[name="a1"][value="'+data.answers.a1+'"]')?.checked = true;
+          if(data.answers.a2!=null) document.querySelector('[name="a2"][value="'+data.answers.a2+'"]')?.checked = true;
+          if(data.answers.a3!=null) document.querySelector('[name="a3"][value="'+data.answers.a3+'"]')?.checked = true;
+          if(data.answers.a4!=null) document.querySelector('[name="a4"][value="'+data.answers.a4+'"]')?.checked = true;
+          if(data.answers.b1!=null) document.querySelector('[name="b1"][value="'+data.answers.b1+'"]')?.checked = true;
+          if(data.answers.b2!=null) document.querySelector('[name="b2"][value="'+data.answers.b2+'"]')?.checked = true;
+          if(data.answers.b3!=null) document.querySelector('[name="b3"][value="'+data.answers.b3+'"]')?.checked = true;
+          document.getElementById('parent1').value = data.answers.parent1 || '';
+          document.getElementById('parent2').value = data.answers.parent2 || '';
+          document.getElementById('parent3').value = data.answers.parent3 || '';
+          document.getElementById('notes').value = data.answers.notes || '';
+        }
+      }catch(e){console.error(e);}
+    }
+
+    document.getElementById('exportJson').addEventListener('click', ()=>{
+      const data = gather(); const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=(data.meta.name||'screen') + '_screen.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('print').addEventListener('click', ()=>{ window.print(); });
+
+    // init date default
+    (function(){ const d=new Date(); const s=d.toISOString().slice(0,10); document.getElementById('date').value = s; })();
+  </script>
+</body>
+</html>

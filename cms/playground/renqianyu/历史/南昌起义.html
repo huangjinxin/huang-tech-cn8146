@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>南昌起义——中国革命的起点</title>
+  <style>
+    /* 全局样式 */
+    body {
+      font-family: "微软雅黑", "SimSun", sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      line-height: 1.8;
+    }
+
+    h1, h2, h3 {
+      color: #d43639;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background-color: #fdfdfd;
+      border-left: 6px solid #d43639;
+      border-radius: 10px;
+    }
+
+    /* SVG 图标样式 */
+    svg {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      margin-bottom: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    /* 按钮样式 */
+    button {
+      background-color: #d43639;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px auto;
+      display: block;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    /* 文字弹出效果 */
+    .tip {
+      background-color: #e8f4ff;
+      padding: 15px;
+      border-left: 4px solid #3a86ff;
+      margin-top: 15px;
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+    }
+
+    /* 轮播样式 */
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      margin: 20px auto;
+      max-width: 800px;
+    }
+
+    .carousel-item {
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    .carousel-item.active {
+      display: block;
+    }
+
+    /* 指示器 */
+    .carousel-indicators {
+      display: flex;
+      justify-content: center;
+      margin-top: 15px;
+    }
+
+    .indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #aaa;
+      margin: 0 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .indicator.active {
+      background-color: #d43639;
+    }
+
+    /* 互动文字 */
+    .interact-text {
+      font-weight: bold;
+      color: #d43639;
+    }
+
+    /* 动画效果 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📍 南昌起义 —— 中国革命的起点</h1>
+
+  <div class="section">
+    <!-- 插图：南昌城 -->
+    <svg viewBox="0 0 800 400">
+      <rect width="800" height="400" fill="#d4f0e6"/>
+      <circle cx="350" cy="120" r="40" fill="#6e8b3d"/>
+      <circle cx="500" cy="140" r="60" fill="#6e8b3d"/>
+      <path d="M250,170 Q400,130 600,190" stroke="#2d5f2d" stroke-width="4" fill="none"/>
+      <path d="M350,280 Q400,260 600,230" stroke="#2d5f2d" stroke-width="4" fill="none"/>
+      <text x="400" y="380" font-size="20" text-anchor="middle" fill="#4a5c3b">
+        南昌城
+      </text>
+      <text x="400" y="150" font-size="28" text-anchor="middle" fill="#3a6b4e">
+        <tspan dy="10">1927年</tspan>
+        <tspan fill="#d43639" font-weight="bold"> 南昌起义 </tspan>
+      </text>
+    </svg>
+
+    <p class="interact-text">点击“开始故事”按钮，开启你的南昌起义之旅吧！</p>
+    <button onclick="startStory()">开始故事</button>
+  </div>
+
+  <!-- 故事主体 -->
+  <div class="section" id="storySection" style="display: none;">
+    <h2>💡 故事开始：为什么是南昌？</h2>
+    
+    <!-- 1. 背景 -->
+    <div class="carousel" id="backgroundCarousel">
+      <div class="carousel-item active">
+        <h3>🌟 背景：中国想自己掌权</h3>
+        <p>在1920年代，中国很多地方都支持“国共合作”——<strong>国民党</strong> 和 <strong>共产党</strong> 一起工作，共同抗日、改革土地。</p>
+        <p>但当时，共产党人在军队中很年轻，希望拥有自己的军队和政权。</p>
+        <div class="tip">
+          相当于：中国像一座大花园，园丁们希望有各自的花圃，而不是大家一起种同一个花园。
+        </div>
+      </div>
+
+      <div class="carousel-item">
+        <h3>🌱 希望建立一支自己的军队</h3>
+        <p>1927年，中国共产党决定：<strong>独立创建一支属于自己的军队</strong>。</p>
+        <p>他们要从地方战场出发，像小船一样把革命的火种传播到全国。</p>
+        <div class="tip">
+          这就像小朋友用竹竿当旗子，勇敢地说：“我们要自己的队伍！”
+        </div>
+      </div>
+
+      <div class="carousel-item">
+        <h3>🔥 为什么选在南昌？</h3>
+        <p>原因有三个：<br/>
+          ● 南昌交通方便，靠近长江，是南北要道。<br/>
+          ● 当时国民党的军队在江西驻扎得比较多，但不太强。<br/>
+          ● 南昌的共产党领导（如周总理、朱德将军）工作比较活跃。</p>
+        <div class="tip">
+          好比选择一个有电梯、连接多条路的中心站，来打一场关键战役。
+        </div>
+      </div>
+    </div>
+
+    <!-- 指示器 -->
+    <div class="carousel-indicators" id="indicators">
+      <div class="indicator active"></div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
+    </div>
+
+    <button onclick="nextSlide()">👉 下一张</button>
+    <button onclick="prevSlide()">👈 上一张</button>
+
+    <!-- 2. 时间线 -->
+    <h2>⏰ 时间轴：关键事件</h2>
+    <div class="section">
+      <p>1927年8月1日，是南昌起义发生的那一天！</p>
+      <div class="timeline">
+        <div class="time-item" style="margin: 15px 0;">
+          <h3>📅 1927年6月 —— 准备阶段</h3>
+          <p>共产党领导人在江西集中兵力，训练士兵，召开会议，决定在8月1日开打。</p>
+        </div>
+        <div class="time-item">
+          <h3>🗓️ 1927年8月1日 —— 正式起义</h3>
+          <p>上午，革命军在南昌城内发动进攻，打退了国民党的追兵。</p>
+          <div class="tip">
+            这一天就是“中国人民解放军”的诞生日！🎉
+          </div>
+        </div>
+        <div class="time-item">
+          <h3>🎉 8月1日之后 —— 革命胜利</h3>
+          <p>起义成功后，军队逐渐成为共产党控制的“主力部队”。</p>
+          <p>从此，“8月1日”成为每年的“建军节”。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 领导人物 -->
+    <h2>👥 关键人物</h2>
+    <div class="section">
+      <p>这次起义，有几位非常重要的领导人：</p>
+      
+      <div class="cards-container">
+        <div class="card" onclick="showLeaderInfo('周恩来')">
+          <h3>周总理</h3>
+          <p>他是革命的总指挥。在关键时刻，他带领大家制定策略。</p>
+          <div class="tip">
+            像是一位聪明的老师，总能解决问题。
+          </div>
+        </div>
+
+        <div class="card" onclick="showLeaderInfo('朱德')">
+          <h3>朱德将军</h3>
+          <p>他是军队的主将。他带领士兵打出了漂亮的战役。</p>
+          <div class="tip">
+            比如像一匹快马，冲锋在前。
+          </div>
+        </div>
+
+        <div class="card" onclick="showLeaderInfo('贺龙')">
+          <h3>贺龙将军</h3>
+          <p>他带领的部队是“工农军”，代表农民和工人。</p>
+          <div class="tip">
+            他是来自湖南的农民将军，非常接地气。
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. 意义 -->
+    <h2>🌟 它意味着什么？</h2>
+    <div class="section">
+      <p>南昌起义不仅是一次打胜仗，它更是一个“<strong>转折点</strong>”：</p>
+      <ul>
+        <li><strong>中国共产党拥有了自己的军队</strong>，不再是“小助手”。</li>
+        <li><strong>中国可以独立领导革命</strong>，不再依赖国民党。</li>
+        <li><strong>中国有了“建军节”</strong>，这是每年八月庆祝的日子。</li>
+      </ul>
+
+      <div class="tip">
+        就像在纸上画了一条红线，从此中国革命有了自己的“主线”。
+      </div>
+    </div>
+
+    <button onclick="launchQuiz()">📖 开始小测试</button>
+  </div>
+
+  <!-- 测试部分 -->
+  <div class="section" style="display: none;" id="quizSection">
+    <h2>🎯 小测试 —— 你能回答对吗？</h2>
+    <p>每答对一个问题，你就能获得一颗“星”勋章！</p>
+    
+    <div id="quizContainer"></div>
+
+    <button onclick="submitQuiz()">✅ 提交答案</button>
+    <button onclick="showResults()">📊 看看我的成绩！</button>
+
+    <!-- 显示结果 -->
+    <div id="result" style="display: none;">
+      <h3>🎉 恭喜！你答对了</h3>
+      <p id="scoreText"></p>
+    </div>
+  </div>
+
+  <!-- 弹出人物信息 -->
+  <div id="leaderModal" style="display: none;">
+    <div class="modal-content">
+      <h3 id="modalTitle"></h3>
+      <p id="modalText"></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // 控制轮播图
+  let currentSlide = 0;
+  const carouselItems = document.querySelectorAll('.carousel-item');
+  const indicators = document.querySelectorAll('.indicator');
+
+  function updateIndicators() {
+    indicators.forEach((ind, index) => {
+      if (index === currentSlide) {
+        ind.classList.add('active');
+      } else {
+        ind.classList.remove('active');
+      }
+    });
+  }
+
+  function showSlide(index) {
+    currentSlide = index;
+    carouselItems.forEach((item, i) => item.classList.remove('active'));
+    carouselItems[index].classList.add('active');
+    updateIndicators();
+  }
+
+  function nextSlide() {
+    currentSlide = (currentSlide + 1) % carouselItems.length;
+    showSlide(currentSlide);
+  }
+
+  function prevSlide() {
+    currentSlide = (currentSlide - 1 + carouselItems.length) % carouselItems.length;
+    showSlide(currentSlide);
+  }
+
+  // 弹出人物信息
+  function showLeaderInfo(name) {
+    const title = name === '周恩来' ? "周总理" : 
+                  name === '朱德' ? "朱德将军" : 
+                  "贺龙将军";
+    const text = name === '周恩来' ? 
+      "他在起义中担任总指挥，制定计划、协调各方，就像一个聪明的班长。" :
+      name === '朱德' ?
+        "他带领军队勇敢作战，在城市和乡村之间灵活机动。" :
+        "他带来的是来自湖南的工农兵，代表最普通老百姓的声音。";
+    
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalText').innerText = text;
+    
+    document.getElementById('leaderModal').style.display = 'block';
+  }
+
+  // 模态框关闭
+  window.onclick = function(event) {
+    const modal = document.getElementById('leaderModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
+
+  // 启动故事
+  function startStory() {
+    document.getElementById('storySection').style.display = 'block';
+    document.querySelector('.section.interact-text').style.display = 'none';
+  }
+
+  // 小测试
+  function launchQuiz() {
+    const quizContainer = document.getElementById('quizContainer');
+    quizContainer.innerHTML = '<h4>小测试开始！</h4>';
+    
+    const questions = [
+      {
+        question: "南昌起义发生的具体时间是？",
+        options: ["1927年6月", "1928年5月", "1927年8月1日"],
+        correct: 2
+      },
+      {
+        question: "南昌起义最大的意义是什么？",
+        options: ["成立了新的学校", "建立了属于自己的军队", "推出了新货币"],
+        correct: 1
+      },
+      {
+        question: "谁是这次起义的总指挥？",
+        options: ["朱德", "周恩来", "贺龙"],
+        correct: 1
+      }
+    ];
+
+    questions.forEach((q, idx) => {
+      const item = document.createElement('div');
+      item.innerHTML = `
+        <h4>${idx + 1}. ${q.question}</h4>
+        <div style="margin: 10px 0;">
+          ${q.options.map((opt, i) => `
+            <label>
+              <input type="radio" name="q${idx}" value="${i}">
+              ${opt}
+            </label>
+          `).join('')}
+        </div>`;
+      quizContainer.appendChild(item);
+    });
+
+    document.getElementById('quizSection').style.display = 'block';
+  }
+
+  function submitQuiz() {
+    const selects = document.querySelectorAll('input[type="radio"]:checked');
+    let score = 0;
+    
+    const questions = [
+      { correct: 2 },
+      { correct: 1 },
+      { correct: 1 }
+    ];
+
+    selects.forEach((r, idx) => {
+      if (parseInt(r.value) === questions[idx].correct) {
+        score++;
+      }
+    });
+
+    document.getElementById('scoreText').innerHTML = 
+      `你答对了 ${score} / 3 题！<br/>${score === 3 ? '🌟 优秀专家 🌟' : 
+      score >= 2 ? '👏 很棒！继续保持 🔥' :
+      score === 1 ? '💡 做得很好，加油！' : 
+      '🎉 再练练就能成为小历史家啦!'}`;
+    
+    document.getElementById('result').style.display = 'block';
+  }
+
+  function showResults() {
+    // 可以添加图表或动画效果
+    document.getElementById('result').style.display = 'block';
+  }
+
+</script>
+
+</body>
+</html>

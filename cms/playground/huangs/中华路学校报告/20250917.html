@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>中华路小学AI社团20250917课程总结</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; background:#f8f9fa; margin:0; padding:0;}
+    header { background:#004aad; color:white; padding:20px; text-align:center;}
+    nav { background:#eee; padding:10px; text-align:center;}
+    nav button { margin:0 10px; padding:8px 12px; border:none; border-radius:6px; background:#004aad; cursor:pointer;}
+    nav button svg { width:22px; height:22px; fill:white; }
+    main { max-width:900px; margin:20px auto; padding:20px; background:white; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+    section { margin-bottom:30px;}
+    h2 { color:#004aad; border-left:5px solid #004aad; padding-left:10px;}
+    .card { padding:15px; margin:10px 0; background:#f1f6ff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+    table { width:100%; border-collapse:collapse; margin:10px 0;}
+    th, td { border:1px solid #ccc; padding:10px; text-align:left;}
+    th { background:#e9f0ff; color:#004aad;}
+    footer { background:#004aad; color:white; text-align:center; padding:15px; margin-top:30px;}
+    .toggle { cursor:pointer; color:#004aad; text-decoration:underline; }
+    .hidden { display:none; }
+    svg { vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>中华路小学 AI 社团 · 每周课程总结</h1>
+    <p>时间：每周三 16:25–17:05</p>
+    <p><strong>AI助力，快乐学习。培养孩子对知识的兴趣，让学习比游戏更充满乐趣。</strong></p>
+  </header>
+
+  <nav>
+    <button onclick="showSection('course')" title="课程情况">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12V2zM8 4h2v16H8V4zm6 0h2v16h-2V4z"/></svg>
+    </button>
+    <button onclick="showSection('report')" title="情况汇报">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7-4h4v18h-4V3z"/></svg>
+    </button>
+  </nav>
+
+  <main>
+    <section id="course">
+      <h2>📘 课程情况</h2>
+      <div class="card"><h3>课程主题</h3><p>课堂纪律与智能体初体验</p></div>
+      <div class="card"><h3>课堂活动</h3><p>本校微机老师讲解了课堂规则和纪律；随后我带领学生分组观看电脑上的展示，内容包括创客空间里小朋友们制作的智能体、小游戏、学习小课件、小工具以及日记整理分析效果等。学生们初步感受到了智能体在学习与生活中的应用价值。</p></div>
+      <div class="card"><h3>学生表现</h3><p>学生们对智能体演示表现出很大兴趣，积极提出问题和想法，氛围热烈。但部分学生自控力不足，平时会绕过极域管控玩游戏或观看不良内容，需要进一步引导。</p></div>
+    </section>
+
+    <section id="report" style="display:none;">
+      <h2>📊 情况汇报</h2>
+      <table>
+        <tr><th>主要情况</th><td>学生对智能体演示表现出极大兴趣，课堂氛围热烈；同时发现自控力不足导致部分学生绕过极域管控。</td></tr>
+        <tr><th>存在问题</th><td>部分电脑无法开机或运行不畅；极域管控效果有限，学生能绕过限制；缺乏投屏设备，展示需要分组观看，效率较低。</td></tr>
+        <tr><th>改进措施</th><td>对现有设备进行维修和改造；切断外网接入自带 Wi‑Fi6 路由器；携带激光投影机实现无线投屏；搭建局域网服务，结合 macOS 上的 LM Studio 与 Cherry Studio，为学生提供安全封闭的 AI 学习和分享平台。</td></tr>
+      </table>
+      <p class="toggle" onclick="toggleDetails()">点击展开详细说明</p>
+      <div id="details" class="hidden">
+        <p>下次课程前将对现有设备进行维修和改造，切断外网接入我自带的 Wi‑Fi6 路由器；带上激光投影机，保证能无线投屏；同时搭建局域网服务，结合 macOS 上的 LM Studio 与 Cherry Studio，为学生提供一个安全封闭的 AI 学习和分享平台。这样既能保障课堂秩序，又能为后续的智能体自主学习和 Arduino 硬件研究打下基础。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>主办单位：萍湖少儿创客空间 & 中华路小学</p>
+    <p>整理记录时间：2025/9/18周四 11:20:46</p>
+  </footer>
+
+  <script>
+    function showSection(id){
+      document.getElementById('course').style.display = (id==='course')?'block':'none';
+      document.getElementById('report').style.display = (id==='report')?'block':'none';
+    }
+    function toggleDetails(){
+      var d = document.getElementById('details');
+      d.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>

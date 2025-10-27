@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>沙漠乐园 🌵</title>
+<style>
+    /* ---------- 颜色变量 ---------- */
+    :root{
+        --bg-from:#ffe9a1;   /* 沙漠黄 */
+        --bg-to:#ffcc70;     /* 日落橙 */
+        --accent:#d35400;   /* 主题橙 */
+        --soft:#f39c12;     /* 次要橙 */
+        --card-bg:#fffdf6;   /* 卡片底色 */
+        --text:#2c3e50;
+        --radius:12px;
+        --shadow:0 4px 12px rgba(0,0,0,.1);
+        --font:"Noto Serif SC",serif;
+    }
+
+    body{
+        margin:0;
+        font-family:var(--font);
+        background:linear-gradient(135deg,var(--bg-from),var(--bg-to));
+        color:var(--text);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-height:100vh;
+        padding:20px;
+    }
+
+    .card{
+        background:var(--card-bg);
+        border-radius:var(--radius);
+        box-shadow:var(--shadow);
+        max-width:800px;
+        width:100%;
+        padding:2rem;
+        line-height:1.6;
+    }
+
+    h1{
+        text-align:center;
+        font-size:2.4rem;
+        color:var(--accent);
+        margin-bottom:0.5rem;
+    }
+
+    h2{
+        margin-top:2rem;
+        font-size:1.8rem;
+        color:var(--soft);
+        border-left:5px solid var(--soft);
+        padding-left:10px;
+    }
+
+    p{
+        font-size:1.1rem;
+        margin:1rem 0;
+    }
+
+    strong{color:var(--accent);}
+
+    /* ---------- 小动物卡片 ---------- */
+    .animal{
+        display:inline-block;
+        width:80px;
+        height:80px;
+        line-height:80px;
+        margin:8px;
+        background:#ffecb3;
+        border-radius:12px;
+        text-align:center;
+        font-size:0.9rem;
+        cursor:pointer;
+        user-select:none;
+        transition:transform .2s;
+    }
+    .animal:hover{transform:scale(1.1);}
+
+    .habitat{
+        display:inline-block;
+        width:120px;
+        height:50px;
+        line-height:50px;
+        margin:8px;
+        background:#dff9fb;
+        border-radius:8px;
+        text-align:center;
+        font-size:0.9rem;
+        cursor:pointer;
+        user-select:none;
+        transition:background .2s;
+    }
+    .habitat:hover{background:#c7ecee;}
+
+    .match-area{
+        margin-top:1rem;
+        padding:1rem;
+        border:2px dashed var(--soft);
+        border-radius:8px;
+        min-height:120px;
+    }
+
+    /* ---------- 练习题 ---------- */
+    .quiz{
+        margin-top:2rem;
+        background:#eafaf1;
+        padding:1.5rem;
+        border-radius:8px;
+    }
+    .question{
+        font-size:1.2rem;
+        margin-bottom:0.8rem;
+    }
+    .answers{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+    }
+    .answer-btn{
+        flex:1 1 80px;
+        background:#fff59d;
+        border:none;
+        border-radius:6px;
+        padding:.6rem;
+        font-size:1rem;
+        cursor:pointer;
+        transition:background .2s;
+    }
+    .answer-btn:hover{background:#ffd54f;}
+    .result{
+        margin-top:1rem;
+        font-weight:bold;
+        font-size:1.2rem;
+    }
+
+    footer{
+        text-align:center;
+        margin-top:2rem;
+        font-size:0.9rem;
+        color:#777;
+    }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h1>沙漠乐园 🌞</h1>
+
+    <!-- 1. 什么是沙漠 -->
+    <section>
+        <h2>1️⃣ 什么是沙漠？</h2>
+        <p>沙漠是<span class="highlight"><strong>一年中降水少于250毫米</strong></span>、气温很热、昼夜温差大的地方。这里的水很少，<strong>植物和动物要会“省水”</strong>才能生存。</p>
+    </section>
+
+    <!-- 2. 沙漠里有什么 -->
+    <section>
+        <h2>2️⃣ 沙漠里有哪些“住客”？</h2>
+        <p>虽然干燥，但沙漠里有很多有趣的生物和奇特的地形。</p>
+
+        <p><strong>动物：</strong></p>
+        <div id="animals">
+            <div class="animal" draggable="true" data-name="骆驼">骆驼</div>
+            <div class="animal" draggable="true" data-name="沙漠狐">沙漠狐</div>
+            <div class="animal" draggable="true" data-name="蜥蜴">蜥蜴</div>
+            <div class="animal" draggable="true" data-name="蝎子">蝎子</div>
+        </div>
+
+        <p><strong>它们喜欢的“家”：</strong></p>
+        <div id="habitats" class="match-area">
+            <div class="habitat" data-accept="骆驼">沙丘</div>
+            <div class="habitat" data-accept="沙漠狐">岩石洞</div>
+            <div class="habitat" data-accept="蜥蜴">岩石缝</div>
+            <div class="habitat" data-accept="蝎子">沙地</div>
+        </div>
+
+        <p>把动物拖到它们喜欢的家里，看看能否配对成功！</p>
+    </section>
+
+    <!-- 3. 沙漠的天气 -->
+    <section>
+        <h2>3️⃣ 沙漠的天气有什么特别？</h2>
+        <p>☀️白天炎热，最高可达50°C；🌙夜晚却很凉，甚至会降到0°C。<br>
+        由于雨水稀少，蒸发快，空气干燥，天空往往一片蔚蓝。</p>
+    </section>
+
+    <!-- 4. 小练习 -->
+    <section class="quiz">
+        <h2>4️⃣ 小测验：挑选正确答案</h2>
+        <div class="question" id="q-text">?</div>
+        <div class="answers" id="answer-list"></div>
+        <div class="result" id="quiz-result"></div>
+    </section>
+
+    <footer>© 2025 沙漠乐园 - 为小朋友准备的地理小课堂</footer>
+</div>
+
+<script>
+/* ---------- 拖拽配对 ---------- */
+const animals = document.querySelectorAll('#animals .animal');
+const habitats = document.querySelectorAll('#habitats .habitat');
+
+let dragged = null;
+
+animals.forEach(a => {
+    a.addEventListener('dragstart', e => {
+        dragged = a;
+        e.dataTransfer.setData('text/plain', a.dataset.name);
+        setTimeout(()=>a.style.visibility='hidden',0);
+    });
+    a.addEventListener('dragend', () => {
+        dragged.style.visibility='visible';
+        dragged = null;
+    });
+});
+
+habitats.forEach(h => {
+    h.addEventListener('dragover', e => e.preventDefault());
+    h.addEventListener('drop', e => {
+        e.preventDefault();
+        if (!dragged) return;
+        const ans = dragged.dataset.name;
+        if (ans === h.dataset.accept) {
+            h.textContent = ans + ' ✔';
+            h.style.background = '#a3e4d7';
+        } else {
+            h.textContent = ans + ' ✖';
+            h.style.background = '#f5b7b1';
+        }
+        // 把动物恢复到原处，防止重复拖动
+        dragged.style.visibility='visible';
+    });
+});
+
+/* ---------- 小测验 ---------- */
+const questions = [
+    {
+        q: "一年降水少于多少毫米的地区被称为沙漠？",
+        a: "250 毫米",
+        opts: ["100 毫米","250 毫米","500 毫米","1000 毫米"]
+    },
+    {
+        q: "下面哪个动物最擅长在沙漠中长期不喝水？",
+        a: "骆驼",
+        opts: ["兔子","骆驼","乌龟","青蛙"]
+    },
+    {
+        q: "沙漠晚上常常会很冷，这主要是因为",
+        a: "水蒸气少，热量散失快",
+        opts: ["有很多风","水蒸气少，热量散失快","有雪","太阳太远"]
+    },
+    {
+        q: "下列哪种植物最能在沙漠中生存？",
+        a: "仙人掌",
+        opts: ["水稻","小麦","仙人掌","柳树"]
+    },
+    {
+        q: "沙漠里常见的地形是",
+        a: "沙丘",
+        opts: ["湖泊","森林","沙丘","山谷"]
+    }
+];
+
+let cur = 0;
+const qEl = document.getElementById('q-text');
+const ansEl = document.getElementById('answer-list');
+const resEl = document.getElementById('quiz-result');
+
+function loadQuestion(idx){
+    const obj = questions[idx];
+    qEl.textContent = obj.q;
+    ansEl.innerHTML = '';
+    resEl.textContent = '';
+    // 随机打乱选项
+    const shuffled = obj.opts.slice().sort(()=>Math.random()-0.5);
+    shuffled.forEach(opt=>{
+        const btn = document.createElement('button');
+        btn.className='answer-btn';
+        btn.textContent = opt;
+        btn.onclick = () => check(opt,obj.a);
+        ansEl.appendChild(btn);
+    });
+}
+function check(selected, correct){
+    if (selected===correct){
+        resEl.style.color='#27ae60';
+        resEl.textContent='🎉 答对啦！';
+    }else{
+        resEl.style.color='#c0392b';
+        resEl.textContent=`❌ 错误，正确答案是 ${correct}`;
+    }
+    // 2 秒后自动下一题
+    setTimeout(()=>{
+        cur = (cur+1)%questions.length;
+        loadQuestion(cur);
+    },2000);
+}
+loadQuestion(cur);
+</script>
+</body>
+</html>

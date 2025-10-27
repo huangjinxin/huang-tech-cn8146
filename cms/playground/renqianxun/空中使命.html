@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>空中使命 - 防空炮打飞机</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+            user-select: none;
+            touch-action: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #4682B4;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            background: transparent;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            max-width: 90vw;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            z-index: 10;
+            position: relative;
+        }
+
+        .score, .lives, .ammo {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #5c6bc0, #3949ab);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            color: white;
+            max-width: 80%;
+        }
+
+        .game-over-content h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .game-over-content p {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .restart-btn:hover {
+            background: #66bb6a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .movement-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(33, 150, 243, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.1s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .control-btn:active {
+            background: rgba(25, 118, 210, 0.9);
+            transform: scale(0.95);
+        }
+
+        .fire-btn {
+            background: rgba(255, 87, 34, 0.8);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            font-size: 28px;
+            box-shadow: 0 0 20px rgba(255, 87, 34, 0.5);
+        }
+
+        .fire-btn:active {
+            background: rgba(255, 87, 34, 0.95);
+            transform: scale(0.95);
+        }
+
+        .angle-controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .angle-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(156, 39, 176, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.1s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .angle-btn:active {
+            background: rgba(123, 31, 162, 0.9);
+            transform: scale(0.95);
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #87CEEB, #98D8E8);
+            z-index: 2000;
+            color: #333;
+            text-align: center;
+        }
+
+        .start-screen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #1a237e;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+        }
+
+        .start-screen p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+
+        .controls-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            color: #333;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .speed-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: #333;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .weapon-indicator {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: #333;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .weapon-icon {
+            font-size: 24px;
+        }
+
+        .damage-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .damage-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff9800, #f44336);
+            border-radius: 4px;
+        }
+
+        .aircraft-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .aircraft-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .aircraft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .aircraft-card.selected {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .aircraft-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .aircraft-stats {
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .aircraft-stat {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .aircraft-preview {
+            width: 100%;
+            height: 80px;
+            margin-top: 10px;
+        }
+
+        .weapon-stat {
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .weapon-bar {
+            height: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .weapon-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .hit-effect {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .hit-effect.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .game-info {
+                font-size: 16px;
+            }
+            
+            .controls {
+                bottom: 10px;
+            }
+            
+            .control-btn, .angle-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .fire-btn {
+                width: 60px;
+                height: 60px;
+                bottom: 80px;
+                right: 20px;
+                font-size: 24px;
+            }
+            
+            .start-screen h1 {
+                font-size: 36px;
+            }
+            
+            .start-screen p {
+                font-size: 18px;
+            }
+            
+            .controls-hint {
+                display: none;
+            }
+            
+            .angle-controls {
+                gap: 10px;
+            }
+            
+            .speed-indicator {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .weapon-indicator {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .aircraft-card {
+                width: 150px;
+                padding: 10px;
+            }
+            
+            .aircraft-preview {
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="startScreen">
+        <h1>空中使命</h1>
+        <p>选择你的战斗机，开始空中战斗！使用 W/S 控制速度，A/D 控制角度，方向键或屏幕按钮控制位置，空格键或右下角按钮射击！</p>
+        
+        <div class="aircraft-selection" id="aircraftSelection">
+            <!-- 战斗机选择卡片将在这里生成 -->
+        </div>
+        
+        <button class="start-btn" id="startBtn" style="background: #ff5722; color: white; border: none; padding: 15px 40px; font-size: 24px; border-radius: 30px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);">开始游戏</button>
+    </div>
+
+    <div class="game-container">
+        <div class="game-info">
+            <div class="score">得分: <span id="score">0</span></div>
+            <div class="lives">生命: <span id="lives">3</span></div>
+            <div class="ammo">弹药: <span id="ammo">∞</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <div class="speed-indicator">速度: <span id="speedValue">100</span>%</div>
+    
+    <div class="weapon-indicator">
+        <span class="weapon-icon">⚔️</span>
+        <span>攻击力: <span id="damageValue">10</span></span>
+        <div class="damage-bar">
+            <div class="damage-fill" id="damageBar" style="width: 33%;"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="movement-controls">
+            <div class="control-row">
+                <div class="control-btn" id="upBtn">W</div>
+            </div>
+            <div class="control-row">
+                <div class="control-btn" id="leftBtn">←</div>
+                <div class="control-btn" id="rightBtn">→</div>
+            </div>
+            <div class="control-row">
+                <div class="control-btn" id="downBtn">S</div>
+            </div>
+        </div>
+        
+        <div class="angle-controls">
+            <div class="angle-btn" id="leftAngleBtn">A</div>
+            <div class="angle-btn" id="rightAngleBtn">D</div>
+        </div>
+    </div>
+
+    <div class="control-btn fire-btn" id="fireBtn">🔥</div>
+    
+    <div class="hit-effect" id="hitEffect"></div>
+
+    <div class="controls-hint">
+        电脑: W/S控制速度, A/D控制角度, 方向键控制位置, 空格键射击<br>
+        手机: 屏幕按钮控制速度和角度, 方向按钮控制位置, 右下角按钮射击
+    </div>
+
+    <div class="game-over-screen" id="gameOverScreen">
+        <div class="game-over-content">
+            <h2>游戏结束</h2>
+            <p>最终得分: <span id="finalScore">0</span></p>
+            <p>摧毁防空炮: <span id="gunsDestroyed">0</span></p>
+            <button class="restart-btn" id="restartBtn">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 游戏状态
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let gameSpeed = 1;
+        let animationId;
+        let lastPlaneShot = 0;
+        let planeShootInterval = 200; // 飞机射击间隔(毫秒)
+        let gunsDestroyed = 0;
+        let selectedAircraft = null;
+        let hitEffectTimeout = null;
+        
+        // 战斗机模型
+        const aircraftModels = [
+            {
+                id: 'fighter',
+                name: '战斗机',
+                speed: 5,
+                rotationSpeed: 0.08,
+                color: '#1976d2',
+                afterburnerColor: '#ff5722',
+                trailColor: '#ff9800',
+                weaponType: 'single',
+                weapons: 2,
+                damage: 10,
+                weaponName: '标准制导导弹'
+            },
+            {
+                id: 'bomber',
+                name: '轰炸机',
+                speed: 3,
+                rotationSpeed: 0.05,
+                color: '#4a148c',
+                afterburnerColor: '#e91e63',
+                trailColor: '#9c27b0',
+                weaponType: 'spread',
+                weapons: 4,
+                damage: 15,
+                weaponName: '集束炸弹'
+            },
+            {
+                id: 'interceptor',
+                name: '拦截机',
+                speed: 7,
+                rotationSpeed: 0.1,
+                color: '#0d47a1',
+                afterburnerColor: '#00acc1',
+                trailColor: '#00bcd4',
+                weaponType: 'rapid',
+                weapons: 1,
+                damage: 20,
+                weaponName: '高速穿甲弹'
+            },
+            {
+                id: 'stealth',
+                name: '隐形战机',
+                speed: 6,
+                rotationSpeed: 0.07,
+                color: '#263238',
+                afterburnerColor: '#7e57c2',
+                trailColor: '#5e35b1',
+                weaponType: 'guided',
+                weapons: 2,
+                damage: 12,
+                weaponName: '精确制导炸弹'
+            }
+        ];
+        
+        // 渲染战斗机选择卡片
+        function renderAircraftSelection() {
+            const container = document.getElementById('aircraftSelection');
+            container.innerHTML = '';
+            
+            aircraftModels.forEach((model, index) => {
+                const card = document.createElement('div');
+                card.className = `aircraft-card ${index === 0 ? 'selected' : ''}`;
+                card.dataset.id = model.id;
+                
+                // 计算武器强度百分比
+                const damagePercent = (model.damage / 20) * 100;
+                
+                card.innerHTML = `
+                    <div class="aircraft-name">${model.name}</div>
+                    <div class="aircraft-stats">
+                        <div class="aircraft-stat">
+                            <span>速度:</span>
+                            <span>${model.speed}/10</span>
+                        </div>
+                        <div class="aircraft-stat">
+                            <span>机动性:</span>
+                            <span>${Math.round(model.rotationSpeed * 100)}%</span>
+                        </div>
+                        <div class="aircraft-stat">
+                            <span>武器:</span>
+                            <span>${model.weapons}</span>
+                        </div>
+                    </div>
+                    <div class="weapon-stat">
+                        <div class="aircraft-stat">
+                            <span>攻击力:</span>
+                            <span>${model.damage}</span>
+                        </div>
+                        <div class="weapon-stat">
+                            <div class="weapon-bar">
+                                <div class="weapon-bar-fill" style="width: ${damagePercent}%; background: #f44336;"></div>
+                            </div>
+                        </div>
+                        <div class="aircraft-stat">
+                            <span>武器类型:</span>
+                            <span>${model.weaponName}</span>
+                        </div>
+                    </div>
+                    <canvas class="aircraft-preview" id="preview-${model.id}" width="180" height="80"></canvas>
+                `;
+                
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.aircraft-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedAircraft = model;
+                });
+                
+                container.appendChild(card);
+                
+                // 绘制预览图
+                setTimeout(() => {
+                    const previewCanvas = document.getElementById(`preview-${model.id}`);
+                    if (previewCanvas) {
+                        const pctx = previewCanvas.getContext('2d');
+                        drawAircraftPreview(pctx, model, 90, 40);
+                    }
+                }, 100);
+            });
+            
+            // 默认选择第一架战斗机
+            selectedAircraft = aircraftModels[0];
+        }
+        
+        // 绘制战斗机预览图
+        function drawAircraftPreview(pctx, model, x, y) {
+            pctx.save();
+            pctx.translate(x, y);
+            
+            // 机身
+            pctx.fillStyle = model.color;
+            pctx.beginPath();
+            pctx.moveTo(0, -15);
+            pctx.lineTo(-10, 10);
+            pctx.lineTo(0, 5);
+            pctx.lineTo(10, 10);
+            pctx.closePath();
+            pctx.fill();
+            
+            // 机翼
+            pctx.fillStyle = model.color.replace('#', '#4') + '0';
+            pctx.fillRect(-20, 0, 40, 5);
+            
+            // 驾驶舱
+            pctx.fillStyle = '#64b5f6';
+            pctx.beginPath();
+            pctx.ellipse(0, -5, 3, 5, 0, 0, Math.PI * 2);
+            pctx.fill();
+            
+            // 武器
+            pctx.fillStyle = '#ffc107';
+            for (let i = 0; i < model.weapons; i++) {
+                const offsetX = (i - (model.weapons - 1) / 2) * 8;
+                pctx.fillRect(offsetX - 1, -8, 2, 4);
+            }
+            
+            // 引擎光晕
+            pctx.shadowColor = model.afterburnerColor;
+            pctx.shadowBlur = 10;
+            pctx.fillStyle = model.afterburnerColor;
+            pctx.beginPath();
+            pctx.arc(0, 15, 5, 0, Math.PI * 2);
+            pctx.fill();
+            
+            pctx.restore();
+        }
+        
+        // 显示击中效果
+        function showHitEffect(damage) {
+            const hitEffectEl = document.getElementById('hitEffect');
+            hitEffectEl.textContent = `造成 ${damage} 点伤害!`;
+            hitEffectEl.classList.add('show');
+            
+            if (hitEffectTimeout) {
+                clearTimeout(hitEffectTimeout);
+            }
+            
+            hitEffectTimeout = setTimeout(() => {
+                hitEffectEl.classList.remove('show');
+            }, 1000);
+        }
+        
+        // 调整画布大小以适应屏幕
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.7;
+            
+            if (maxWidth < 800) {
+                canvas.width = maxWidth;
+                canvas.height = maxWidth * 0.75;
+            }
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // 飞机对象
+        const plane = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,  // 初始位置在屏幕中心
+            width: 60,
+            height: 60,
+            baseSpeed: 5,
+            currentSpeed: 5,
+            angle: 0,  // 飞机角度（弧度）
+            rotationSpeed: 0.08,  // 旋转速度
+            movingLeft: false,
+            movingRight: false,
+            movingUp: false,
+            movingDown: false,
+            turnLeft: false,
+            turnRight: false,
+            trail: [],  // 飞机尾迹
+            afterburner: false,  // 加速器状态
+            model: null  // 当前战斗机模型
+        };
+        
+        // 防空炮数组
+        let antiAircraftGuns = [];
+        
+        // 玩家子弹数组
+        let playerBullets = [];
+        
+        // 敌人子弹数组
+        let enemyBullets = [];
+        
+        // 爆炸粒子数组
+        let explosions = [];
+        
+        // 云朵数组
+        let clouds = [];
+        
+        // 太阳对象
+        const sun = {
+            x: canvas.width - 100,
+            y: 100,
+            radius: 40,
+            rays: 12
+        };
+        
+        // 防空炮状态
+        let activeGuns = [];
+        
+        // 初始化防空炮
+        function initAntiAircraftGuns() {
+            antiAircraftGuns = [];
+            const gunCount = 3;
+            const spacing = canvas.width / (gunCount + 1);
+            
+            for (let i = 0; i < gunCount; i++) {
+                const gun = {
+                    x: spacing * (i + 1),
+                    y: canvas.height - 30,
+                    width: 40,
+                    height: 40,
+                    lastShot: 0,
+                    shootInterval: 2000 + Math.random() * 1000,
+                    angle: 0,
+                    targetX: plane.x,
+                    targetY: plane.y,
+                    health: 3, // 防空炮生命值
+                    maxHealth: 3,
+                    lastHit: 0,
+                    hitEffect: 0
+                };
+                antiAircraftGuns.push(gun);
+                activeGuns.push(gun);
+            }
+        }
+        
+        // 初始化云朵
+        function initClouds() {
+            clouds = [];
+            for (let i = 0; i < 8; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height * 0.6,
+                    width: 100 + Math.random() * 80,
+                    height: 50 + Math.random() * 40,
+                    speed: 0.2 + Math.random() * 0.3,
+                    opacity: 0.7 + Math.random() * 0.3
+                });
+            }
+        }
+        
+        // 绘制天空渐变背景
+        function drawSky() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');  // 天蓝色
+            gradient.addColorStop(0.5, '#98D8E8'); // 浅蓝色
+            gradient.addColorStop(1, '#B0E0E6');   // 淡蓝色
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // 绘制太阳
+        function drawSun() {
+            ctx.save();
+            ctx.translate(sun.x, sun.y);
+            
+            // 太阳光晕
+            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, sun.radius * 2);
+            glowGradient.addColorStop(0, 'rgba(255, 255, 0, 0.6)');
+            glowGradient.addColorStop(1, 'rgba(255, 255, 0, 0)');
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, sun.radius * 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 太阳主体
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(0, 0, sun.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 太阳光线
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < sun.rays; i++) {
+                const angle = (i / sun.rays) * Math.PI * 2;
+                const x1 = Math.cos(angle) * (sun.radius + 5);
+                const y1 = Math.sin(angle) * (sun.radius + 5);
+                const x2 = Math.cos(angle) * (sun.radius + 15);
+                const y2 = Math.sin(angle) * (sun.radius + 15);
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+        
+        // 绘制飞机
+        function drawPlane() {
+            if (!plane.model) return;
+            
+            // 绘制飞机尾迹
+            if (plane.movingUp || plane.movingDown || plane.movingLeft || plane.movingRight || plane.turnLeft || plane.turnRight) {
+                plane.trail.push({
+                    x: plane.x - Math.sin(plane.angle) * plane.height / 2,
+                    y: plane.y + Math.cos(plane.angle) * plane.height / 2
+                });
+                
+                if (plane.trail.length > 20) {
+                    plane.trail.shift();
+                }
+                
+                plane.trail.forEach((point, index) => {
+                    ctx.save();
+                    ctx.globalAlpha = index / plane.trail.length * 0.7;
+                    
+                    // 尾迹颜色根据速度变化
+                    const afterburnerEffect = plane.afterburner ? 1.5 : 1;
+                    const colorValue = Math.floor(128 + 127 * Math.sin(plane.angle) * afterburnerEffect);
+                    const size = plane.afterburner ? 5 : 3;
+                    
+                    ctx.fillStyle = `rgb(255, ${colorValue}, 0)`;
+                    
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, size * (index / plane.trail.length), 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 加速器尾焰
+                    if (plane.afterburner) {
+                        ctx.fillStyle = `rgba(0, 150, 255, ${0.8 * (index / plane.trail.length)})`;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, size * 1.5 * (index / plane.trail.length), 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    ctx.restore();
+                });
+            }
+            
+            ctx.save();
+            ctx.translate(plane.x, plane.y);
+            ctx.rotate(plane.angle);
+            
+            // 机身
+            ctx.fillStyle = plane.model.color;
+            ctx.beginPath();
+            ctx.moveTo(0, -plane.height / 2);
+            ctx.lineTo(-plane.width / 3, plane.height / 3);
+            ctx.lineTo(0, plane.height / 4);
+            ctx.lineTo(plane.width / 3, plane.height / 3);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 机翼
+            ctx.fillStyle = plane.model.color.replace('#', '#4') + '0';
+            ctx.fillRect(-plane.width / 2, 0, plane.width, plane.height / 6);
+            
+            // 尾翼
+            ctx.fillStyle = plane.model.color.replace('#', '#3') + '0';
+            ctx.beginPath();
+            ctx.moveTo(-plane.width / 6, plane.height / 4);
+            ctx.lineTo(0, plane.height / 2);
+            ctx.lineTo(plane.width / 6, plane.height / 4);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 驾驶舱
+            ctx.fillStyle = '#64b5f6';
+            ctx.beginPath();
+            ctx.ellipse(0, -plane.height / 4, plane.width / 8, plane.height / 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 根据武器类型绘制武器
+            ctx.fillStyle = '#ffc107';
+            if (plane.model.weapons === 1) {
+                // 拦截机单管武器
+                ctx.save();
+                ctx.translate(-10, -plane.height / 4);
+                ctx.rotate(plane.angle);
+                ctx.fillRect(0, 0, 5, 15);
+                ctx.restore();
+                
+                ctx.save();
+                ctx.translate(10, -plane.height / 4);
+                ctx.rotate(plane.angle);
+                ctx.fillRect(-5, 0, 5, 15);
+                ctx.restore();
+            } else {
+                // 多管武器
+                for (let i = 0; i < plane.model.weapons; i++) {
+                    const offsetX = (i - (plane.model.weapons - 1) / 2) * 8;
+                    ctx.save();
+                    ctx.translate(offsetX, -plane.height / 4);
+                    ctx.rotate(plane.angle);
+                    ctx.fillRect(-2.5, 0, 5, 15);
+                    ctx.restore();
+                }
+            }
+            
+            // 引擎光晕
+            if (plane.afterburner) {
+                const exhaustX = -Math.sin(plane.angle) * plane.height / 2;
+                const exhaustY = Math.cos(plane.angle) * plane.height / 2;
+                
+                // 主引擎光晕
+                ctx.fillStyle = plane.model.afterburnerColor;
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(exhaustX, exhaustY, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 加速器尾焰
+                ctx.fillStyle = '#00e5ff';
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(exhaustX - Math.sin(plane.angle) * 10, 
+                       exhaustY + Math.cos(plane.angle) * 10, 12, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (plane.movingUp || plane.movingDown || plane.movingLeft || plane.movingRight || plane.turnLeft || plane.turnRight) {
+                const exhaustX = -Math.sin(plane.angle) * plane.height / 2;
+                const exhaustY = Math.cos(plane.angle) * plane.height / 2;
+                
+                ctx.fillStyle = plane.model.afterburnerColor;
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(exhaustX, exhaustY, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        // 绘制防空炮
+        function drawAntiAircraftGun(gun) {
+            ctx.save();
+            ctx.translate(gun.x, gun.y);
+            
+            // 地面
+            ctx.fillStyle = '#8d6e63';
+            ctx.fillRect(-50, 0, 100, 15);
+            
+            // 受击效果
+            if (gun.hitEffect > 0) {
+                ctx.shadowColor = '#ff5722';
+                ctx.shadowBlur = gun.hitEffect * 2;
+                gun.hitEffect -= 0.1;
+            }
+            
+            // 炮台底座
+            const damageRatio = gun.health / gun.maxHealth;
+            const damageColor = damageRatio > 0.66 ? '#616161' : damageRatio > 0.33 ? '#757575' : '#9e9e9e';
+            ctx.fillStyle = damageColor;
+            ctx.fillRect(-gun.width / 2, -gun.height / 2, gun.width, gun.height / 2);
+            
+            // 炮管
+            ctx.fillStyle = damageRatio > 0.66 ? '#424242' : damageRatio > 0.33 ? '#616161' : '#757575';
+            ctx.fillRect(-5, -gun.height * 1.5, 10, gun.height * 1.5);
+            
+            // 炮管顶部
+            ctx.beginPath();
+            ctx.arc(0, -gun.height * 1.5, 8, 0, Math.PI * 2);
+            ctx.fillStyle = damageRatio > 0.66 ? '#616161' : damageRatio > 0.33 ? '#757575' : '#9e9e9e';
+            ctx.fill();
+            
+            // 炮台指示灯
+            const indicatorColor = gun.health > 0 ? (Date.now() - gun.lastHit < 500 ? '#f44336' : '#4caf50') : '#f44336';
+            ctx.fillStyle = indicatorColor;
+            ctx.beginPath();
+            ctx.arc(-gun.width / 4, -gun.height / 4, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 健康条
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(-20, -gun.height / 2 - 15, 40, 5);
+            
+            // 根据受损程度改变健康条颜色
+            if (damageRatio > 0.66) {
+                ctx.fillStyle = '#4caf50'; // 绿色 - 健康状态好
+            } else if (damageRatio > 0.33) {
+                ctx.fillStyle = '#ff9800'; // 橙色 - 轻微受损
+            } else {
+                ctx.fillStyle = '#f44336'; // 红色 - 严重受损
+            }
+            
+            ctx.fillRect(-20, -gun.height / 2 - 15, 40 * damageRatio, 5);
+            
+            // 显示伤害数字
+            if (gun.lastHit > Date.now() - 500) {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`-${plane.model.damage}`, 0, -gun.height / 2 - 25);
+            }
+            
+            ctx.restore();
+        }
+        
+        // 绘制玩家子弹
+        function drawPlayerBullet(bullet) {
+            ctx.save();
+            
+            // 子弹主体
+            ctx.fillStyle = '#00e676';
+            ctx.shadowColor = '#00c853';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 子弹尾迹
+            ctx.fillStyle = 'rgba(0, 230, 118, 0.5)';
+            ctx.beginPath();
+            ctx.arc(bullet.x - bullet.vx * 2, bullet.y - bullet.vy * 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 子弹光晕表示攻击力
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = '#00e676';
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, 7, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        // 绘制敌人子弹
+        function drawEnemyBullet(bullet) {
+            ctx.save();
+            ctx.fillStyle = '#ff5722';
+            ctx.shadowColor = '#ff3d00';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // 绘制云朵
+        function drawCloud(cloud) {
+            ctx.save();
+            ctx.globalAlpha = cloud.opacity;
+            ctx.fillStyle = '#ffffff';
+            
+            ctx.beginPath();
+            ctx.arc(cloud.x, cloud.y, cloud.height / 2, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.width / 3, cloud.y - cloud.height / 4, cloud.height / 2.5, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.width * 2/3, cloud.y, cloud.height / 2.2, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.width / 1.5, cloud.y + cloud.height / 4, cloud.height / 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // 绘制爆炸粒子
+        function drawExplosion(particle) {
+            ctx.save();
+            ctx.globalAlpha = particle.alpha;
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 如果粒子比较大，显示攻击力
+            if (particle.size > 3 && particle.damage) {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`-${particle.damage}`, particle.x, particle.y + 4);
+            }
+            
+            ctx.restore();
+        }
+        
+        // 创建爆炸效果
+        function createExplosion(x, y, damage, color = '#ff5722') {
+            for (let i = 0; i < 15; i++) {
+                explosions.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    size: Math.random() * 5 + 2,
+                    alpha: 1,
+                    color: color,
+                    damage: damage,
+                    decay: 0.02
+                });
+            }
+            
+            // 显示击中效果
+            showHitEffect(damage);
+        }
+        
+        // 飞机射击
+        function planeShoot() {
+            if (!plane.model) return;
+            
+            const now = Date.now();
+            
+            // 根据武器类型调整射击间隔
+            let actualInterval = planeShootInterval;
+            if (plane.model.weaponType === 'rapid') {
+                actualInterval = 100; // 拦截机射击更快
+            } else if (plane.model.weaponType === 'spread') {
+                actualInterval = 300; // 轰炸机射击较慢
+            }
+            
+            if (now - lastPlaneShot > actualInterval) {
+                // 根据飞机角度计算子弹方向
+                const bulletVX = Math.sin(plane.angle) * 8;
+                const bulletVY = -Math.cos(plane.angle) * 8;
+                
+                if (plane.model.weaponType === 'single' || plane.model.weapons <= 2) {
+                    // 单发武器
+                    playerBullets.push({
+                        x: plane.x,
+                        y: plane.y - plane.height / 2,
+                        vx: bulletVX,
+                        vy: bulletVY,
+                        angle: plane.angle,
+                        damage: plane.model.damage
+                    });
+                } else if (plane.model.weaponType === 'spread') {
+                    // 散射武器
+                    const spreadAngle = Math.PI / 12; // 360度的扩散角
+                    for (let i = 0; i < plane.model.weapons; i++) {
+                        const angleOffset = (i - (plane.model.weapons - 1) / 2) * spreadAngle * 2;
+                        const spreadVX = Math.sin(plane.angle + angleOffset) * 8;
+                        const spreadVY = -Math.cos(plane.angle + angleOffset) * 8;
+                        
+                        playerBullets.push({
+                            x: plane.x + (i - (plane.model.weapons - 1) / 2) * 8,
+                            y: plane.y - plane.height / 2,
+                            vx: spreadVX,
+                            vy: spreadVY,
+                            angle: plane.angle + angleOffset,
+                            damage: plane.model.damage
+                        });
+                    }
+                } else {
+                    // 标准武器
+                    playerBullets.push({
+                        x: plane.x,
+                        y: plane.y - plane.height / 2,
+                        vx: bulletVX,
+                        vy: bulletVY,
+                        angle: plane.angle,
+                        damage: plane.model.damage
+                    });
+                }
+                
+                lastPlaneShot = now;
+            }
+        }
+        
+        // 更新飞机位置
+        function updatePlane() {
+            if (!plane.model) return;
+            
+            // 根据按键调整速度
+            if (plane.movingUp) {
+                plane.currentSpeed = plane.model.speed * 1.5;
+                plane.afterburner = true;
+            } else if (plane.movingDown) {
+                plane.currentSpeed = plane.model.speed * 0.5;
+                plane.afterburner = false;
+            } else {
+                plane.currentSpeed = plane.model.speed;
+                plane.afterburner = false;
+            }
+            
+            // 更新飞机角度（360度旋转）
+            if (plane.turnLeft) {
+                plane.angle -= plane.rotationSpeed;
+            }
+            if (plane.turnRight) {
+                plane.angle += plane.rotationSpeed;
+            }
+            
+            // 保持角度在0-2π范围内
+            if (plane.angle > Math.PI * 2) {
+                plane.angle -= Math.PI * 2;
+            } else if (plane.angle < 0) {
+                plane.angle += Math.PI * 2;
+            }
+            
+            // 计算移动方向
+            let dx = 0;
+            let dy = 0;
+            
+            if (plane.movingLeft) {
+                dx -= plane.currentSpeed;
+            }
+            if (plane.movingRight) {
+                dx += plane.currentSpeed;
+            }
+            if (plane.movingUp) {
+                dy -= plane.currentSpeed;
+            }
+            if (plane.movingDown) {
+                dy += plane.currentSpeed;
+            }
+            
+            // 应用角度变换
+            const rotatedDx = dx * Math.cos(plane.angle) - dy * Math.sin(plane.angle);
+            const rotatedDy = dx * Math.sin(plane.angle) + dy * Math.cos(plane.angle);
+            
+            // 更新飞机位置（并考虑屏幕边界）
+            if (plane.x + rotatedDx > 0 && plane.x + rotatedDx < canvas.width) {
+                plane.x += rotatedDx;
+            }
+            if (plane.y + rotatedDy > 0 && plane.y + rotatedDy < canvas.height) {
+                plane.y += rotatedDy;
+            }
+            
+            // 如果飞机移出屏幕一侧，会从另一侧出现
+            if (plane.x < 0) plane.x = canvas.width;
+            if (plane.x > canvas.width) plane.x = 0;
+            if (plane.y < 0) plane.y = canvas.height;
+            if (plane.y > canvas.height) plane.y = 0;
+            
+            // 更新速度指示器
+            const speedPercent = Math.round((plane.currentSpeed / plane.model.speed) * 100);
+            document.getElementById('speedValue').textContent = speedPercent;
+        }
+        
+        // 更新防空炮
+        function updateAntiAircraftGuns() {
+            const now = Date.now();
+            
+            activeGuns.forEach(gun => {
+                // 计算朝向飞机的角度
+                const dx = plane.x - gun.x;
+                const dy = plane.y - gun.y;
+                gun.angle = Math.atan2(dy, dx) + Math.PI / 2;
+                
+                // 发射子弹
+                if (now - gun.lastShot > gun.shootInterval && gun.health > 0) {
+                    const bulletSpeed = 4;
+                    enemyBullets.push({
+                        x: gun.x,
+                        y: gun.y,
+                        vx: Math.sin(gun.angle) * bulletSpeed,
+                        vy: -Math.cos(gun.angle) * bulletSpeed,
+                        fromGun: gun
+                    });
+                    gun.lastShot = now;
+                    gun.shootInterval = 1500 + Math.random() * 1000;
+                }
+            });
+        }
+        
+        // 更新玩家子弹
+        function updatePlayerBullets() {
+            playerBullets = playerBullets.filter(bullet => {
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                // 检查是否击中防空炮
+                for (let i = 0; i < activeGuns.length; i++) {
+                    const gun = activeGuns[i];
+                    if (gun.health > 0) {
+                        const dx = bullet.x - gun.x;
+                        const dy = bullet.y - gun.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < gun.width / 2) {
+                            // 根据攻击力计算伤害
+                            const damage = bullet.damage;
+                            gun.health -= damage;
+                            gun.lastHit = Date.now();
+                            gun.hitEffect = 1;
+                            
+                            if (gun.health <= 0) {
+                                // 创建爆炸，传递攻击力
+                                createExplosion(gun.x, gun.y, damage, '#4caf50');
+                                score += 100;
+                                gunsDestroyed++;
+                                activeGuns.splice(i, 1);
+                                
+                                // 检查是否所有防空炮都被摧毁
+                                if (activeGuns.length === 0) {
+                                    // 生成新的防空炮
+                                    setTimeout(() => {
+                                        initAntiAircraftGuns();
+                                        score += 500; // 奖励分数
+                                    }, 2000);
+                                }
+                            } else {
+                                // 创建爆炸，传递攻击力
+                                createExplosion(gun.x, gun.y, damage, '#ff9800');
+                            }
+                            
+                            return false; // 移除子弹
+                        }
+                    }
+                }
+                
+                // 检查是否超出画布
+                if (bullet.x < -10 || bullet.x > canvas.width + 10 || 
+                    bullet.y < -10 || bullet.y > canvas.height + 10) {
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+        
+        // 更新敌人子弹
+        function updateEnemyBullets() {
+            enemyBullets = enemyBullets.filter(bullet => {
+                bullet.x += bullet.vx * gameSpeed;
+                bullet.y += bullet.vy * gameSpeed;
+                
+                // 检查是否击中飞机
+                const dx = bullet.x - plane.x;
+                const dy = bullet.y - plane.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < plane.width / 2) {
+                    lives--;
+                    document.getElementById('lives').textContent = lives;
+                    createExplosion(plane.x, plane.y, 5, '#f44336');
+                    
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                    
+                    return false; // 移除子弹
+                }
+                
+                // 检查是否超出画布
+                if (bullet.x < -10 || bullet.x > canvas.width + 10 || 
+                    bullet.y < -10 || bullet.y > canvas.height + 10) {
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+        
+        // 更新云朵
+        function updateClouds() {
+            clouds.forEach(cloud => {
+                cloud.x -= cloud.speed;
+                
+                // 如果云朵移出画布，重新放置到右侧
+                if (cloud.x + cloud.width < 0) {
+                    cloud.x = canvas.width + cloud.width;
+                    cloud.y = Math.random() * canvas.height * 0.6;
+                }
+            });
+        }
+        
+        // 更新爆炸粒子
+        function updateExplosions() {
+            explosions = explosions.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.alpha -= particle.decay;
+                particle.size *= 0.98;
+                
+                return particle.alpha > 0;
+            });
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制天空背景
+            drawSky();
+            
+            // 绘制太阳
+            drawSun();
+            
+            // 绘制和更新云朵
+            updateClouds();
+            clouds.forEach(cloud => drawCloud(cloud));
+            
+            // 更新游戏对象
+            updatePlane();
+            planeShoot(); // 飞机持续射击
+            updateAntiAircraftGuns();
+            updatePlayerBullets();
+            updateEnemyBullets();
+            updateExplosions();
+            
+            // 绘制游戏对象
+            antiAircraftGuns.forEach(gun => drawAntiAircraftGun(gun));
+            drawPlane();
+            playerBullets.forEach(bullet => drawPlayerBullet(bullet));
+            enemyBullets.forEach(bullet => drawEnemyBullet(bullet));
+            explosions.forEach(particle => drawExplosion(particle));
+            
+            // 更新分数
+            score += 1;
+            document.getElementById('score').textContent = score;
+            
+            // 逐渐提高游戏速度
+            gameSpeed = 1 + score / 5000;
+            
+            // 继续游戏循环
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gunsDestroyed').textContent = gunsDestroyed;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            score = 0;
+            lives = 3;
+            gameSpeed = 1;
+            playerBullets = [];
+            enemyBullets = [];
+            explosions = [];
+            plane.trail = [];
+            gunsDestroyed = 0;
+            activeGuns = [];
+            
+            plane.x = canvas.width / 2;
+            plane.y = canvas.height / 2;
+            plane.angle = 0;
+            plane.currentSpeed = plane.model ? plane.model.speed : 5;
+            plane.afterburner = false;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('speedValue').textContent = plane.model ? 100 : 100;
+            document.getElementById('gameOverScreen').style.display = 'none';
+            
+            initAntiAircraftGuns();
+            initClouds();
+            
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key.toLowerCase()) {
+                case 'arrowleft':
+                    plane.movingLeft = true;
+                    break;
+                case 'arrowright':
+                    plane.movingRight = true;
+                    break;
+                case 'arrowup':
+                    plane.movingUp = true;
+                    break;
+                case 'arrowdown':
+                    plane.movingDown = true;
+                    break;
+                case 'w':
+                    plane.movingUp = true;
+                    break;
+                case 's':
+                    plane.movingDown = true;
+                    break;
+                case 'a':
+                    plane.turnLeft = true;
+                    break;
+                case 'd':
+                    plane.turnRight = true;
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    planeShoot();
+                    break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'arrowleft':
+                    plane.movingLeft = false;
+                    break;
+                case 'arrowright':
+                    plane.movingRight = false;
+                    break;
+                case 'arrowup':
+                    plane.movingUp = false;
+                    break;
+                case 'arrowdown':
+                    plane.movingDown = false;
+                    break;
+                case 'w':
+                    plane.movingUp = false;
+                    break;
+                case 's':
+                    plane.movingDown = false;
+                    break;
+                case 'a':
+                    plane.turnLeft = false;
+                    break;
+                case 'd':
+                    plane.turnRight = false;
+                    break;
+            }
+        });
+        
+        // 触摸控制
+        const upBtn = document.getElementById('upBtn');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const downBtn = document.getElementById('downBtn');
+        const leftAngleBtn = document.getElementById('leftAngleBtn');
+        const rightAngleBtn = document.getElementById('rightAngleBtn');
+        const fireBtn = document.getElementById('fireBtn');
+        
+        // 鼠标/触摸控制
+        upBtn.addEventListener('mousedown', () => {
+            plane.movingUp = true;
+            plane.movingDown = false;
+        });
+        upBtn.addEventListener('mouseup', () => plane.movingUp = false);
+        
+        leftBtn.addEventListener('mousedown', () => plane.movingLeft = true);
+        leftBtn.addEventListener('mouseup', () => plane.movingLeft = false);
+        
+        rightBtn.addEventListener('mousedown', () => plane.movingRight = true);
+        rightBtn.addEventListener('mouseup', () => plane.movingRight = false);
+        
+        downBtn.addEventListener('mousedown', () => {
+            plane.movingDown = true;
+            plane.movingUp = false;
+        });
+        downBtn.addEventListener('mouseup', () => plane.movingDown = false);
+        
+        leftAngleBtn.addEventListener('mousedown', () => plane.turnLeft = true);
+        leftAngleBtn.addEventListener('mouseup', () => plane.turnLeft = false);
+        
+        rightAngleBtn.addEventListener('mousedown', () => plane.turnRight = true);
+        rightAngleBtn.addEventListener('mouseup', () => plane.turnRight = false);
+        
+        // 射击按钮
+        fireBtn.addEventListener('mousedown', planeShoot);
+        fireBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            planeShoot();
+        });
+        
+        // 防止按钮在触摸离开屏幕后仍被按下
+        document.addEventListener('touchend', (e) => {
+            if (!e.target.closest('.control-btn') && !e.target.closest('.fire-btn') && !e.target.closest('.angle-btn')) {
+                plane.movingLeft = false;
+                plane.movingRight = false;
+                plane.movingUp = false;
+                plane.movingDown = false;
+                plane.turnLeft = false;
+                plane.turnRight = false;
+            }
+        });
+        
+        // 开始游戏按钮
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!selectedAircraft) {
+                selectedAircraft = aircraftModels[0];
+            }
+            
+            // 应用选中的战斗机模型
+            plane.model = selectedAircraft;
+            plane.baseSpeed = selectedAircraft.speed;
+            plane.rotationSpeed = selectedAircraft.rotationSpeed;
+            
+            // 更新攻击力显示
+            document.getElementById('damageValue').textContent = plane.model.damage;
+            document.getElementById('damageBar').style.width = `${(plane.model.damage / 20) * 100}%`;
+            
+            document.getElementById('startScreen').style.display = 'none';
+            initAntiAircraftGuns();
+            initClouds();
+            gameRunning = true;
+            gameLoop();
+        });
+        
+        // 重新开始按钮
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        
+        // 防止页面滚动
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('.control-btn') || e.target.closest('.fire-btn') || e.target.closest('.angle-btn')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 初始化战斗机选择界面
+        renderAircraftSelection();
+    </script>
+</body>
+</html>

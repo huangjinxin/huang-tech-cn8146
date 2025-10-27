@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>周结-加法-任务成绩填写表</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    body { background-color: #f8f9fa; }
+    .table thead th { background-color: #e9ecef; text-align: center; }
+    .table tbody td { vertical-align: middle; text-align: center; }
+    #result-box {
+      background: #fff; border-radius: 10px; padding: 15px; margin-top: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .copy-btn {
+      background-color: #198754; color: white; border: none;
+      padding: 10px 20px; border-radius: 8px; margin-top: 10px;
+    }
+    .copy-btn:hover { background-color: #157347; }
+  </style>
+</head>
+<body>
+<div class="container py-4">
+  <h2 class="text-center mb-4">周结-加法-任务成绩填写表</h2>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>技术类型</th>
+          <th>展示标准</th>
+          <th>记账描述</th>
+          <th>记账备注</th>
+          <th>单价</th>
+          <th>数量</th>
+          <th>金额</th>
+        </tr>
+      </thead>
+      <tbody id="task-table">
+        <!-- 任务行 -->
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="6" class="text-end">总金额：</th>
+          <th id="total" class="text-center text-success">¥0.00</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="result-box">
+    <h5>计算过程：</h5>
+    <pre id="calc-details" class="mb-2">暂无记录。</pre>
+    <button id="copy-btn" class="copy-btn">复制成绩</button>
+  </div>
+</div>
+
+<script>
+const tasks = [
+  ["做课件", "/打印/ai智能体/二维码", "图钉贴墙", "游戏名称 / Ai智能体提示词", 1],
+  ["拍视频", "拍摄/素材整理传输", "剪辑人审核", "拍摄事件 / 人物-事件-描述", 10],
+  ["剪视频", "多平台发布/回复评论", "群里审核", "剪辑+视频名称 / 视频内容总结", 10],
+  ["演视频", "标准普通话/表现自然顺畅", "群众审核", "参演+视频名称 / 参演内容", 5],
+  ["配音", "标准普通话", "群众审核", "配音+视频名称 / 配音内容", 5],
+  ["做动画", "配音标准普通话", "群众审核", "动画片+作品名称 / 动画故事内容", 5],
+  ["3d建模", "freecad", "群里审核", "3d+作品名称 / 作品参数(mm)", 5],
+  ["3d打印", "打印机维护", "群里审核", "打印+作品名称 / 耗材参数(0.01g)", 5],
+  ["知识输出", "表达能力", "讲课+提问内容", "提问和回答内容", 3],
+  ["知识输入", "有耐心", "听课+提问内容", "提问和回答内容", -2],
+  ["日记", "日记/ai改写", "vscode", "日记名+技术类型 / 日记原文", 1]
+];
+
+function renderTable() {
+  let html = "";
+  tasks.forEach((t, i) => {
+    html += `
+      <tr>
+        <td>${t[0]}</td>
+        <td>${t[1]}</td>
+        <td>${t[2]}</td>
+        <td>${t[3]}</td>
+        <td>¥${t[4]}</td>
+        <td><input type="number" min="0" class="form-control form-control-sm qty" data-index="${i}" value="0"></td>
+        <td id="amt-${i}">¥0.00</td>
+      </tr>`;
+  });
+  $("#task-table").html(html);
+}
+renderTable();
+
+function updateCalc() {
+  let total = 0;
+  let detail = "";
+  $(".qty").each(function() {
+    const i = $(this).data("index");
+    const qty = parseFloat($(this).val()) || 0;
+    const price = tasks[i][4];
+    const amount = qty * price;
+    total += amount;
+    if (qty !== 0)
+      detail += `${tasks[i][0]} × ${qty} × ¥${price} = ¥${amount.toFixed(2)}\n`;
+    $(`#amt-${i}`).text(`¥${amount.toFixed(2)}`);
+  });
+  $("#total").text(`¥${total.toFixed(2)}`);
+  if (detail === "") detail = "暂无记录。";
+  detail += `\n——————————\n合计：¥${total.toFixed(2)}`;
+  $("#calc-details").text(detail);
+}
+
+$(document).on("input", ".qty", updateCalc);
+
+$("#copy-btn").on("click", async function() {
+  const text = "【任务成绩】\n" + $("#calc-details").text() + 
+               `\n时间：${new Date().toLocaleString()}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("✅ 成绩已复制到剪贴板！");
+  } catch (err) {
+    // 兼容局域网 / 域名环境
+    const textarea = $("<textarea>").val(text).appendTo("body").select();
+    document.execCommand("copy");
+    textarea.remove();
+    alert("✅ 成绩已复制（兼容模式）！");
+  }
+});
+</script>
+</body>
+</html>

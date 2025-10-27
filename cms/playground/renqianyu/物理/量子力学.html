@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量子力学奇妙世界 - 小学生互动学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+        }
+
+        body {
+            background-color: #f0f8ff;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            background-color: #e6f7ff;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #0066cc;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #0099ff;
+            border-bottom: 2px solid #e6f7ff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quantum-particle {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background-color: #ffcc00;
+            border-radius: 50%;
+            margin: 10px;
+            position: relative;
+            cursor: pointer;
+            animation: moveAround 8s infinite linear;
+            transition: all 0.3s;
+        }
+
+        @keyframes moveAround {
+            0% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(100px) translateY(-50px); }
+            50% { transform: translateX(200px) translateY(0); }
+            75% { transform: translateX(100px) translateY(50px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        .quantum-particle:hover {
+            transform: scale(1.2);
+            background-color: #ff9900;
+        }
+
+        .wave-box {
+            height: 150px;
+            background-color: #e6f7ff;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,50 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z' fill='%2399ccff'/%3E%3C/svg%3E") repeat-x;
+            animation: wave 10s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .interactive-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background-color: #f0f8ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            width: 30%;
+            min-width: 250px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .info-card:hover {
+            background-color: #e6f7ff;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .experiment {
+            background-color: #fff8e6;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .slit-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .slit {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background-color: #333;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .slit1 {
+            top: 0;
+            height: 40%;
+        }
+
+        .slit2 {
+            bottom: 0;
+            height: 40%;
+        }
+
+        .photon {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffcc00;
+            border-radius: 50%;
+            left: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+        }
+
+        .btn {
+            background-color: #0099ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #0077cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            z-index: 100;
+            display: none;
+        }
+
+        .superposition {
+            position: relative;
+            height: 200px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cat-box {
+            width: 100px;
+            height: 60px;
+            background-color: #ffcc00;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.5s;
+            cursor: pointer;
+        }
+
+        .cat-box::before {
+            content: "🐱";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+        }
+
+        .entanglement-demo {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .particle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .particle1 {
+            background-color: #ff6666;
+        }
+
+        .particle2 {
+            background-color: #66ff66;
+        }
+
+        .connection-line {
+            width: 150px;
+            height: 2px;
+            background-color: #333;
+            position: relative;
+        }
+
+        .connection-line::after {
+            content: "⚡";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .quantum-dance {
+            position: relative;
+            height: 200px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .dancing-particle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #ff6600;
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+
+        .quiz-container {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #0066cc;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option {
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            background-color: #e6f7ff;
+            transform: translateX(5px);
+        }
+
+        .option.correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .option.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .info-card {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>量子力学奇妙世界 🌌</h1>
+        <p>探索微观世界的神奇规则</p>
+    </header>
+
+    <div class="container">
+        <!-- 量子是什么？ -->
+        <section class="section">
+            <h2>什么是量子？</h2>
+            <p>量子是物质能量的最小单位！想象一下，世界上的能量不是连续流动的河流，而是一颗一颗的小米粒。这些"小米粒"就是量子！</p>
+            
+            <div class="interactive-box">
+                <div class="info-card" onclick="showTooltip(event, '像水滴一样，能量有最小单位！')">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="20" fill="#4dabf7"/>
+                        <circle cx="50" cy="50" r="15" fill="#339af0"/>
+                        <circle cx="50" cy="50" r="10" fill="#228be6"/>
+                    </svg>
+                    <h3>量子</h3>
+                    <p>能量的最小单位</p>
+                </div>
+                
+                <div class="info-card" onclick="showTooltip(event, '粒子也可以有波动性！')">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <path d="M10,50 Q30,20 50,50 T90,50" stroke="#4dabf7" stroke-width="3" fill="none"/>
+                    </svg>
+                    <h3>波粒二象性</h3>
+                    <p>既是粒子也是波</p>
+                </div>
+                
+                <div class="info-card" onclick="showTooltip(event, '微观世界很奇妙！')">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <circle cx="30" cy="50" r="15" fill="#ff8787"/>
+                        <circle cx="70" cy="50" r="15" fill="#51cf66"/>
+                        <line x1="45" y1="50" x2="55" y2="50" stroke="#333" stroke-width="2"/>
+                    </svg>
+                    <h3>叠加态</h3>
+                    <p>可以同时存在多种状态</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 量子叠加 -->
+        <section class="section">
+            <h2>量子叠加：薛定谔的猫</h2>
+            <p>在量子世界里，一个粒子可以同时处于多种状态！这个著名的思想实验叫做"薛定谔的猫"。</p>
+            
+            <div class="superposition">
+                <div class="cat-box" id="catBox" onclick="toggleCat()"></div>
+            </div>
+            
+            <p>点击盒子，看看会发生什么！量子盒子里的猫既可以是活的，也可以是死的，直到我们打开盒子才能确定它的状态。</p>
+        </section>
+
+        <!-- 双缝实验 -->
+        <section class="section">
+            <h2>双缝实验：粒子的神秘行为</h2>
+            <p>让我们做一个有趣的实验！想象一下，我们把电子（一种微小粒子）射向有两个狭缝的挡板上。</p>
+            
+            <div class="experiment">
+                <div class="wave-box">
+                    <div class="wave"></div>
+                    <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
+                        <text x="10%" y="50%" fill="#0066cc" font-size="18" font-family="Arial">电子源</text>
+                        <text x="45%" y="50%" fill="#0066cc" font-size="18" font-family="Arial">双缝</text>
+                        <text x="75%" y="50%" fill="#0066cc" font-size="18" font-family="Arial">探测屏</text>
+                    </svg>
+                </div>
+                
+                <div class="slit-container">
+                    <div class="slit slit1"></div>
+                    <div class="slit slit2"></div>
+                    <div class="photon" id="photon"></div>
+                </div>
+                
+                <button class="btn" onclick="runDoubleSlitExperiment()">运行双缝实验</button>
+                <div id="experimentResult" style="margin-top: 20px; font-weight: bold;"></div>
+            </div>
+        </section>
+
+        <!-- 量子纠缠 -->
+        <section class="section">
+            <h2>量子纠缠：跨越时空的联系</h2>
+            <p>量子纠缠是指两个粒子之间神奇的联系，即使它们相距很远，改变一个粒子的状态，另一个粒子也会立即改变！</p>
+            
+            <div class="entanglement-demo">
+                <div class="particle particle1" id="particle1" onclick="changeParticle(1)">
+                    <span style="color: white;">A</span>
+                </div>
+                <div class="connection-line"></div>
+                <div class="particle particle2" id="particle2" onclick="changeParticle(2)">
+                    <span style="color: white;">B</span>
+                </div>
+            </div>
+            
+            <p>点击其中一个粒子，看看另一个粒子会发生什么变化！这就是量子纠缠的神奇之处！</p>
+        </section>
+
+        <!-- 量子应用 -->
+        <section class="section">
+            <h2>量子技术的实际应用</h2>
+            <p>量子力学不只是理论，它已经在我们的生活中得到应用！</p>
+            
+            <div class="interactive-box">
+                <div class="info-card">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <circle cx="50" cy="40" r="30" fill="#a5d8ff" stroke="#339af0" stroke-width="2"/>
+                        <circle cx="50" cy="40" r="5" fill="#1c7ed6"/>
+                        <path d="M20,80 L80,80" stroke="#333" stroke-width="2"/>
+                        <path d="M30,80 L30,70 L40,75" fill="#51cf66"/>
+                    </svg>
+                    <h3>量子计算</h3>
+                    <p>超级强大的计算机</p>
+                </div>
+                
+                <div class="info-card">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#ff8787" stroke-width="3" stroke-dasharray="5,5"/>
+                        <circle cx="50" cy="50" r="15" fill="#ff6b6b"/>
+                        <line x1="50" y1="50" x2="50" y2="20" stroke="#333" stroke-width="2"/>
+                    </svg>
+                    <h3>量子通信</h3>
+                    <p>绝对安全的通信方式</p>
+                </div>
+                
+                <div class="info-card">
+                    <svg width="60" height="60" viewBox="0 0 100 100">
+                        <rect x="20" y="30" width="60" height="40" fill="#69db7c" rx="5"/>
+                        <circle cx="35" cy="50" r="8" fill="#40c057"/>
+                        <circle cx="50" cy="50" r="8" fill="#40c057"/>
+                        <circle cx="65" cy="50" r="8" fill="#40c057"/>
+                        <line x1="35" y1="42" x2="35" y2="58" stroke="#fff" stroke-width="2"/>
+                        <line x1="50" y1="42" x2="50" y2="58" stroke="#fff" stroke-width="2"/>
+                        <line x1="65" y1="42" x2="65" y2="58" stroke="#fff" stroke-width="2"/>
+                    </svg>
+                    <h3>量子传感器</h3>
+                    <p>极其精确的测量工具</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 量子小知识 -->
+        <section class="section">
+            <h2>量子世界的有趣知识</h2>
+            <div class="quantum-dance" id="quantumDance"></div>
+            <p>观察上面粒子的量子舞蹈！在微观世界里，粒子会像在跳一支随机舞蹈，它们的位置是不确定的，这就是著名的"测不准原理"！</p>
+            <button class="btn" onclick="startQuantumDance()">开始量子舞蹈</button>
+            <button class="btn" onclick="stopQuantumDance()">停止量子舞蹈</button>
+        </section>
+
+        <!-- 小测验 -->
+        <section class="section quiz-container">
+            <h2>量子力学小测验</h2>
+            <div id="quizContainer">
+                <div class="question" id="question">问题将显示在这里...</div>
+                <div class="options" id="options"></div>
+                <button class="btn" onclick="nextQuestion()">下一题</button>
+                <div id="score" style="margin-top: 20px; font-weight: bold; text-align: center;"></div>
+            </div>
+        </section>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // 工具提示功能
+        function showTooltip(event, text) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = text;
+            tooltip.style.display = 'block';
+            tooltip.style.left = event.pageX + 10 + 'px';
+            tooltip.style.top = event.pageY + 10 + 'px';
+            
+            setTimeout(() => {
+                tooltip.style.display = 'none';
+            }, 2000);
+        }
+
+        // 薛定谔的猫交互
+        let catIsAlive = Math.random() > 0.5;
+        function toggleCat() {
+            const catBox = document.getElementById('catBox');
+            catIsAlive = !catIsAlive;
+            if (catIsAlive) {
+                catBox.style.backgroundColor = '#ffcc00';
+                catBox.innerHTML = '<span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem;">😺</span>';
+            } else {
+                catBox.style.backgroundColor = '#888888';
+                catBox.innerHTML = '<span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem;">💀</span>';
+            }
+        }
+
+        // 双缝实验
+        let experimentCount = 0;
+        function runDoubleSlitExperiment() {
+            const photon = document.getElementById('photon');
+            const result = document.getElementById('experimentResult');
+            
+            experimentCount++;
+            photon.style.display = 'block';
+            photon.style.left = '10%';
+            
+            setTimeout(() => {
+                // 模拟粒子通过双缝
+                const slit1Top = 20;
+                const slit2Top = 60;
+                const actualSlit = Math.random() > 0.5 ? slit1Top : slit2Top;
+                photon.style.top = actualSlit + '%';
+            }, 500);
+            
+            setTimeout(() => {
+                // 继续运动到屏幕
+                photon.style.left = '70%';
+                photon.style.opacity = '0.5';
+            }, 1500);
+            
+            setTimeout(() => {
+                // 结果
+                if (experimentCount === 1) {
+                    result.innerHTML = '第一次实验：粒子像一颗小弹球，通过了其中一个缝！';
+                } else {
+                    result.innerHTML = '更多次实验后，粒子在屏幕上形成了干涉条纹！这证明了粒子具有波动性！';
+                }
+                photon.style.display = 'none';
+                photon.style.opacity = '1';
+            }, 2500);
+        }
+
+        // 量子纠缠
+        let particleState = 'up';
+        function changeParticle(whichParticle) {
+            const particle1 = document.getElementById('particle1');
+            const particle2 = document.getElementById('particle2');
+            
+            if (whichParticle === 1) {
+                particleState = particleState === 'up' ? 'down' : 'up';
+                particle1.style.backgroundColor = particleState === 'up' ? '#ff6666' : '#6666ff';
+                particle2.style.backgroundColor = particleState === 'up' ? '#6666ff' : '#ff6666';
+            } else {
+                particleState = particleState === 'up' ? 'down' : 'up';
+                particle1.style.backgroundColor = particleState === 'up' ? '#ff6666' : '#6666ff';
+                particle2.style.backgroundColor = particleState === 'up' ? '#6666ff' : '#ff6666';
+            }
+        }
+
+        // 量子舞蹈
+        let dancingInterval;
+        function startQuantumDance() {
+            const danceContainer = document.getElementById('quantumDance');
+            dancingInterval = setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'dancing-particle';
+                particle.style.left = Math.random() * 90 + '%';
+                particle.style.top = Math.random() * 90 + '%';
+                particle.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                danceContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 2000);
+            }, 200);
+        }
+
+        function stopQuantumDance() {
+            clearInterval(dancingInterval);
+            document.getElementById('quantumDance').innerHTML = '';
+        }
+
+        // 测验功能
+        const questions = [
+            {
+                question: "量子是什么？",
+                options: ["能量的最小单位", "一种新发现的动物", "超级计算机", "一种新的编程语言"],
+                correct: 0
+            },
+            {
+                question: "波粒二象性是指什么？",
+                options: ["既能像粒子又能像波", "既可以像声音又可以像光", "既可以热又可以冷", "既可以大又可以小"],
+                correct: 0
+            },
+            {
+                question: "薛定谔的猫说明了什么？",
+                options: ["量子叠加态", "猫很聪明", "盒子很结实", "猫喜欢睡觉"],
+                correct: 0
+            },
+            {
+                question: "双缝实验证明了什么？",
+                options: ["微观粒子具有波动性", "光速是最快的", "重力很强大", "电子很轻"],
+                correct: 0
+            },
+            {
+                question: "量子纠缠意味着什么？",
+                options: ["粒子之间有神秘联系", "粒子很紧张", "粒子打结了", "粒子很团结"],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('question').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('score').textContent = `得分: ${score}/${currentQuestion}`;
+        }
+
+        function checkAnswer(selectedIndex) {
+            const options = document.querySelectorAll('.option');
+            const question = questions[currentQuestion];
+            
+            options.forEach((option, index) => {
+                option.onclick = null;
+                if (index === question.correct) {
+                    option.classList.add('correct');
+                } else if (index === selectedIndex && selectedIndex !== question.correct) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            if (selectedIndex === question.correct) {
+                score++;
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('question').textContent = "测验完成！";
+                document.getElementById('options').innerHTML = '';
+                document.getElementById('score').textContent = `最终得分: ${score}/${questions.length}`;
+            }
+        }
+
+        // 初始化
+        window.onload = function() {
+            loadQuestion();
+            toggleCat();
+            startQuantumDance();
+        };
+    </script>
+</body>
+</html>

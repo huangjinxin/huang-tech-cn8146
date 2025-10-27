@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>画画小屋 - 图案支持</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .app-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 15px;
+            max-width: 95vw;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .app-icon {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        canvas {
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            cursor: crosshair;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+
+        .cursor-indicator {
+            position: absolute;
+            border: 2px solid rgba(0,0,0,0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.8);
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: none;
+        }
+
+        .tools-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 0 10px;
+            border-right: 1px solid #eee;
+        }
+
+        .tool-group:last-child {
+            border-right: none;
+        }
+
+        .tool-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .color-btn:hover, .color-btn:active {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        .color-btn.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px #4a90e2;
+        }
+
+        .color-btn.black { background-color: #000; }
+        .color-btn.red { background-color: #e53935; }
+        .color-btn.blue { background-color: #1e88e5; }
+        .color-btn.green { background-color: #43a047; }
+        .color-btn.yellow { background-color: #fdd835; }
+        .color-btn.purple { background-color: #8e24aa; }
+        .color-btn.orange { background-color: #fb8c00; }
+        .color-btn.pink { background-color: #e91e63; }
+        .color-btn.white { 
+            background-color: #fff;
+            border: 1px solid #ddd;
+        }
+
+        .custom-color-btn {
+            background: linear-gradient(45deg, 
+                #f44336 0%, #e91e63 25%, 
+                #9c27b0 50%, #673ab7 75%, 
+                #3f51b5 100%);
+            position: relative;
+            overflow: visible;
+        }
+
+        .custom-color-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+        }
+
+        .color-indicator {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid white;
+            bottom: 2px;
+            right: 2px;
+            background: #4a90e2;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .tool-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .tool-btn:hover, .tool-btn:active {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .brush-control {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .brush-size-slider {
+            width: 150px;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .brush-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .brush-size-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .brush-preview {
+            width: 40px;
+            height: 40px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .brush-dot {
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .pattern-picker {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pattern-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pattern-btn:hover, .pattern-btn:active {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .pattern-btn.active {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .pattern-btn svg {
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+        }
+
+        .pattern-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: 100% 100%;
+            opacity: 0.8;
+        }
+
+        .pattern-circle::before {
+            background-image: radial-gradient(circle, #333 20%, transparent 20%);
+        }
+
+        .pattern-square::before {
+            background-image: repeating-linear-gradient(45deg, #333, #333 5px, transparent 5px, transparent 10px);
+        }
+
+        .pattern-star::before {
+            background-image: radial-gradient(circle, #333 30%, transparent 30%);
+        }
+
+        .pattern-heart::before {
+            background-image: radial-gradient(circle, #333 25%, transparent 25%);
+        }
+
+        .pattern-flower::before {
+            background-image: radial-gradient(circle, #333 25%, transparent 25%);
+        }
+
+        .controls {
+            margin: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .controls button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            background-color: #4a90e2;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            touch-action: manipulation;
+        }
+
+        .controls button:hover:not(:disabled), .controls button:active:not(:disabled) {
+            background: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .controls button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .controls button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background-color: #e53935;
+        }
+
+        .btn-danger:hover:not(:disabled), .btn-danger:active:not(:disabled) {
+            background: #c62828;
+        }
+
+        .btn-secondary {
+            background-color: #757575;
+        }
+
+        .btn-secondary:hover:not(:disabled), .btn-secondary:active:not(:disabled) {
+            background-color: #616161;
+        }
+
+        .info-text {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .keyboard-shortcuts {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .key {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-weight: bold;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+        .help-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .help-panel.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .help-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .help-title {
+            font-size: 1.5em;
+            margin: 0;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .help-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .help-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .help-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #4a90e2;
+        }
+
+        .help-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .help-list li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .help-list .action {
+            font-weight: 500;
+        }
+
+        .help-list .shortcut {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-color-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 25px;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        .custom-color-modal.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.3em;
+            color: #333;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .color-picker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .color-input-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .color-input {
+            width: 100%;
+            height: 50px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .color-input:hover {
+            border-color: #4a90e2;
+        }
+
+        .color-input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        .color-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 15px 0;
+        }
+
+        .color-value {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-button-primary {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .modal-button-primary:hover {
+            background-color: #357abd;
+        }
+
+        .modal-button-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .modal-button-secondary:hover {
+            background-color: #d0d0d0;
+        }
+
+        .pattern-size-slider {
+            width: 150px;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .pattern-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .pattern-size-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 8px;
+            }
+            
+            h1 {
+                font-size: 1.3em;
+            }
+            
+            .app-icon {
+                width: 24px;
+                height: 24px;
+                margin-right: 8px;
+            }
+            
+            .tools-container {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .tool-group {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+                justify-content: center;
+            }
+            
+            .color-btn {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .brush-size-slider {
+                width: 120px;
+            }
+            
+            .brush-preview {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .controls {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .control-group {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .controls button {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="title-container">
+                <h1>
+                    <svg class="app-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.49 2 2 6.49 2 12C2 17.51 6.49 22 12 22C17.51 22 22 17.51 22 12C22 6.49 17.51 2 12 2ZM12.5 7V12.25L16.5 14.92L15.92 16.15L11 13V7H12.5Z" fill="#4a90e2"/>
+                    </svg>
+                    画画小屋
+                </h1>
+            </div>
+            <div class="history-indicator">
+                <span>步骤:</span>
+                <span class="history-step" id="historyStep">0</span>
+                <span class="total-steps">/ <span id="totalSteps">0</span></span>
+            </div>
+        </header>
+
+        <div class="canvas-container">
+            <canvas id="drawCanvas" width="800" height="600"></canvas>
+            <div id="cursorIndicator" class="cursor-indicator"></div>
+        </div>
+
+        <div class="tools-container">
+            <div class="tool-group">
+                <span class="tool-label">工具:</span>
+                <div class="tool-buttons">
+                    <button class="tool-btn active" id="brushTool" onclick="setTool('brush')" title="画笔">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 14L16.7 4.29C17.1 3.9 17.85 3.9 18.25 4.29L19.76 5.8C20.16 6.2 20.16 6.95 19.76 7.35L10.12 17H7V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M12 19L16 23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="tool-btn" id="eraserTool" onclick="setTool('eraser')" title="橡皮擦">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.4 6.6L7.8 18.2L2.8 22L3.5 19.1L6.4 15.2L18 3.6C18.4 3.2 19.1 3.2 19.5 3.6L22 6.1C22.4 6.5 22.4 7.2 22 7.6L19.4 6.6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 10L14 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="tool-btn" id="patternTool" onclick="setTool('pattern')" title="图案">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tool-group">
+                <span class="tool-label">颜色:</span>
+                <div class="color-picker">
+                    <div class="color-btn black active" onclick="setActiveColor('black')"></div>
+                    <div class="color-btn red" onclick="setActiveColor('red')"></div>
+                    <div class="color-btn blue" onclick="setActiveColor('blue')"></div>
+                    <div class="color-btn green" onclick="setActiveColor('green')"></div>
+                    <div class="color-btn yellow" onclick="setActiveColor('yellow')"></div>
+                    <div class="color-btn purple" onclick="setActiveColor('purple')"></div>
+                    <div class="color-btn orange" onclick="setActiveColor('orange')"></div>
+                    <div class="color-btn pink" onclick="setActiveColor('pink')"></div>
+                    <div class="color-btn white" onclick="setActiveColor('white')"></div>
+                    <div class="color-btn custom-color-btn" onclick="openCustomColorModal()" title="自定义颜色">
+                        <input type="color" class="custom-color-input" id="customColorInput" value="#4a90e2" onchange="updateCustomColor()" oninput="updateCustomColor()">
+                        <div class="color-indicator">+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-group">
+                <span class="tool-label">图案:</span>
+                <div class="pattern-picker">
+                    <button class="pattern-btn pattern-circle active" id="patternCircle" onclick="setPattern('circle', this)" title="圆形">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                    <button class="pattern-btn pattern-square" id="patternSquare" onclick="setPattern('square', this)" title="方形">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6" y="6" width="12" height="12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                    <button class="pattern-btn pattern-star" id="patternStar" onclick="setPattern('star', this)" title="星星">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                    <button class="pattern-btn pattern-heart" id="patternHeart" onclick="setPattern('heart', this)" title="心形">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                    <button class="pattern-btn pattern-flower" id="patternFlower" onclick="setPattern('flower', this)" title="花朵">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 18C13.1 18 14 18.9 14 20C14 21.1 13.1 22 12 22C10.9 22 10 21.1 10 20C10 18.9 10.9 18 12 18Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M20 12C21.1 12 22 12.9 22 14C22 15.1 21.1 16 20 16C18.9 16 18 15.1 18 14C18 12.9 18.9 12 20 12Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M4 12C5.1 12 6 12.9 6 14C6 15.1 5.1 16 4 16C2.9 16 2 15.1 2 14C2 12.9 2.9 12 4 12Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M17.66 17.66C18.41 16.9 19.6 16.9 20.35 17.65C21.1 18.4 21.1 19.59 20.35 20.34C19.6 21.09 18.41 21.09 17.66 20.34C16.91 19.59 16.91 18.4 17.66 17.66Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M3.66 3.65C4.41 2.9 5.6 2.9 6.35 3.65C7.1 4.4 7.1 5.59 6.35 6.34C5.6 7.09 4.41 7.09 3.66 6.34C2.91 5.59 2.91 4.4 3.66 3.65Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M17.66 6.34C18.41 5.59 19.6 5.59 20.35 6.34C21.1 7.09 21.1 8.28 20.35 9.03C19.6 9.78 18.41 9.78 17.66 9.03C16.91 8.28 16.91 7.09 17.66 6.34Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M3.66 20.34C4.41 19.59 5.6 19.59 6.35 20.34C7.1 21.09 7.1 22.28 6.35 23.03C5.6 23.78 4.41 23.78 3.66 23.03C2.91 22.28 2.91 21.09 3.66 20.34Z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="brush-control" id="brushControl">
+            <span class="tool-label">画笔设置:</span>
+            <div class="slider-container">
+                <input type="range" class="brush-size-slider" min="1" max="30" value="5" oninput="setBrushSize(this.value)">
+                <div class="brush-preview">
+                    <div class="brush-dot" id="brushPreview"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="brush-control" id="patternControl" style="display: none;">
+            <span class="tool-label">图案设置:</span>
+            <div class="slider-container">
+                <input type="range" class="pattern-size-slider" min="10" max="100" value="30" oninput="setPatternSize(this.value)">
+                <div class="brush-preview">
+                    <div class="brush-dot" id="patternPreview"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <button id="undoBtn" onclick="undo()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 14L4 9L9 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 20V13C20 10.7909 18.2091 9 16 9H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    撤回
+                </button>
+                <button id="redoBtn" onclick="redo()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 14L20 9L15 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 20V13C4 10.7909 5.79086 9 8 9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    重做
+                </button>
+            </div>
+            <div class="control-group">
+                <button class="btn-danger" onclick="clearCanvas()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19 6V20C19 21.1 18.1 21 17 21H7C5.9 21 5 20.1 5 20V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 6V4C8 2.9 8.9 2 10 2H14C15.1 2 16 2.9 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    清除画布
+                </button>
+                <button class="btn-secondary" onclick="downloadImage()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    保存图片
+                </button>
+                <button class="btn-secondary" onclick="showHelp()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M9.09 9A3 3 0 0 1 15 10.91M12 16V14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    帮助
+                </button>
+            </div>
+        </div>
+        
+        <div class="info-text">
+            <div class="keyboard-shortcuts">
+                <span>触摸:</span>
+                <span>点击并拖动画笔</span>
+            </div>
+            <div class="keyboard-shortcuts">
+                <span>快捷键:</span>
+                <span class="key">Z</span>撤回
+                <span class="key">Y</span>重做
+                <span class="key">C</span>清除
+                <span class="key">?</span>帮助
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义颜色模态框 -->
+    <div id="customColorModal" class="custom-color-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">选择自定义颜色</h2>
+            <button class="modal-close" onclick="closeCustomColorModal()">×</button>
+        </div>
+        <div class="color-picker-container">
+            <div class="color-input-wrapper">
+                <label class="color-input-label" for="colorPicker">选择颜色:</label>
+                <input type="color" id="colorPicker" class="color-input" value="#4a90e2" onchange="updateCustomColor()">
+            </div>
+            <div class="color-preview" id="colorPreview" style="background-color: #4a90e2;"></div>
+            <div class="color-value" id="colorValue">#4a90e2</div>
+            <div class="modal-buttons">
+                <button class="modal-button modal-button-primary" onclick="applyCustomColor()">应用颜色</button>
+                <button class="modal-button modal-button-secondary" onclick="closeCustomColorModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助面板 -->
+    <div id="overlay" class="overlay" onclick="hideHelp()"></div>
+    <div id="helpPanel" class="help-panel">
+        <div class="help-header">
+            <h2 class="help-title">画画小屋 - 使用指南</h2>
+            <button class="close-btn" onclick="hideHelp()">×</button>
+        </div>
+        <div class="help-content">
+            <div class="help-section">
+                <h3>绘画工具</h3>
+                <ul class="help-list">
+                    <li>
+                        <span class="action">画笔工具</span>
+                        <span class="shortcut">点击选择</span>
+                    </li>
+                    <li>
+                        <span class="action">橡皮擦工具</span>
+                        <span class="shortcut">点击选择</span>
+                    </li>
+                    <li>
+                        <span class="action">图案工具</span>
+                        <span class="shortcut">点击选择</span>
+                    </li>
+                    <li>
+                        <span class="action">清除画布</span>
+                        <span class="shortcut">点击按钮</span>
+                    </li>
+                    <li>
+                        <span class="action">自定义颜色</span>
+                        <span class="shortcut">点击颜色选择器</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>触摸操作</h3>
+                <ul class="help-list">
+                    <li>
+                        <span class="action">开始绘画</span>
+                        <span class="shortcut">点击画布并拖动</span>
+                    </li>
+                    <li>
+                        <span class="action">更换颜色</span>
+                        <span class="shortcut">点击颜色选择</span>
+                    </li>
+                    <li>
+                        <span class="action">调整画笔/图案大小</span>
+                        <span class="shortcut">滑动滑块</span>
+                    </li>
+                    <li>
+                        <span class="action">使用自定义颜色</span>
+                        <span class="shortcut">点击"+"按钮</span>
+                    </li>
+                    <li>
+                        <span class="action">插入图案</span>
+                        <span class="shortcut">点击画布</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>键盘快捷键</h3>
+                <ul class="help-list">
+                    <li>
+                        <span class="action">撤回</span>
+                        <span class="shortcut"><span class="key">Z</span> 或 <span class="key">Ctrl</span>+<span class="key">Z</span></span>
+                    </li>
+                    <li>
+                        <span class="action">重做</span>
+                        <span class="shortcut"><span class="key">Y</span> 或 <span class="key">Ctrl</span>+<span class="key">Y</span></span>
+                    </li>
+                    <li>
+                        <span class="action">清除画布</span>
+                        <span class="shortcut"><span class="key">C</span> 或 <span class="key">Ctrl</span>+<span class="key">K</span></span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>可用图案</h3>
+                <ul class="help-list">
+                    <li>
+                        <span class="action">圆形</span>
+                        <span class="shortcut">简单圆形图案</span>
+                    </li>
+                    <li>
+                        <span class="action">方形</span>
+                        <span class="shortcut">方形格子图案</span>
+                    </li>
+                    <li>
+                        <span class="action">星星</span>
+                        <span class="shortcut">五角星图案</span>
+                    </li>
+                    <li>
+                        <span class="action">心形</span>
+                        <span class="shortcut">爱心图案</span>
+                    </li>
+                    <li>
+                        <span class="action">花朵</span>
+                        <span class="shortcut">花朵图案</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // 获取元素
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const brushPreview = document.getElementById('brushPreview');
+        const patternPreview = document.getElementById('patternPreview');
+        const brushSizeValue = document.getElementById('brushSizeValue');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const cursorIndicator = document.getElementById('cursorIndicator');
+        const toast = document.getElementById('toast');
+        const historyStepElement = document.getElementById('historyStep');
+        const totalStepsElement = document.getElementById('totalSteps');
+        const helpPanel = document.getElementById('helpPanel');
+        const overlay = document.getElementById('overlay');
+        const customColorModal = document.getElementById('customColorModal');
+        const colorPicker = document.getElementById('colorPicker');
+        const colorPreview = document.getElementById('colorPreview');
+        const colorValue = document.getElementById('colorValue');
+        const customColorInput = document.getElementById('customColorInput');
+        const brushControl = document.getElementById('brushControl');
+        const patternControl = document.getElementById('patternControl');
+        
+        // 状态变量
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let selectedColor = 'black';
+        let brushSize = 5;
+        let patternSize = 30;
+        let currentTool = 'brush';
+        let isDrawingWithTouch = false;
+        let customColor = '#4a90e2'; // 默认自定义颜色
+        let selectedPattern = 'circle'; // 默认图案
+        
+        // 存储历史记录用于撤回和重做
+        let history = [];
+        let historyStep = -1;
+        const maxHistory = 50; // 最大保存历史记录数量
+
+        // 初始化
+        function init() {
+            // 设置画布适应屏幕
+            resizeCanvas();
+            
+            // 初始化画笔显示大小
+            updateBrushPreview();
+            updatePatternPreview();
+            
+            // 添加事件监听器
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 初始化画布状态
+            saveState();
+            
+            // 设置初始指示器位置
+            updateCursorIndicator();
+        }
+
+        // 调整画布大小
+        function resizeCanvas() {
+            // 获取容器大小
+            const containerWidth = Math.min(800, window.innerWidth - 60);
+            const containerHeight = Math.min(600, window.innerHeight - 300);
+            
+            // 设置画布宽高
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            
+            // 重新设置画布属性
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        // 显示提示信息
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 更新光标指示器
+        function updateCursorIndicator() {
+            const rect = canvas.getBoundingClientRect();
+            const canvasX = rect.left + lastX;
+            const canvasY = rect.top + lastY;
+            
+            cursorIndicator.style.left = `${canvasX}px`;
+            cursorIndicator.style.top = `${canvasY}px`;
+            
+            if (currentTool === 'brush' || currentTool === 'eraser') {
+                cursorIndicator.style.width = `${brushSize}px`;
+                cursorIndicator.style.height = `${brushSize}px`;
+                cursorIndicator.style.borderColor = currentTool === 'brush' ? selectedColor : '#ff5252';
+                cursorIndicator.style.borderRadius = '50%';
+            } else if (currentTool === 'pattern') {
+                cursorIndicator.style.width = `${patternSize}px`;
+                cursorIndicator.style.height = `${patternSize}px`;
+                cursorIndicator.style.borderColor = selectedColor;
+                cursorIndicator.style.borderRadius = '0';
+                cursorIndicator.style.borderStyle = 'dashed';
+            }
+            
+            cursorIndicator.style.display = 'block';
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            isDrawingWithTouch = e.type.includes('touch');
+            const rect = canvas.getBoundingClientRect();
+            
+            // 处理鼠标和触摸事件
+            if (e.type.includes('mouse')) {
+                lastX = e.clientX - rect.left;
+                lastY = e.clientY - rect.top;
+            } else if (e.type.includes('touch')) {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    lastX = e.touches[0].clientX - rect.left;
+                    lastY = e.touches[0].clientY - rect.top;
+                }
+            }
+            
+            updateCursorIndicator();
+            
+            // 如果是图案工具，在点击位置插入图案
+            if (currentTool === 'pattern') {
+                drawPattern(lastX, lastY);
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            
+            // 处理鼠标和触摸事件
+            if (e.type.includes('mouse')) {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            } else if (e.type.includes('touch')) {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    x = e.touches[0].clientX - rect.left;
+                    y = e.touches[0].clientY - rect.top;
+                }
+            }
+
+            if (currentTool === 'brush') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = selectedColor;
+            } else if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            }
+            
+            if (currentTool === 'brush' || currentTool === 'eraser') {
+                ctx.lineWidth = brushSize;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+
+            lastX = x;
+            lastY = y;
+            updateCursorIndicator();
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                isDrawingWithTouch = false;
+                saveState(); // 每次停止绘画时保存状态
+                cursorIndicator.style.display = 'none';
+            }
+        }
+
+        function setActiveColor(color) {
+            selectedColor = color;
+            updateBrushPreview(); // 更新画笔预览颜色
+            updatePatternPreview(); // 更新图案预览颜色
+            updateCursorIndicator(); // 更新光标指示器颜色
+            
+            // 添加视觉反馈
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 如果不是自定义颜色按钮
+            if (event.target.classList.contains('color-btn') && !event.target.classList.contains('custom-color-btn')) {
+                event.target.classList.add('active');
+            }
+        }
+
+        function setBrushSize(size) {
+            brushSize = parseInt(size);
+            updateBrushPreview();
+            updateCursorIndicator(); // 更新光标指示器大小
+        }
+
+        function setPatternSize(size) {
+            patternSize = parseInt(size);
+            updatePatternPreview();
+            updateCursorIndicator(); // 更新光标指示器大小
+        }
+
+        function setPattern(pattern, buttonElement) {
+            selectedPattern = pattern;
+            
+            // 更新UI状态
+            document.querySelectorAll('.pattern-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+            
+            updatePatternPreview();
+            updateCursorIndicator();
+            showToast(`已选择图案: ${getPatternName(pattern)}`);
+        }
+
+        function getPatternName(pattern) {
+            const patternNames = {
+                'circle': '圆形',
+                'square': '方形',
+                'star': '星星',
+                'heart': '心形',
+                'flower': '花朵'
+            };
+            return patternNames[pattern] || pattern;
+        }
+
+        function drawPattern(x, y) {
+            const size = patternSize;
+            const halfSize = size / 2;
+            
+            ctx.fillStyle = selectedColor;
+            
+            switch (selectedPattern) {
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(x, y, halfSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                    
+                case 'square':
+                    ctx.fillRect(x - halfSize, y - halfSize, size, size);
+                    break;
+                    
+                case 'star':
+                    drawStar(x, y, 5, halfSize, halfSize / 2);
+                    break;
+                    
+                case 'heart':
+                    drawHeart(x, y, size);
+                    break;
+                    
+                case 'flower':
+                    drawFlower(x, y, size);
+                    break;
+            }
+            
+            saveState(); // 插入图案后保存状态
+        }
+
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawHeart(x, y, size) {
+            const width = size;
+            const height = size;
+            
+            ctx.beginPath();
+            const topCurveHeight = height * 0.3;
+            ctx.moveTo(x, y + topCurveHeight);
+            
+            // 左侧曲线
+            ctx.bezierCurveTo(
+                x, y, 
+                x - width / 2, y, 
+                x - width / 2, y + topCurveHeight
+            );
+            
+            // 左下曲线
+            ctx.bezierCurveTo(
+                x - width / 2, y + (height + topCurveHeight) / 2, 
+                x, y + (height + topCurveHeight) / 2, 
+                x, y + height
+            );
+            
+            // 右下曲线
+            ctx.bezierCurveTo(
+                x, y + (height + topCurveHeight) / 2, 
+                x + width / 2, y + (height + topCurveHeight) / 2, 
+                x + width / 2, y + topCurveHeight
+            );
+            
+            // 右侧曲线
+            ctx.bezierCurveTo(
+                x + width / 2, y, 
+                x, y, 
+                x, y + topCurveHeight
+            );
+            
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawFlower(x, y, size) {
+            const petals = 8;
+            const petalSize = size / 3;
+            const centerSize = size / 4;
+            
+            // 绘制花瓣
+            for (let i = 0; i < petals; i++) {
+                const angle = (i * 2 * Math.PI) / petals;
+                const petalX = x + Math.cos(angle) * petalSize;
+                const petalY = y + Math.sin(angle) * petalSize;
+                
+                ctx.beginPath();
+                ctx.arc(petalX, petalY, petalSize / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 绘制花心
+            ctx.beginPath();
+            ctx.arc(x, y, centerSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function updateBrushPreview() {
+            const size = Math.min(40, Math.max(6, brushSize)); // 限制预览大小在6-40像素之间
+            brushPreview.style.width = `${size}px`;
+            brushPreview.style.height = `${size}px`;
+            
+            if (currentTool === 'brush') {
+                brushPreview.style.backgroundColor = selectedColor;
+            } else {
+                brushPreview.style.backgroundColor = '#f5f5f5';
+                brushPreview.style.border = `1px solid ${selectedColor}`;
+            }
+        }
+
+        function updatePatternPreview() {
+            const size = Math.min(40, Math.max(10, patternSize)); // 限制预览大小在10-40像素之间
+            patternPreview.style.width = `${size}px`;
+            patternPreview.style.height = `${size}px`;
+            patternPreview.style.backgroundColor = selectedColor;
+        }
+
+        function clearCanvas() {
+            if (history.length > 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                saveState(); // 清除画布后保存状态
+                showToast('画布已清除');
+            }
+        }
+
+        function saveState() {
+            // 如果当前步骤不是最后一步，则删除后面的历史记录
+            if (historyStep < history.length - 1) {
+                history = history.slice(0, historyStep + 1);
+            }
+            
+            // 保存当前状态
+            history.push(canvas.toDataURL());
+            
+            // 如果历史记录超过最大数量，则移除最旧的
+            if (history.length > maxHistory) {
+                history.shift();
+                historyStep--; // 保持步骤索引正确
+            } else {
+                historyStep++;
+            }
+            
+            // 更新历史指示器
+            updateHistoryIndicator();
+            
+            // 更新按钮状态
+            updateButtonStates();
+        }
+
+        function updateHistoryIndicator() {
+            historyStepElement.textContent = historyStep;
+            totalStepsElement.textContent = history.length;
+        }
+
+        function updateButtonStates() {
+            // 如果有历史记录可以撤回，启用撤回按钮
+            if (historyStep > 0) {
+                undoBtn.disabled = false;
+            } else {
+                undoBtn.disabled = true;
+            }
+            
+            // 如果有后续历史记录可以重做，启用重做按钮
+            if (historyStep < history.length - 1) {
+                redoBtn.disabled = false;
+            } else {
+                redoBtn.disabled = true;
+            }
+        }
+
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                restoreState(history[historyStep]);
+                showToast('已撤回');
+                
+                // 添加撤回动画效果
+                animateUndoRedo();
+            }
+        }
+
+        function redo() {
+            if (historyStep < history.length - 1) {
+                historyStep++;
+                restoreState(history[historyStep]);
+                showToast('已重做');
+                
+                // 添加重做动画效果
+                animateUndoRedo();
+            }
+        }
+
+        function restoreState(dataUrl) {
+            const img = new Image();
+            img.src = dataUrl;
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                // 恢复后更新按钮状态和历史指示器
+                updateButtonStates();
+                updateHistoryIndicator();
+            };
+        }
+
+        // 撤回/重做动画效果
+        function animateUndoRedo() {
+            canvas.style.opacity = '0.7';
+            setTimeout(() => {
+                canvas.style.opacity = '1';
+            }, 200);
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            updateBrushPreview();
+            updatePatternPreview();
+            updateCursorIndicator();
+            
+            // 更新UI状态
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 显示/隐藏不同的控制面板
+            if (tool === 'brush' || tool === 'eraser') {
+                brushControl.style.display = 'flex';
+                patternControl.style.display = 'none';
+            } else if (tool === 'pattern') {
+                brushControl.style.display = 'none';
+                patternControl.style.display = 'flex';
+            }
+            
+            if (tool === 'brush') {
+                document.getElementById('brushTool').classList.add('active');
+                cursorIndicator.style.cursor = 'crosshair';
+            } else if (tool === 'eraser') {
+                document.getElementById('eraserTool').classList.add('active');
+                cursorIndicator.style.cursor = 'grab';
+            } else if (tool === 'pattern') {
+                document.getElementById('patternTool').classList.add('active');
+                cursorIndicator.style.cursor = 'pointer';
+            }
+            
+            showToast(`已切换到${tool === 'brush' ? '画笔' : tool === 'eraser' ? '橡皮擦' : '图案'}工具`);
+        }
+
+        // 自定义颜色功能
+        function openCustomColorModal() {
+            // 同步两个颜色选择器的值
+            colorPicker.value = customColor;
+            customColorInput.value = customColor;
+            updateCustomColor();
+            
+            customColorModal.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        function closeCustomColorModal() {
+            customColorModal.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        function updateCustomColor() {
+            const color = colorPicker.value;
+            customColor = color;
+            colorPreview.style.backgroundColor = color;
+            colorValue.textContent = color.toUpperCase();
+        }
+
+        function applyCustomColor() {
+            selectedColor = customColor;
+            updateBrushPreview();
+            updatePatternPreview();
+            updateCursorIndicator();
+            
+            // 更新自定义颜色按钮状态
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 如果是自定义颜色按钮，添加active类
+            document.querySelector('.custom-color-btn').classList.add('active');
+            
+            showToast(`已应用颜色: ${customColor}`);
+            closeCustomColorModal();
+        }
+
+        function showHelp() {
+            helpPanel.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        function hideHelp() {
+            helpPanel.classList.remove('show');
+            overlay.classList.remove('show');
+            
+            // 如果同时打开了自定义颜色模态框，点击遮罩应关闭模态框
+            if (customColorModal.classList.contains('show')) {
+                closeCustomColorModal();
+            }
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = `画画小屋_${new Date().getTime()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('图片已保存');
+        }
+
+        function handleKey(e) {
+            // 防止在输入框中触发快捷键
+            if (e.target.tagName === 'INPUT' && e.target.type !== 'color') return;
+            
+            const step = 10;
+            
+            switch (e.key) {
+                // 工具切换
+                case 'b':
+                case 'B':
+                    setTool('brush');
+                    break;
+                case 'e':
+                case 'E':
+                    setTool('eraser');
+                    break;
+                case 'p':
+                case 'P':
+                    setTool('pattern');
+                    break;
+                case '1':
+                    setTool('brush');
+                    break;
+                case '2':
+                    setTool('eraser');
+                    break;
+                case '3':
+                    setTool('pattern');
+                    break;
+                    
+                // 编辑功能
+                case 'z':
+                case 'Z':
+                    // 单步撤回
+                    e.preventDefault();
+                    if (e.ctrlKey || e.metaKey) { // 支持Ctrl+Z撤回
+                        undo();
+                    } else {
+                        undo(); // 单独Z键也支持撤回
+                    }
+                    break;
+                case 'y':
+                case 'Y':
+                    // 单步重做
+                    e.preventDefault();
+                    if (e.ctrlKey || e.metaKey) { // 支持Ctrl+Y重做
+                        redo();
+                    } else {
+                        redo(); // 单独Y键也支持重做
+                    }
+                    break;
+                case 'c':
+                case 'C':
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        clearCanvas();
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        downloadImage();
+                    }
+                    break;
+                case '?':
+                    e.preventDefault();
+                    showHelp();
+                    break;
+            }
+        }
+
+        function moveCursor(dx, dy) {
+            const x = lastX + dx;
+            const y = lastY + dy;
+
+            // 确保在画布范围内
+            if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+                lastX = x;
+                lastY = y;
+                updateCursorIndicator();
+            }
+        }
+
+        // 初始化应用
+        init();
+
+        // 键盘控制
+        document.addEventListener('keydown', handleKey);
+
+        // 鼠标事件
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', () => {
+            stopDrawing();
+            cursorIndicator.style.display = 'none';
+        });
+
+        // 触摸事件
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing, { passive: false });
+        canvas.addEventListener('touchcancel', stopDrawing, { passive: false });
+
+        // 阻止触摸事件的默认行为，如页面滚动
+        document.body.addEventListener('touchstart', e => {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('touchmove', e => {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 点击遮罩层帮助自定义颜色面板
+        overlay.addEventListener('click', () => {
+            if (customColorModal.classList.contains('show')) {
+                closeCustomColorModal();
+            } else {
+                hideHelp();
+            }
+        });
+
+        // 防止自定义颜色模态框内部点击遮罩层
+        customColorModal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    </script>
+
+</body>
+</html>
